@@ -1,6 +1,6 @@
 import Overlay from "./components/Overlay";
 import Button from "./components/ui/Button";
-import ButtonGroup from "./components/ui/ButtonGroup";
+import Group from "./components/ui/Group";
 import TerrainInfo from "./components/TerrainInfo";
 import Icon from "./components/ui/Icon";
 
@@ -8,21 +8,20 @@ function App() {
   return (
     <Overlay
       topLeft={
-        <TerrainInfo
-          logo="/images/logo.png"
-          primaryText="The Netherlands"
-          secondaryText="512x512"
-        />
+        <Group style={{ gap: "25px" }}>
+          <Icon src="/images/logo.png" height={60} width={60} alt="Logo" />
+          <TerrainInfo primaryInfo="The Netherlands" secondaryInfo="512x512" />
+        </Group>
       }
       topRight={
-        <ButtonGroup>
+        <Group>
           <Button>
             <Icon src="/images/magnifying-glass.png" alt="Search" />
           </Button>
           <Button>
             <Icon src="/images/floppy-disk.png" alt="Export" />
           </Button>
-        </ButtonGroup>
+        </Group>
       }
       bottomLeft={null}
       bottomRight={null}

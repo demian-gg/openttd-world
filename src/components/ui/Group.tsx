@@ -9,13 +9,13 @@ const GroupContainer = styled.div`
   gap: 10px;
 `;
 
-interface ButtonGroupProps {
+interface GroupProps {
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
 }
 
-const ButtonGroup = (props: ButtonGroupProps) => {
+const Group = (props: GroupProps) => {
   const { children, className, style } = props;
 
   return (
@@ -25,4 +25,4 @@ const ButtonGroup = (props: ButtonGroupProps) => {
   );
 };
 
-export default ButtonGroup;
+export default Group;
