@@ -49,7 +49,7 @@ interface TerrainInfoProps {
   secondaryText?: React.ReactNode;
 }
 
-const TerrainInfo: React.FC<TerrainInfoProps> = (props) => {
+const TerrainInfo = (props: TerrainInfoProps) => {
   const { primaryText, secondaryText } = props;
 
   const logo = useMemo(() => {

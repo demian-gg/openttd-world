@@ -53,7 +53,7 @@ interface OverlayProps {
   };
 }
 
-const Overlay: React.FC<OverlayProps> = (props: OverlayProps) => {
+const Overlay = (props: OverlayProps) => {
   const { topLeft, topRight, bottomLeft, bottomRight, styles } = props;
 
   return (

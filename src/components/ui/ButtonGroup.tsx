@@ -15,7 +15,7 @@ interface ButtonGroupProps {
   style?: CSSProperties;
 }
 
-const ButtonGroup: React.FC<ButtonGroupProps> = (props) => {
+const ButtonGroup = (props: ButtonGroupProps) => {
   const { children, className, style } = props;
 
   return (
