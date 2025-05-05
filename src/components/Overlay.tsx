@@ -22,6 +22,11 @@ const OverlayContainer = styled.div`
   > * {
     pointer-events: auto;
   }
+
+  /* Make all direct children drop a hard shadow */
+  > * {
+    filter: drop-shadow(0px 2px 0px rgba(0, 0, 0, 0.4));
+  }
 `;
 
 const TopLeft = styled.div`

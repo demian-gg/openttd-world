@@ -6,7 +6,6 @@ const Box = styled.div`
   border-left: 2px solid #d4bc94;
   border-bottom: 2px solid #68502c;
   border-right: 2px solid #68502c;
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
   padding: 10px;
 `;
 
