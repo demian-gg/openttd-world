@@ -8,13 +8,13 @@ function App() {
   return (
     <Overlay
       topLeft={
-        <Group style={{ gap: "25px" }}>
+        <Group gap="25px" direction="row">
           <Icon src="/images/logo.png" height={60} width={60} alt="Logo" />
           <TerrainInfo primaryInfo="The Netherlands" secondaryInfo="512x512" />
         </Group>
       }
       topRight={
-        <Group>
+        <Group gap="10px" direction="row">
           <Button>
             <Icon src="/images/magnifying-glass.png" alt="Search" />
           </Button>
