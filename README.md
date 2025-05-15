@@ -1,4 +1,4 @@
-## ![Banner](.github/readme-banner.png)
+![Banner](.github/readme-banner.png)
 
 ####
 
