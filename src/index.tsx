@@ -1,7 +1,7 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { createGlobalStyle } from 'styled-components';
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { createGlobalStyle } from "styled-components";
+import App from "./App";
 
 const GlobalStyle = createGlobalStyle`
   @font-face {
@@ -28,9 +28,9 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GlobalStyle />
     <App />
-  </StrictMode>,
-)
+  </StrictMode>
+);

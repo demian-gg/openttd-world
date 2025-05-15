@@ -1,7 +1,7 @@
 import Overlay from "./components/Overlay";
+import TerrainInfo from "./components/TerrainInfo";
 import Button from "./components/ui/Button";
 import Group from "./components/ui/Group";
-import TerrainInfo from "./components/TerrainInfo";
 import Icon from "./components/ui/Icon";
 
 function App() {
