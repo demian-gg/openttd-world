@@ -4,6 +4,7 @@ import styled from "styled-components";
 const InfoContainer = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
 `;
 
 const Info = styled.div`

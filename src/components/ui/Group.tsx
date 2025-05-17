@@ -8,9 +8,6 @@ interface GroupContainerProps {
 
 const GroupContainer = styled.div<GroupContainerProps>`
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-
   flex-direction: ${(props) => props.direction};
   gap: ${(props) => props.gap};
 `;
@@ -26,10 +23,10 @@ const Group = (props: GroupProps) => {
 
   return (
     <GroupContainer
+      style={style}
       className={className}
       direction={direction}
       gap={gap}
-      style={style}
     >
       {children}
     </GroupContainer>
