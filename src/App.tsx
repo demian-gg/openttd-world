@@ -8,7 +8,7 @@ function App() {
   return (
     <Overlay
       topLeft={
-        <Group gap="25px" direction="row">
+        <Group gap="30px" direction="row">
           <Icon
             src="/images/logo.png"
             height={60}
