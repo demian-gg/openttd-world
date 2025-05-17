@@ -25,7 +25,7 @@ const OverlayContainer = styled.div`
 
   /* Make all direct children drop a hard shadow */
   > * {
-    filter: drop-shadow(0px 2px 0px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(2px 3px 0px rgba(0, 0, 0, 0.35));
   }
 `;
 
