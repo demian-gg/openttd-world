@@ -15,7 +15,6 @@ const GlobalStyle = createGlobalStyle`
   html {
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: grayscale;
-    image-rendering: pixelated;
   }
 
   body {

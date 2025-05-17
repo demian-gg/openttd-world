@@ -9,7 +9,13 @@ function App() {
     <Overlay
       topLeft={
         <Group gap="25px" direction="row">
-          <Icon src="/images/logo.png" height={60} width={60} alt="Logo" />
+          <Icon
+            src="/images/logo.png"
+            height={60}
+            width={60}
+            rendering="auto"
+            alt="Logo"
+          />
           <TerrainInfo primaryInfo="The Netherlands" secondaryInfo="512x512" />
         </Group>
       }
