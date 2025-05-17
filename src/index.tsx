@@ -23,7 +23,6 @@ const GlobalStyle = createGlobalStyle`
 
     color: #FFFFFF;
     font-family: "Perfect DOS VGA 437", system-ui;
-    text-shadow: 0.2px 0px 0px #FFFFFF, -0.2px 0px 0px #FFFFFF;
   }
 `;
 
