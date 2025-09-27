@@ -8,10 +8,10 @@ interface ModalFrameProps {
 
 const ModalFrame = styled.div<ModalFrameProps>`
   background-color: #98845c;
-  border-top: 1px solid #d4bc94;
-  border-left: 1px solid #d4bc94;
-  border-bottom: 1px solid #68502c;
-  border-right: 1px solid #68502c;
+  border-top: 2px solid #d4bc94;
+  border-left: 2px solid #d4bc94;
+  border-bottom: 2px solid #68502c;
+  border-right: 2px solid #68502c;
   color: #ffffff;
   text-shadow: 2px 2px 0px #000000;
   width: min(calc(100vw - 48px), ${({ $width }) => `${$width}px`});
