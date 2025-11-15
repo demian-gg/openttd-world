@@ -1,9 +1,9 @@
 <picture>
   <!-- The media queries determine the image based on website theme -->
-  <source media="(prefers-color-scheme: dark)" srcset=".github/readme-banner-white.png">
-  <source media="(prefers-color-scheme: light)" srcset=".github/readme-banner-black.png">
-  <!-- Fallback to the black variant if no match -->
-  <img alt="OpenTTD World Banner" src=".github/readme-banner-black.png">
+  <source media="(prefers-color-scheme: dark)" srcset=".assets/banner/dark-mode.png">
+  <source media="(prefers-color-scheme: light)" srcset=".assets/banner/light-mode.png">
+  <!-- Fallback to light mode variant if no match -->
+  <img alt="OpenTTD World Banner" src=".assets/banner/light-mode.png">
 </picture>
 
 ######
