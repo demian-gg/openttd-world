@@ -1,6 +1,7 @@
 /**
- * Offscreen layer management.
- * Provides layer creation, clearing, and resizing.
+ * Layer management for render ordering.
+ * Each layer is a separate canvas that components render to.
+ * Layers are composited onto the main canvas in z-order.
  */
 
 import { canvasEvents, CanvasResizedEvent, CanvasResolution } from "./canvas";
@@ -8,12 +9,15 @@ import { canvasEvents, CanvasResizedEvent, CanvasResolution } from "./canvas";
 /** Default layer for components that don't specify one. */
 export const DEFAULT_LAYER = 0;
 
-/** Represents an offscreen render layer. */
+/**
+ * Represents a render layer.
+ * Each layer has its own canvas that gets composited onto the main canvas.
+ */
 export interface Layer {
   /** Layer z-index for ordering. */
   id: number;
 
-  /** Offscreen canvas for this layer. */
+  /** Canvas for this layer (not attached to DOM). */
   canvas: OffscreenCanvas;
 
   /** 2D rendering context for this layer. */
@@ -46,7 +50,7 @@ function createLayer(id: number): Layer {
     throw new Error("Layers not initialized. Call initializeLayers first.");
   }
 
-  // Create offscreen canvas matching current resolution.
+  // Create canvas matching current resolution (not attached to DOM).
   const canvas = new OffscreenCanvas(
     currentResolution.width,
     currentResolution.height

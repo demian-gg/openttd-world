@@ -9,8 +9,8 @@ import type { RenderContext } from "./canvas";
  * Components are the building blocks of the game — sprites, UI elements, etc.
  */
 export interface Component {
-  /** Optional layer for render ordering. Lower renders first. */
-  LAYER?: number;
+  /** Optional configurable properties. */
+  props?: Record<string, unknown> & Partial<Record<"layer", number>>;
 
   /** Optional async load function called before first render. */
   load?: () => Promise<void>;

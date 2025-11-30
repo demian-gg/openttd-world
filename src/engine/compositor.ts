@@ -9,8 +9,7 @@ import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layer";
 import { getComponents } from "./components";
 
 /**
- * Composite a single frame.
- * Clears background, renders components to layers, flattens onto main canvas.
+ * Composites a single frame, outputting to the main canvas.
  */
 function compositeFrame(): void {
   const { ctx, backgroundColor } = getEngineState();
@@ -21,7 +20,10 @@ function compositeFrame(): void {
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   // Group components by layer.
-  const byLayer = Map.groupBy(components, (c) => c.LAYER ?? DEFAULT_LAYER);
+  const byLayer = Map.groupBy(
+    components,
+    (c) => (c.props?.layer as number) ?? DEFAULT_LAYER
+  );
 
   // Clear and render each layer.
   for (const [layerId, group] of byLayer) {
@@ -44,22 +46,26 @@ function compositeFrame(): void {
   }
 }
 
-/** Handle window resize. */
-function onCompositorResize(): void {
+/**
+ * Event handler callback for when the browser window is resized.
+ */
+function handleCompositorResize(): void {
   handleCanvasResize();
   compositeFrame();
 }
 
 /**
- * Initialize and start the compositor.
- * Attaches resize listener and begins requestAnimationFrame loop.
+ * Initializes and starts the compositor.
  */
 export function initializeCompositor(): void {
+  // Prevent multiple initializations.
   if (isEngineRunning()) return;
-
   setEngineRunning(true);
-  window.addEventListener("resize", onCompositorResize);
 
+  // Attach event listeners.
+  window.addEventListener("resize", handleCompositorResize);
+
+  // Start the compositor rendering loop.
   (function compositorLoop() {
     if (!isEngineRunning()) return;
     compositeFrame();
@@ -72,5 +78,7 @@ export function initializeCompositor(): void {
  */
 export function stopCompositor(): void {
   setEngineRunning(false);
-  window.removeEventListener("resize", onCompositorResize);
+
+  // Remove event listeners.
+  window.removeEventListener("resize", handleCompositorResize);
 }
