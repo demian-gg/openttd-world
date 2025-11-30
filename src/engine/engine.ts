@@ -1,3 +1,8 @@
+/**
+ * Core engine module.
+ * Provides initialization, state management, and runtime control.
+ */
+
 import { initCanvas, resizeCanvas, CanvasContext } from "./canvas";
 import { resizeLayers, markAllDirty } from "./layer";
 import type { SpriteAtlasConfig } from "./sprites";

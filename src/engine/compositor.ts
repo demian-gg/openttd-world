@@ -1,3 +1,8 @@
+/**
+ * Frame compositor and render loop management.
+ * Handles layer compositing, component rendering, and the main game loop.
+ */
+
 import { getState, resize, isRunning, setRunning } from "./engine";
 import { DEFAULT_LAYER, getLayer, clearLayer, composite } from "./layer";
 import { Component, getComponents } from "./components";

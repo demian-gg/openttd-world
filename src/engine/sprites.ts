@@ -18,10 +18,9 @@
  * Atlas dimensions should also be power-of-two (256×256, 512×512, 1024×1024).
  */
 
-/** Rendering context type (works for both main and offscreen canvas). */
-export type RenderContext =
-  | CanvasRenderingContext2D
-  | OffscreenCanvasRenderingContext2D;
+import type { RenderContext } from "./canvas";
+
+export type { RenderContext };
 
 /**
  * Configuration for loading a sprite atlas.

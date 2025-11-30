@@ -1,4 +1,17 @@
+/**
+ * Canvas initialization and resolution management.
+ * Handles canvas setup, resolution scaling, and context configuration.
+ */
+
 import type { InternalResolution, ResolutionConfig } from "./engine";
+
+/**
+ * Rendering context type (works for both main and offscreen canvas).
+ * Use this for functions that can render to either context type.
+ */
+export type RenderContext =
+  | CanvasRenderingContext2D
+  | OffscreenCanvasRenderingContext2D;
 
 /**
  * Canvas context returned by initCanvas.

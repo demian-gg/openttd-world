@@ -1,3 +1,8 @@
+/**
+ * Offscreen layer management for compositing.
+ * Provides layer creation, rendering, and compositing onto the main canvas.
+ */
+
 import { getState } from "./engine";
 
 /** Default layer for components that don't specify one. */

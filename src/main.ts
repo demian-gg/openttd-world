@@ -1,21 +1,22 @@
+/**
+ * Application entry point.
+ */
+
 import { init } from "./engine/engine";
 import { startLoop } from "./engine/compositor";
 import { registerComponent, loadComponents } from "./engine/components";
 
 import * as developerSprite from "./components/developer-sprite";
 
-/** Create and attach canvas element to DOM. */
-function createCanvas(): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  document.body.appendChild(canvas);
-  return canvas;
-}
-
 /** Initialize and start the application. */
 async function main(): Promise<void> {
+  // Create and attach canvas to DOM.
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+
   // Initialize engine.
   init({
-    canvas: createCanvas(),
+    canvas,
     resolution: { pixelScale: 2 },
   });
 

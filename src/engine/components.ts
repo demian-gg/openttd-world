@@ -1,4 +1,8 @@
-import { RenderContext } from "./sprites";
+/**
+ * Component system for registering and managing renderable entities.
+ */
+
+import type { RenderContext } from "./canvas";
 
 /**
  * Component interface for loadable, renderable entities.
