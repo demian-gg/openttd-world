@@ -11,6 +11,7 @@ node_modules/
 
 # Build output
 build/
+dist/
 
 # Local environment files
 *.local

@@ -2,39 +2,14 @@
   "name": "openttd-world",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "react-scripts start",
-    "build": "react-scripts build",
-    "eject": "react-scripts eject"
-  },
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-scripts": "^5.0.1",
-    "styled-components": "^6.1.18",
-    "typescript": "^4.9.5"
+    "dev": "vite",
+    "build": "vite build",
+    "prod": "vite build && vite preview"
   },
   "devDependencies": {
-    "@types/node": "^16.18.126",
-    "@types/react": "^19.1.4",
-    "@types/react-dom": "^19.1.5",
-    "@types/styled-components": "^5.1.34"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "typescript": "^5.3.0",
+    "vite": "^5.4.0"
   }
 }
