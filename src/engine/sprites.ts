@@ -121,39 +121,51 @@ export async function loadSprites(sources: string[]): Promise<Sprite[]> {
 
 /**
  * Draw a sprite to the canvas at the specified position.
+ * Scale is rounded to nearest integer for crisp pixel art.
  *
  * @param ctx - The 2D rendering context.
  * @param sprite - The sprite to draw.
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
+ * @param scale - Optional scale factor (default 1), rounded to integer.
  */
 export function drawSprite(
   ctx: CanvasRenderingContext2D,
   sprite: Sprite,
   x: number,
-  y: number
+  y: number,
+  scale = 1
 ): void {
-  // Draw entire sprite at position.
-  ctx.drawImage(sprite.image, x, y);
+  // Round scale to integer for crisp pixels.
+  const s = Math.round(scale);
+
+  // Draw entire sprite at position, scaled.
+  ctx.drawImage(sprite.image, x, y, sprite.width * s, sprite.height * s);
 }
 
 /**
  * Draw a region of a sprite atlas to the canvas.
+ * Scale is rounded to nearest integer for crisp pixel art.
  *
  * @param ctx - The 2D rendering context.
  * @param sprite - The sprite atlas to draw from.
  * @param region - The region within the atlas to draw.
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
+ * @param scale - Optional scale factor (default 1), rounded to integer.
  */
 export function drawSpriteRegion(
   ctx: CanvasRenderingContext2D,
   sprite: Sprite,
   region: SpriteRegion,
   x: number,
-  y: number
+  y: number,
+  scale = 1
 ): void {
-  // Draw specified region at position.
+  // Round scale to integer for crisp pixels.
+  const s = Math.round(scale);
+
+  // Draw specified region at position, scaled.
   ctx.drawImage(
     sprite.image,
     region.x,
@@ -162,8 +174,8 @@ export function drawSpriteRegion(
     region.height,
     x,
     y,
-    region.width,
-    region.height
+    region.width * s,
+    region.height * s
   );
 }
 

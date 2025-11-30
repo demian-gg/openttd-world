@@ -1,7 +1,6 @@
 /**
  * Developer sprite component for testing.
- * Renders a centered developer icon from the sprite atlas.
- * Cycles through 10 sprites, switching every second.
+ * Cycles through 10 sprites, switching every second, while zooming in and out.
  */
 
 import {
@@ -10,7 +9,6 @@ import {
   Sprite,
   SpriteRegion,
 } from "../engine/sprites";
-import { getState } from "../engine/canvas";
 
 /** Cached sprite atlas. */
 let atlas: Sprite | null = null;
@@ -30,6 +28,15 @@ const ATLAS_COLUMNS = 4;
 /** Interval between sprite changes in milliseconds. */
 const CHANGE_INTERVAL = 1000;
 
+/** Minimum scale for zoom animation. */
+const MIN_SCALE = 2;
+
+/** Maximum scale for zoom animation. */
+const MAX_SCALE = 8;
+
+/** Duration of one zoom cycle in milliseconds. */
+const ZOOM_CYCLE_MS = 3000;
+
 /**
  * Load the developer sprite atlas and start the timer.
  * Must be called before render.
@@ -47,7 +54,7 @@ export async function load(): Promise<void> {
 }
 
 /**
- * Render the developer sprite centered on canvas.
+ * Render the developer sprite at top-left.
  *
  * @param ctx - The 2D rendering context.
  */
@@ -69,13 +76,11 @@ export function render(ctx: CanvasRenderingContext2D): void {
     height: TILE_SIZE,
   };
 
-  // Get current resolution for centering.
-  const { resolution } = getState();
+  // Compute animated scale using sin(t), oscillating between MIN and MAX.
+  const t = (Date.now() % ZOOM_CYCLE_MS) / ZOOM_CYCLE_MS;
+  const normalized = (Math.sin(t * Math.PI * 2) + 1) / 2;
+  const scale = MIN_SCALE + normalized * (MAX_SCALE - MIN_SCALE);
 
-  // Compute centered position.
-  const x = Math.floor((resolution.width - region.width) / 2);
-  const y = Math.floor((resolution.height - region.height) / 2);
-
-  // Draw sprite region at center.
-  drawSpriteRegion(ctx, atlas, region, x, y);
+  // Draw sprite region at top-left.
+  drawSpriteRegion(ctx, atlas, region, 0, 0, scale);
 }
