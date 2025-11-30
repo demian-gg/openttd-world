@@ -8,6 +8,7 @@ import {
   drawSpriteRegion,
   Sprite,
   SpriteRegion,
+  RenderContext,
 } from "../engine/sprites";
 
 /** Cached sprite atlas. */
@@ -56,9 +57,9 @@ export async function load(): Promise<void> {
 /**
  * Render the developer sprite at top-left.
  *
- * @param ctx - The 2D rendering context.
+ * @param ctx - The 2D rendering context (main or offscreen).
  */
-export function render(ctx: CanvasRenderingContext2D): void {
+export function render(ctx: RenderContext): void {
   // Skip if atlas not loaded.
   if (!atlas) {
     return;

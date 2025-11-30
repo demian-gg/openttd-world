@@ -18,6 +18,11 @@
  * Atlas dimensions should also be power-of-two (256×256, 512×512, 1024×1024).
  */
 
+/** Rendering context type (works for both main and offscreen canvas). */
+export type RenderContext =
+  | CanvasRenderingContext2D
+  | OffscreenCanvasRenderingContext2D;
+
 /**
  * Configuration for loading a sprite atlas.
  * Defines the source image and tile dimensions.
@@ -123,14 +128,14 @@ export async function loadSprites(sources: string[]): Promise<Sprite[]> {
  * Draw a sprite to the canvas at the specified position.
  * Destination size is rounded to integers for crisp pixel art.
  *
- * @param ctx - The 2D rendering context.
+ * @param ctx - The 2D rendering context (main or offscreen).
  * @param sprite - The sprite to draw.
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
  * @param scale - Optional scale factor (default 1).
  */
 export function drawSprite(
-  ctx: CanvasRenderingContext2D,
+  ctx: RenderContext,
   sprite: Sprite,
   x: number,
   y: number,
@@ -148,7 +153,7 @@ export function drawSprite(
  * Draw a region of a sprite atlas to the canvas.
  * Destination size is rounded to integers for crisp pixel art.
  *
- * @param ctx - The 2D rendering context.
+ * @param ctx - The 2D rendering context (main or offscreen).
  * @param sprite - The sprite atlas to draw from.
  * @param region - The region within the atlas to draw.
  * @param x - X position in game pixels.
@@ -156,7 +161,7 @@ export function drawSprite(
  * @param scale - Optional scale factor (default 1).
  */
 export function drawSpriteRegion(
-  ctx: CanvasRenderingContext2D,
+  ctx: RenderContext,
   sprite: Sprite,
   region: SpriteRegion,
   x: number,

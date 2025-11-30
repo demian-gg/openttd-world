@@ -1,22 +1,8 @@
-import { init, resize } from "./engine/canvas";
-import { render } from "./engine/renderer";
+import { init } from "./engine/engine";
+import { startLoop } from "./engine/compositor";
+import { registerComponent, loadComponents } from "./engine/components";
 
 import * as developerSprite from "./components/developer-sprite";
-
-/** Component interface for loadable, renderable entities. */
-interface Component {
-  load?: () => Promise<void>;
-  render: (ctx: CanvasRenderingContext2D) => void;
-}
-
-/** All active components. */
-const components: Component[] = [developerSprite];
-
-/** Engine state instance. */
-const engine = init({
-  canvas: createCanvas(),
-  resolution: { pixelScale: 2 },
-});
 
 /** Create and attach canvas element to DOM. */
 function createCanvas(): HTMLCanvasElement {
@@ -25,33 +11,22 @@ function createCanvas(): HTMLCanvasElement {
   return canvas;
 }
 
-/** Render the current frame. */
-function renderFrame(): void {
-  render(engine.ctx);
-  for (const component of components) {
-    component.render(engine.ctx);
-  }
-}
-
-/** Handle window resize. */
-function onResize(): void {
-  resize();
-  renderFrame();
-}
-
 /** Initialize and start the application. */
 async function main(): Promise<void> {
-  // Load all components with a load function.
-  await Promise.all(components.map((c) => c.load?.()));
+  // Initialize engine.
+  init({
+    canvas: createCanvas(),
+    resolution: { pixelScale: 2 },
+  });
 
-  window.addEventListener("resize", onResize);
+  // Register components.
+  registerComponent(developerSprite);
+
+  // Load all components.
+  await loadComponents();
 
   // Start render loop.
-  function loop(): void {
-    renderFrame();
-    requestAnimationFrame(loop);
-  }
-  loop();
+  startLoop();
 }
 
 main();

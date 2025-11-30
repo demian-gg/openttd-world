@@ -1,98 +1,22 @@
-import type { SpriteAtlasConfig } from "./sprites";
+import type { InternalResolution, ResolutionConfig } from "./engine";
 
 /**
- * Configuration for computing internal render resolution.
- * Controls how the engine scales pixel art to fit the display.
+ * Canvas context returned by initCanvas.
+ * Contains the canvas element, 2D context, and current resolution.
  */
-export interface ResolutionConfig {
-  /** Pixel scale factor for upscaling. A value of 2 renders at half resolution,
-   * then upscales 2x. */
-  pixelScale?: number;
-
-  /** Minimum internal render width in game pixels. Prevents resolution from
-   * dropping below this threshold. */
-  minWidth?: number;
-
-  /** Minimum internal render height in game pixels. Prevents resolution from
-   * dropping below this threshold. */
-  minHeight?: number;
-
-  /** Maximum internal render width in game pixels. Caps resolution to prevent
-   * excessive memory usage. */
-  maxWidth?: number;
-
-  /** Maximum internal render height in game pixels. Caps resolution to prevent
-   * excessive memory usage. */
-  maxHeight?: number;
-}
-
-/**
- * Computed internal resolution after applying pixel scaling and constraints.
- * Represents both the render target size and display size.
- */
-export interface InternalResolution {
-  /** Internal render width in game pixels. All game logic and rendering uses
-   * this coordinate space. */
-  width: number;
-
-  /** Internal render height in game pixels. All game logic and rendering uses
-   * this coordinate space. */
-  height: number;
-
-  /** Display width in CSS pixels. The canvas is stretched to this size on
-   * screen. */
-  displayWidth: number;
-
-  /** Display height in CSS pixels. The canvas is stretched to this size on
-   * screen. */
-  displayHeight: number;
-
-  /** The pixel scale factor used for this resolution. Stored for use during
-   * resize operations. */
-  pixelScale: number;
-}
-
-/**
- * Configuration passed to the engine init function.
- * Defines the canvas target and optional settings.
- */
-export interface EngineConfig {
-  /** The HTML canvas element to render into. Must be attached to the DOM
-   * before init. */
+export interface CanvasContext {
+  /** The HTML canvas element. */
   canvas: HTMLCanvasElement;
 
-  /** Optional resolution configuration. If omitted, default pixel scale and
-   * constraints are used. */
-  resolution?: ResolutionConfig;
-
-  /** Optional sprite atlas configuration. If provided, the atlas will be
-   * loaded during init. */
-  sprites?: SpriteAtlasConfig;
-}
-
-/**
- * Runtime state of the initialized engine.
- * Contains references to canvas, context, and current settings.
- */
-export interface EngineState {
-  /** The HTML canvas element being rendered to. */
-  canvas: HTMLCanvasElement;
-
-  /** The 2D rendering context for the canvas. */
+  /** The 2D rendering context. */
   ctx: CanvasRenderingContext2D;
 
-  /** The current computed internal resolution. */
+  /** The current computed resolution. */
   resolution: InternalResolution;
-
-  /** The sprite atlas configuration, if provided. */
-  sprites?: SpriteAtlasConfig;
-
-  /** Whether the engine game loop is currently running. */
-  running: boolean;
 }
 
-/** Singleton engine state, `null` until `init()` is called. */
-let state: EngineState | null = null;
+/** Singleton canvas context, `null` until `initCanvas()` is called. */
+let context: CanvasContext | null = null;
 
 /** Default pixel scale factor for upscaling. */
 const DEFAULT_PIXEL_SCALE = 2;
@@ -165,16 +89,27 @@ function applyResolution(
 }
 
 /**
- * Initialize the engine with the provided configuration.
- * Sets up the canvas, computes resolution, and stores engine state.
+ * Configuration for canvas initialization.
+ */
+export interface CanvasConfig {
+  /** The HTML canvas element to render into. */
+  canvas: HTMLCanvasElement;
+
+  /** Optional resolution configuration. */
+  resolution?: ResolutionConfig;
+}
+
+/**
+ * Initialize the canvas with the provided configuration.
+ * Sets up the canvas, computes resolution, and stores canvas context.
  *
- * @param config - The engine configuration.
- * @returns The initialized engine state.
+ * @param config - The canvas configuration.
+ * @returns The initialized canvas context.
  * @throws Error if 2D context cannot be obtained.
  */
-export function init(config: EngineConfig): EngineState {
+export function initCanvas(config: CanvasConfig): CanvasContext {
   // Destructure config options.
-  const { canvas, resolution: resolutionConfig, sprites } = config;
+  const { canvas, resolution: resolutionConfig } = config;
 
   // Acquire 2D rendering context, throw if context creation fails.
   const ctx = canvas.getContext("2d");
@@ -188,10 +123,10 @@ export function init(config: EngineConfig): EngineState {
   // Apply resolution to canvas and context.
   applyResolution(canvas, ctx, resolution);
 
-  // Store engine state.
-  state = { canvas, ctx, resolution, sprites, running: false };
+  // Store canvas context.
+  context = { canvas, ctx, resolution };
 
-  return state;
+  return context;
 }
 
 /**
@@ -200,41 +135,41 @@ export function init(config: EngineConfig): EngineState {
  *
  * @param resolutionConfig - Optional resolution config overrides.
  * @returns The new computed resolution.
- * @throws Error if engine has not been initialized.
+ * @throws Error if canvas has not been initialized.
  */
-export function resize(
+export function resizeCanvas(
   resolutionConfig?: ResolutionConfig
 ): InternalResolution {
-  // Ensure engine is initialized.
-  if (!state) {
-    throw new Error("Engine not initialized.");
+  // Ensure canvas is initialized.
+  if (!context) {
+    throw new Error("Canvas not initialized.");
   }
 
   // Compute new resolution, preserving pixel scale if not overridden.
   const resolution = computeResolution(
-    resolutionConfig ?? { pixelScale: state.resolution.pixelScale }
+    resolutionConfig ?? { pixelScale: context.resolution.pixelScale }
   );
 
   // Apply new resolution to canvas.
-  applyResolution(state.canvas, state.ctx, resolution);
+  applyResolution(context.canvas, context.ctx, resolution);
 
   // Update stored resolution.
-  state.resolution = resolution;
+  context.resolution = resolution;
 
   return resolution;
 }
 
 /**
- * Get the current engine state.
+ * Get the current canvas context.
  *
- * @returns The current engine state.
- * @throws Error if engine has not been initialized.
+ * @returns The current canvas context.
+ * @throws Error if canvas has not been initialized.
  */
-export function getState(): EngineState {
-  // Ensure engine is initialized.
-  if (!state) {
-    throw new Error("Engine not initialized.");
+export function getCanvasContext(): CanvasContext {
+  // Ensure canvas is initialized.
+  if (!context) {
+    throw new Error("Canvas not initialized.");
   }
 
-  return state;
+  return context;
 }
