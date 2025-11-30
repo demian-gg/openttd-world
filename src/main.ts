@@ -18,6 +18,7 @@ async function main(): Promise<void> {
   init({
     canvas,
     resolution: { pixelScale: 2 },
+    backgroundColor: "#306499",
   });
 
   // Register components.

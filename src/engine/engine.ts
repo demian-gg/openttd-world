@@ -67,6 +67,9 @@ export interface EngineConfig {
   /** Optional sprite atlas configuration. If provided, the atlas will be
    * loaded during init. */
   sprites?: SpriteAtlasConfig;
+
+  /** Optional background color. Defaults to "#000". */
+  backgroundColor?: string;
 }
 
 /**
@@ -85,6 +88,9 @@ export interface EngineState {
 
   /** The sprite atlas configuration, if provided. */
   sprites?: SpriteAtlasConfig;
+
+  /** The background color for clearing the canvas. */
+  backgroundColor: string;
 }
 
 /** Singleton engine state, `null` until `init()` is called. */
@@ -113,6 +119,7 @@ export function init(config: EngineConfig): EngineState {
     ctx: canvasContext.ctx,
     resolution: canvasContext.resolution,
     sprites: config.sprites,
+    backgroundColor: config.backgroundColor ?? "#000",
   };
 
   return state;

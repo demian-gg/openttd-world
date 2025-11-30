@@ -18,12 +18,13 @@ function getComponentLayer(component: Component): number {
 }
 
 /**
- * Clear the canvas and fill with a solid black background.
+ * Clear the canvas and fill with the background color.
  *
  * @param ctx - The 2D rendering context to draw into.
+ * @param color - The background color.
  */
-function clearBackground(ctx: CanvasRenderingContext2D): void {
-  ctx.fillStyle = "#000";
+function clearBackground(ctx: CanvasRenderingContext2D, color: string): void {
+  ctx.fillStyle = color;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
@@ -36,7 +37,7 @@ function renderFrame(): void {
   const components = getComponents();
 
   // Clear main canvas with background.
-  clearBackground(engine.ctx);
+  clearBackground(engine.ctx, engine.backgroundColor);
 
   // Group components by layer.
   const byLayer = new Map<number, Component[]>();
