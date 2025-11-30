@@ -3,7 +3,60 @@
  * Handles canvas setup, resolution scaling, and context configuration.
  */
 
-import type { InternalResolution, ResolutionConfig } from "./engine";
+/** Event target for canvas events. */
+export const canvasEvents = new EventTarget();
+
+/** Event fired when canvas resolution changes. */
+export class CanvasResizedEvent extends Event {
+  static readonly type = "canvasResized";
+  constructor(public readonly resolution: CanvasResolution) {
+    super(CanvasResizedEvent.type);
+  }
+}
+
+/**
+ * Configuration for computing canvas resolution.
+ * Controls how the engine scales pixel art to fit the display.
+ */
+export interface CanvasResolutionConfig {
+  /** Pixel scale factor for upscaling. A value of 2 renders at half resolution,
+   * then upscales 2x. */
+  pixelScale?: number;
+
+  /** Maximum internal render width in game pixels. Caps resolution to prevent
+   * excessive memory usage. */
+  maxWidth?: number;
+
+  /** Maximum internal render height in game pixels. Caps resolution to prevent
+   * excessive memory usage. */
+  maxHeight?: number;
+}
+
+/**
+ * Computed canvas resolution after applying pixel scaling and constraints.
+ * Represents both the render target size and display size.
+ */
+export interface CanvasResolution {
+  /** Internal render width in game pixels. All game logic and rendering uses
+   * this coordinate space. */
+  width: number;
+
+  /** Internal render height in game pixels. All game logic and rendering uses
+   * this coordinate space. */
+  height: number;
+
+  /** Display width in CSS pixels. The canvas is stretched to this size on
+   * screen. */
+  displayWidth: number;
+
+  /** Display height in CSS pixels. The canvas is stretched to this size on
+   * screen. */
+  displayHeight: number;
+
+  /** The pixel scale factor used for this resolution. Stored for use during
+   * resize operations. */
+  pixelScale: number;
+}
 
 /**
  * Rendering context type (works for both main and offscreen canvas).
@@ -25,7 +78,7 @@ export interface CanvasContext {
   ctx: CanvasRenderingContext2D;
 
   /** The current computed resolution. */
-  resolution: InternalResolution;
+  resolution: CanvasResolution;
 }
 
 /** Singleton canvas context, `null` until `initCanvas()` is called. */
@@ -41,7 +94,9 @@ const DEFAULT_PIXEL_SCALE = 2;
  * @param config - Optional resolution configuration overrides.
  * @returns The computed internal resolution.
  */
-function computeResolution(config: ResolutionConfig = {}): InternalResolution {
+function computeCanvasResolution(
+  config: CanvasResolutionConfig = {}
+): CanvasResolution {
   // Extract config values with defaults.
   const pixelScale = config.pixelScale ?? DEFAULT_PIXEL_SCALE;
   const maxWidth = config.maxWidth ?? Infinity;
@@ -70,10 +125,10 @@ function computeResolution(config: ResolutionConfig = {}): InternalResolution {
  * @param ctx - The 2D rendering context.
  * @param resolution - The computed resolution to apply.
  */
-function applyResolution(
+function applyCanvasResolution(
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  resolution: InternalResolution
+  resolution: CanvasResolution
 ): void {
   // Set internal canvas resolution.
   canvas.width = resolution.width;
@@ -101,7 +156,7 @@ export interface CanvasConfig {
   canvas: HTMLCanvasElement;
 
   /** Optional resolution configuration. */
-  resolution?: ResolutionConfig;
+  resolution?: CanvasResolutionConfig;
 }
 
 /**
@@ -112,7 +167,7 @@ export interface CanvasConfig {
  * @returns The initialized canvas context.
  * @throws Error if 2D context cannot be obtained.
  */
-export function initCanvas(config: CanvasConfig): CanvasContext {
+export function initializeCanvas(config: CanvasConfig): CanvasContext {
   // Destructure config options.
   const { canvas, resolution: resolutionConfig } = config;
 
@@ -123,10 +178,10 @@ export function initCanvas(config: CanvasConfig): CanvasContext {
   }
 
   // Compute internal resolution from config.
-  const resolution = computeResolution(resolutionConfig);
+  const resolution = computeCanvasResolution(resolutionConfig);
 
   // Apply resolution to canvas and context.
-  applyResolution(canvas, ctx, resolution);
+  applyCanvasResolution(canvas, ctx, resolution);
 
   // Store canvas context.
   context = { canvas, ctx, resolution };
@@ -142,24 +197,27 @@ export function initCanvas(config: CanvasConfig): CanvasContext {
  * @returns The new computed resolution.
  * @throws Error if canvas has not been initialized.
  */
-export function resizeCanvas(
-  resolutionConfig?: ResolutionConfig
-): InternalResolution {
+export function handleCanvasResize(
+  resolutionConfig?: CanvasResolutionConfig
+): CanvasResolution {
   // Ensure canvas is initialized.
   if (!context) {
     throw new Error("Canvas not initialized.");
   }
 
   // Compute new resolution, preserving pixel scale if not overridden.
-  const resolution = computeResolution(
+  const resolution = computeCanvasResolution(
     resolutionConfig ?? { pixelScale: context.resolution.pixelScale }
   );
 
   // Apply new resolution to canvas.
-  applyResolution(context.canvas, context.ctx, resolution);
+  applyCanvasResolution(context.canvas, context.ctx, resolution);
 
   // Update stored resolution.
   context.resolution = resolution;
+
+  // Emit resize event.
+  canvasEvents.dispatchEvent(new CanvasResizedEvent(resolution));
 
   return resolution;
 }

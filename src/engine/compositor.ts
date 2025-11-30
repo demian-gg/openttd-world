@@ -3,50 +3,25 @@
  * Handles layer compositing, component rendering, and the main game loop.
  */
 
-import { getState, resize, isRunning, setRunning } from "./engine";
-import { DEFAULT_LAYER, getLayer, clearLayer, composite } from "./layer";
-import { Component, getComponents } from "./components";
+import { getEngineState, isEngineRunning, setEngineRunning } from "./engine";
+import { handleCanvasResize } from "./canvas";
+import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layer";
+import { getComponents } from "./components";
 
 /**
- * Get component's layer id, defaulting to DEFAULT_LAYER.
- *
- * @param component - The component to get layer for.
- * @returns The layer id.
+ * Composite a single frame.
+ * Clears background, renders components to layers, flattens onto main canvas.
  */
-function getComponentLayer(component: Component): number {
-  return component.LAYER ?? DEFAULT_LAYER;
-}
-
-/**
- * Clear the canvas and fill with the background color.
- *
- * @param ctx - The 2D rendering context to draw into.
- * @param color - The background color.
- */
-function clearBackground(ctx: CanvasRenderingContext2D, color: string): void {
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-}
-
-/**
- * Render a single frame.
- * Clears background, renders components to layers, composites to main canvas.
- */
-function renderFrame(): void {
-  const engine = getState();
+function compositeFrame(): void {
+  const { ctx, backgroundColor } = getEngineState();
   const components = getComponents();
 
   // Clear main canvas with background.
-  clearBackground(engine.ctx, engine.backgroundColor);
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   // Group components by layer.
-  const byLayer = new Map<number, Component[]>();
-  for (const component of components) {
-    const layerId = getComponentLayer(component);
-    const group = byLayer.get(layerId) ?? [];
-    group.push(component);
-    byLayer.set(layerId, group);
-  }
+  const byLayer = Map.groupBy(components, (c) => c.LAYER ?? DEFAULT_LAYER);
 
   // Clear and render each layer.
   for (const [layerId, group] of byLayer) {
@@ -58,44 +33,44 @@ function renderFrame(): void {
     }
   }
 
-  // Composite all layers onto main canvas.
-  composite(engine.ctx);
+  // Flatten all layers onto main canvas.
+  for (const layer of getLayers()) {
+    if (layer.opacity <= 0) continue;
+    ctx.save();
+    ctx.globalAlpha = layer.opacity;
+    ctx.globalCompositeOperation = layer.blendMode;
+    ctx.drawImage(layer.canvas, 0, 0);
+    ctx.restore();
+  }
+}
+
+/** Handle window resize. */
+function onCompositorResize(): void {
+  handleCanvasResize();
+  compositeFrame();
 }
 
 /**
- * Handle window resize.
- */
-function onResize(): void {
-  resize();
-  renderFrame();
-}
-
-/**
- * Start the render loop.
+ * Initialize and start the compositor.
  * Attaches resize listener and begins requestAnimationFrame loop.
  */
-export function startLoop(): void {
-  if (isRunning()) {
-    return;
-  }
+export function initializeCompositor(): void {
+  if (isEngineRunning()) return;
 
-  setRunning(true);
-  window.addEventListener("resize", onResize);
+  setEngineRunning(true);
+  window.addEventListener("resize", onCompositorResize);
 
-  function loop(): void {
-    if (!isRunning()) {
-      return;
-    }
-    renderFrame();
-    requestAnimationFrame(loop);
-  }
-  loop();
+  (function compositorLoop() {
+    if (!isEngineRunning()) return;
+    compositeFrame();
+    requestAnimationFrame(compositorLoop);
+  })();
 }
 
 /**
- * Stop the render loop.
+ * Stop the compositor.
  */
-export function stopLoop(): void {
-  setRunning(false);
-  window.removeEventListener("resize", onResize);
+export function stopCompositor(): void {
+  setEngineRunning(false);
+  window.removeEventListener("resize", onCompositorResize);
 }

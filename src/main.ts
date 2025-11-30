@@ -2,8 +2,8 @@
  * Application entry point.
  */
 
-import { init } from "./engine/engine";
-import { startLoop } from "./engine/compositor";
+import { initializeEngine } from "./engine/engine";
+import { initializeCompositor } from "./engine/compositor";
 import { registerComponent, loadComponents } from "./engine/components";
 
 import * as developerSprite from "./components/developer-sprite";
@@ -15,7 +15,7 @@ async function main(): Promise<void> {
   document.body.appendChild(canvas);
 
   // Initialize engine.
-  init({
+  initializeEngine({
     canvas,
     resolution: { pixelScale: 2 },
     backgroundColor: "#306499",
@@ -23,12 +23,14 @@ async function main(): Promise<void> {
 
   // Register components.
   registerComponent(developerSprite);
+  // registerComponent(anotherComponent);
+  // registerComponent(yetAnotherComponent);
 
   // Load all components.
   await loadComponents();
 
-  // Start render loop.
-  startLoop();
+  // Initialize compositor, starting the render loop.
+  initializeCompositor();
 }
 
 main();

@@ -11,7 +11,8 @@
  * 8×8, 16×16, 32×32, 64×64, 128×128
  *
  * Keep all sprites in a single atlas when possible to minimize draw calls.
- * Atlas dimensions should also be power-of-two (256×256, 512×512, 1024×1024).
+ * Atlas dimensions should also be power-of-two:
+ * 256×256, 512×512, 1024×1024
  */
 
 import type { RenderContext } from "./canvas";

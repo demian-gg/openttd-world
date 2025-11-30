@@ -1,15 +1,15 @@
 /**
- * Offscreen layer management for compositing.
- * Provides layer creation, rendering, and compositing onto the main canvas.
+ * Offscreen layer management.
+ * Provides layer creation, clearing, and resizing.
  */
 
-import { getState } from "./engine";
+import { canvasEvents, CanvasResizedEvent, CanvasResolution } from "./canvas";
 
 /** Default layer for components that don't specify one. */
 export const DEFAULT_LAYER = 0;
 
 /** Represents an offscreen render layer. */
-interface Layer {
+export interface Layer {
   /** Layer z-index for ordering. */
   id: number;
 
@@ -32,6 +32,9 @@ interface Layer {
 /** Map of layer id to layer instance. */
 const layers = new Map<number, Layer>();
 
+/** Current resolution for creating new layers. */
+let currentResolution: CanvasResolution | null = null;
+
 /**
  * Create a new layer with the given id.
  *
@@ -39,11 +42,15 @@ const layers = new Map<number, Layer>();
  * @returns The created layer.
  */
 function createLayer(id: number): Layer {
-  // Get current resolution for layer size.
-  const { resolution } = getState();
+  if (!currentResolution) {
+    throw new Error("Layers not initialized. Call initializeLayers first.");
+  }
 
-  // Create offscreen canvas matching internal resolution.
-  const canvas = new OffscreenCanvas(resolution.width, resolution.height);
+  // Create offscreen canvas matching current resolution.
+  const canvas = new OffscreenCanvas(
+    currentResolution.width,
+    currentResolution.height
+  );
 
   // Get 2D context.
   const ctx = canvas.getContext("2d");
@@ -86,7 +93,7 @@ export function getLayer(id: number): Layer {
  *
  * @param id - The layer z-index.
  */
-export function markDirty(id: number): void {
+export function dirtyLayer(id: number): void {
   const layer = layers.get(id);
   if (layer) {
     layer.dirty = true;
@@ -96,7 +103,7 @@ export function markDirty(id: number): void {
 /**
  * Mark all layers as dirty.
  */
-export function markAllDirty(): void {
+export function dirtyAllLayers(): void {
   for (const layer of layers.values()) {
     layer.dirty = true;
   }
@@ -144,53 +151,38 @@ export function setLayerBlendMode(
 }
 
 /**
- * Resize all layers to match current resolution.
- * Called when window is resized.
+ * Initialize the layer system.
+ * Subscribes to canvas resize events.
+ *
+ * @param resolution - The initial canvas resolution.
  */
-export function resizeLayers(): void {
-  const { resolution } = getState();
+export function initializeLayers(resolution: CanvasResolution): void {
+  currentResolution = resolution;
 
-  for (const layer of layers.values()) {
-    // Resize canvas.
-    layer.canvas.width = resolution.width;
-    layer.canvas.height = resolution.height;
+  // Subscribe to canvas resize events.
+  canvasEvents.addEventListener(CanvasResizedEvent.type, (e) => {
+    const newResolution = (e as CanvasResizedEvent).resolution;
+    currentResolution = newResolution;
 
-    // Re-disable smoothing after resize.
-    layer.ctx.imageSmoothingEnabled = false;
+    for (const layer of layers.values()) {
+      // Resize canvas.
+      layer.canvas.width = newResolution.width;
+      layer.canvas.height = newResolution.height;
 
-    // Mark as dirty since content was cleared.
-    layer.dirty = true;
-  }
+      // Re-disable smoothing after resize.
+      layer.ctx.imageSmoothingEnabled = false;
+
+      // Mark as dirty since content was cleared.
+      layer.dirty = true;
+    }
+  });
 }
 
 /**
- * Composite all layers onto the main canvas.
- * Layers are drawn in order of their id (lowest first).
+ * Get all layers sorted by id (lowest first).
  *
- * @param ctx - The main canvas 2D rendering context.
+ * @returns Array of layers in z-order.
  */
-export function composite(ctx: CanvasRenderingContext2D): void {
-  // Sort layers by id.
-  const sorted = [...layers.values()].sort((a, b) => a.id - b.id);
-
-  // Draw each layer onto main canvas.
-  for (const layer of sorted) {
-    // Skip fully transparent layers.
-    if (layer.opacity <= 0) {
-      continue;
-    }
-
-    // Save context state.
-    ctx.save();
-
-    // Apply layer settings.
-    ctx.globalAlpha = layer.opacity;
-    ctx.globalCompositeOperation = layer.blendMode;
-
-    // Draw layer canvas onto main canvas.
-    ctx.drawImage(layer.canvas, 0, 0);
-
-    // Restore context state.
-    ctx.restore();
-  }
+export function getLayers(): Layer[] {
+  return [...layers.values()].sort((a, b) => a.id - b.id);
 }
