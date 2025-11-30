@@ -16,14 +16,6 @@ export interface ResolutionConfig {
    * then upscales 2x. */
   pixelScale?: number;
 
-  /** Minimum internal render width in game pixels. Prevents resolution from
-   * dropping below this threshold. */
-  minWidth?: number;
-
-  /** Minimum internal render height in game pixels. Prevents resolution from
-   * dropping below this threshold. */
-  minHeight?: number;
-
   /** Maximum internal render width in game pixels. Caps resolution to prevent
    * excessive memory usage. */
   maxWidth?: number;

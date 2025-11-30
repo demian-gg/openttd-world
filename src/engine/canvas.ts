@@ -34,15 +34,9 @@ let context: CanvasContext | null = null;
 /** Default pixel scale factor for upscaling. */
 const DEFAULT_PIXEL_SCALE = 2;
 
-/** Default minimum internal render width. */
-const DEFAULT_MIN_WIDTH = 320;
-
-/** Default minimum internal render height. */
-const DEFAULT_MIN_HEIGHT = 180;
-
 /**
  * Compute the internal render resolution based on window size and config.
- * Applies pixel scaling and clamps to min/max constraints.
+ * Applies pixel scaling and clamps to max constraints if provided.
  *
  * @param config - Optional resolution configuration overrides.
  * @returns The computed internal resolution.
@@ -50,8 +44,6 @@ const DEFAULT_MIN_HEIGHT = 180;
 function computeResolution(config: ResolutionConfig = {}): InternalResolution {
   // Extract config values with defaults.
   const pixelScale = config.pixelScale ?? DEFAULT_PIXEL_SCALE;
-  const minWidth = config.minWidth ?? DEFAULT_MIN_WIDTH;
-  const minHeight = config.minHeight ?? DEFAULT_MIN_HEIGHT;
   const maxWidth = config.maxWidth ?? Infinity;
   const maxHeight = config.maxHeight ?? Infinity;
 
@@ -63,9 +55,9 @@ function computeResolution(config: ResolutionConfig = {}): InternalResolution {
   let width = Math.floor(displayWidth / pixelScale);
   let height = Math.floor(displayHeight / pixelScale);
 
-  // Clamp dimensions to configured constraints.
-  width = Math.max(minWidth, Math.min(maxWidth, width));
-  height = Math.max(minHeight, Math.min(maxHeight, height));
+  // Clamp dimensions to max constraints if provided.
+  width = Math.min(maxWidth, width);
+  height = Math.min(maxHeight, height);
 
   return { width, height, displayWidth, displayHeight, pixelScale };
 }
