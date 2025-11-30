@@ -1,6 +1,6 @@
 /**
  * Developer sprite component for testing.
- * Cycles through 10 sprites, switching every second, while zooming in and out.
+ * Cycles through sprites, switching every second, while zooming in and out.
  */
 
 import {
@@ -10,79 +10,94 @@ import {
   SpriteRegion,
   RenderContext,
 } from "../engine/sprites";
+import { Component, ComponentProps } from "../engine/components";
 
-let spriteAtlas: Sprite | null = null;
-let currentSpriteIndex = 0;
-
-export const props = {
-  layer: 0,
+/** Props for the developer sprite component. */
+export interface DeveloperSpriteProps extends ComponentProps {
+  /** Layer for render ordering. */
+  layer: number;
 
   /** Total number of sprites in the atlas. */
-  spriteCount: 10,
+  spriteCount: number;
 
   /** Tile size in pixels. */
-  tileSize: 32,
+  tileSize: number;
 
   /** Number of columns in the atlas. */
-  atlasColumns: 4,
+  atlasColumns: number;
 
   /** Interval between sprite changes in milliseconds. */
-  changeInterval: 1000,
+  changeInterval: number;
 
   /** Minimum scale for zoom animation. */
-  minScale: 2,
+  minScale: number;
 
   /** Maximum scale for zoom animation. */
-  maxScale: 8,
+  maxScale: number;
 
   /** Duration of one zoom cycle in milliseconds. */
+  zoomCycleMs: number;
+}
+
+/** Default props. */
+const defaultProps: DeveloperSpriteProps = {
+  layer: 0,
+  spriteCount: 10,
+  tileSize: 32,
+  atlasColumns: 4,
+  changeInterval: 1000,
+  minScale: 2,
+  maxScale: 8,
   zoomCycleMs: 3000,
 };
 
 /**
- * Load the developer sprite atlas and start the timer.
- * Must be called before render.
- *
- * @returns Promise resolving when atlas is loaded.
+ * Developer sprite component for testing.
+ * Cycles through sprites while zooming in and out.
  */
-export async function load(): Promise<void> {
-  // Load and cache the atlas.
-  spriteAtlas = await loadSprite("/sprites/developer.png");
+export class DeveloperSprite extends Component<DeveloperSpriteProps> {
+  private spriteAtlas: Sprite | null = null;
+  private currentSpriteIndex = 0;
 
-  // Start cycling through sprites.
-  setInterval(() => {
-    currentSpriteIndex = (currentSpriteIndex + 1) % props.spriteCount;
-  }, props.changeInterval);
-}
-
-/**
- * Render the developer sprite at top-left.
- *
- * @param ctx - The 2D rendering context (main or offscreen).
- */
-export function render(ctx: RenderContext): void {
-  // Skip if atlas not loaded.
-  if (!spriteAtlas) {
-    return;
+  constructor(propsOverride?: Partial<DeveloperSpriteProps>) {
+    super({ ...defaultProps, ...propsOverride });
   }
 
-  // Compute column and row from index.
-  const col = currentSpriteIndex % props.atlasColumns;
-  const row = Math.floor(currentSpriteIndex / props.atlasColumns);
+  async load(): Promise<void> {
+    // Load and cache the atlas.
+    this.spriteAtlas = await loadSprite("/sprites/developer.png");
 
-  // Compute region for current sprite.
-  const region: SpriteRegion = {
-    x: col * props.tileSize,
-    y: row * props.tileSize,
-    width: props.tileSize,
-    height: props.tileSize,
-  };
+    // Start cycling through sprites.
+    setInterval(() => {
+      this.currentSpriteIndex =
+        (this.currentSpriteIndex + 1) % this.props.spriteCount;
+    }, this.props.changeInterval);
+  }
 
-  // Compute animated scale using sin(t), oscillating between MIN and MAX.
-  const t = (Date.now() % props.zoomCycleMs) / props.zoomCycleMs;
-  const normalized = (Math.sin(t * Math.PI * 2) + 1) / 2;
-  const scale = props.minScale + normalized * (props.maxScale - props.minScale);
+  render(ctx: RenderContext): void {
+    // Skip if atlas not loaded.
+    if (!this.spriteAtlas) return;
 
-  // Draw sprite region at top-left.
-  drawSpriteRegion(ctx, spriteAtlas, region, 0, 0, scale);
+    // Compute column and row from index.
+    const col = this.currentSpriteIndex % this.props.atlasColumns;
+    const row = Math.floor(this.currentSpriteIndex / this.props.atlasColumns);
+
+    // Compute region for current sprite.
+    const region: SpriteRegion = {
+      x: col * this.props.tileSize,
+      y: row * this.props.tileSize,
+      width: this.props.tileSize,
+      height: this.props.tileSize,
+    };
+
+    // Compute animated scale using sin(t), oscillating between MIN and MAX.
+    const t = (Date.now() % this.props.zoomCycleMs) / this.props.zoomCycleMs;
+    const normalized = (Math.sin(t * Math.PI * 2) + 1) / 2;
+    const scale =
+      this.props.minScale +
+      normalized * (this.props.maxScale - this.props.minScale);
+
+    // Draw sprite region at top-left.
+    drawSpriteRegion(ctx, this.spriteAtlas, region, 0, 0, scale);
+  }
 }

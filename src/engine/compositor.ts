@@ -5,7 +5,7 @@
 
 import { getEngineState, isEngineRunning, setEngineRunning } from "./engine";
 import { handleCanvasResize } from "./canvas";
-import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layer";
+import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
 import { getComponents } from "./components";
 
 /**

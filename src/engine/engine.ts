@@ -11,7 +11,7 @@ import {
   canvasEvents,
   CanvasResizedEvent,
 } from "./canvas";
-import { initializeLayers } from "./layer";
+import { initializeLayers } from "./layers";
 import type { SpriteAtlasConfig } from "./sprites";
 
 /**

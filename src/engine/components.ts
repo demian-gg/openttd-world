@@ -4,19 +4,29 @@
 
 import type { RenderContext } from "./canvas";
 
+/** Base props that all components must have. */
+export interface ComponentProps {
+  /** Layer for render ordering. Lower renders first. */
+  layer?: number;
+}
+
 /**
- * Component interface for loadable, renderable entities.
+ * Base class for loadable, renderable components.
  * Components are the building blocks of the game — sprites, UI elements, etc.
  */
-export interface Component {
-  /** Optional configurable properties. */
-  props?: Record<string, unknown> & Partial<Record<"layer", number>>;
+export abstract class Component<P extends ComponentProps = ComponentProps> {
+  /** Configurable properties. */
+  props: P;
+
+  constructor(props: P) {
+    this.props = props;
+  }
 
   /** Optional async load function called before first render. */
-  load?: () => Promise<void>;
+  load?(): Promise<void>;
 
   /** Render function called each frame. */
-  render: (ctx: RenderContext) => void;
+  abstract render(ctx: RenderContext): void;
 }
 
 /** Registered components. */
