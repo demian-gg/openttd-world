@@ -8,11 +8,7 @@
  * ## Recommended Sprite Sizes
  *
  * Use power-of-two dimensions for optimal texture handling:
- * - **8×8** — Tiny icons, particles, small UI elements.
- * - **16×16** — Standard tiles, small sprites, inventory icons.
- * - **32×32** — Medium sprites, vehicles, buildings.
- * - **64×64** — Large sprites, detailed buildings, bosses.
- * - **128×128** — Very large sprites, portraits, splash images.
+ * 8×8, 16×16, 32×32, 64×64, 128×128
  *
  * Keep all sprites in a single atlas when possible to minimize draw calls.
  * Atlas dimensions should also be power-of-two (256×256, 512×512, 1024×1024).
