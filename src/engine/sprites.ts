@@ -1,0 +1,177 @@
+/**
+ * Sprite loading and management.
+ *
+ * Rendering uses `CanvasRenderingContext2D.drawImage()` for all sprite
+ * blitting. We do not use Bresenham or pixel-by-pixel drawing, Canvas handles
+ * raster placement.
+ *
+ * ## Recommended Sprite Sizes
+ *
+ * Use power-of-two dimensions for optimal texture handling:
+ * - **8×8** — Tiny icons, particles, small UI elements.
+ * - **16×16** — Standard tiles, small sprites, inventory icons.
+ * - **32×32** — Medium sprites, vehicles, buildings.
+ * - **64×64** — Large sprites, detailed buildings, bosses.
+ * - **128×128** — Very large sprites, portraits, splash images.
+ *
+ * Keep all sprites in a single atlas when possible to minimize draw calls.
+ * Atlas dimensions should also be power-of-two (256×256, 512×512, 1024×1024).
+ */
+
+/**
+ * Configuration for loading a sprite atlas.
+ * Defines the source image and tile dimensions.
+ */
+export interface SpriteAtlasConfig {
+  /** Path or URL to the sprite atlas image file. */
+  src: string;
+
+  /** Width of each tile in the atlas, in pixels. */
+  tileWidth: number;
+
+  /** Height of each tile in the atlas, in pixels. */
+  tileHeight: number;
+}
+
+/** Represents a loaded sprite image ready for rendering. */
+export interface Sprite {
+  /** The loaded image element. */
+  image: HTMLImageElement;
+
+  /** Width of the sprite in pixels. */
+  width: number;
+
+  /** Height of the sprite in pixels. */
+  height: number;
+}
+
+/** Represents a region within a sprite atlas. */
+export interface SpriteRegion {
+  /** X offset in the atlas, in pixels. */
+  x: number;
+
+  /** Y offset in the atlas, in pixels. */
+  y: number;
+
+  /** Width of the region in pixels. */
+  width: number;
+
+  /** Height of the region in pixels. */
+  height: number;
+}
+
+/** Cache of loaded sprites keyed by source path. */
+const spriteCache = new Map<string, Sprite>();
+
+/**
+ * Load a sprite image from the specified source path.
+ * Returns cached sprite if already loaded.
+ *
+ * @param src - Path or URL to the sprite image file.
+ * @returns Promise resolving to the loaded sprite.
+ */
+export async function loadSprite(src: string): Promise<Sprite> {
+  // Return cached sprite if available.
+  const cached = spriteCache.get(src);
+  if (cached) {
+    return cached;
+  }
+
+  // Create image element.
+  const image = new Image();
+
+  // Load image and wait for completion.
+  const sprite = await new Promise<Sprite>((resolve, reject) => {
+    // Handle successful load.
+    image.onload = () => {
+      const loaded: Sprite = {
+        image,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      };
+
+      // Cache the loaded sprite.
+      spriteCache.set(src, loaded);
+
+      resolve(loaded);
+    };
+
+    // Handle load failure.
+    image.onerror = () => {
+      reject(new Error(`Failed to load sprite: ${src}`));
+    };
+
+    // Start loading.
+    image.src = src;
+  });
+
+  return sprite;
+}
+
+/**
+ * Load multiple sprites in parallel.
+ *
+ * @param sources - Array of paths or URLs to sprite image files.
+ * @returns Promise resolving to array of loaded sprites.
+ */
+export async function loadSprites(sources: string[]): Promise<Sprite[]> {
+  // Load all sprites concurrently.
+  return Promise.all(sources.map(loadSprite));
+}
+
+/**
+ * Draw a sprite to the canvas at the specified position.
+ *
+ * @param ctx - The 2D rendering context.
+ * @param sprite - The sprite to draw.
+ * @param x - X position in game pixels.
+ * @param y - Y position in game pixels.
+ */
+export function drawSprite(
+  ctx: CanvasRenderingContext2D,
+  sprite: Sprite,
+  x: number,
+  y: number
+): void {
+  // Draw entire sprite at position.
+  ctx.drawImage(sprite.image, x, y);
+}
+
+/**
+ * Draw a region of a sprite atlas to the canvas.
+ *
+ * @param ctx - The 2D rendering context.
+ * @param sprite - The sprite atlas to draw from.
+ * @param region - The region within the atlas to draw.
+ * @param x - X position in game pixels.
+ * @param y - Y position in game pixels.
+ */
+export function drawSpriteRegion(
+  ctx: CanvasRenderingContext2D,
+  sprite: Sprite,
+  region: SpriteRegion,
+  x: number,
+  y: number
+): void {
+  // Draw specified region at position.
+  ctx.drawImage(
+    sprite.image,
+    region.x,
+    region.y,
+    region.width,
+    region.height,
+    x,
+    y,
+    region.width,
+    region.height
+  );
+}
+
+/**
+ * Clear the sprite cache, releasing all loaded images.
+ * Use when unloading a level or scene to free memory.
+ */
+export function clearSpriteCache(): void {
+  // Clear all cached sprites.
+  spriteCache.clear();
+}

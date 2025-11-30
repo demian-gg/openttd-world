@@ -1,19 +1,51 @@
 import { init, resize } from "./engine/canvas";
+import { render } from "./engine/renderer";
 
-// Create canvas element.
-const canvas = document.createElement("canvas");
+import * as developerSprite from "./components/developer-sprite";
 
-// Attach canvas to document body.
-document.body.appendChild(canvas);
+/** Component interface for loadable, renderable entities. */
+interface Component {
+  load?: () => Promise<void>;
+  render: (ctx: CanvasRenderingContext2D) => void;
+}
 
-// Initialize engine with canvas and pixel scale.
+/** All active components. */
+const components: Component[] = [developerSprite];
+
+/** Engine state instance. */
 const engine = init({
-  canvas,
+  canvas: createCanvas(),
   resolution: { pixelScale: 2 },
 });
 
-// Register resize handler to update resolution on window resize.
-window.addEventListener("resize", () => resize());
+/** Create and attach canvas element to DOM. */
+function createCanvas(): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+  return canvas;
+}
 
-// Log engine state for debugging.
-console.log("Engine ready", engine);
+/** Render the current frame. */
+function renderFrame(): void {
+  render(engine.ctx);
+  for (const component of components) {
+    component.render(engine.ctx);
+  }
+}
+
+/** Handle window resize. */
+function onResize(): void {
+  resize();
+  renderFrame();
+}
+
+/** Initialize and start the application. */
+async function main(): Promise<void> {
+  // Load all components with a load function.
+  await Promise.all(components.map((c) => c.load?.()));
+
+  window.addEventListener("resize", onResize);
+  renderFrame();
+}
+
+main();
