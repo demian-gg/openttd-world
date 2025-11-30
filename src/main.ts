@@ -45,7 +45,13 @@ async function main(): Promise<void> {
   await Promise.all(components.map((c) => c.load?.()));
 
   window.addEventListener("resize", onResize);
-  renderFrame();
+
+  // Start render loop.
+  function loop(): void {
+    renderFrame();
+    requestAnimationFrame(loop);
+  }
+  loop();
 }
 
 main();
