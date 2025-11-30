@@ -121,13 +121,13 @@ export async function loadSprites(sources: string[]): Promise<Sprite[]> {
 
 /**
  * Draw a sprite to the canvas at the specified position.
- * Scale is rounded to nearest integer for crisp pixel art.
+ * Destination size is rounded to integers for crisp pixel art.
  *
  * @param ctx - The 2D rendering context.
  * @param sprite - The sprite to draw.
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
- * @param scale - Optional scale factor (default 1), rounded to integer.
+ * @param scale - Optional scale factor (default 1).
  */
 export function drawSprite(
   ctx: CanvasRenderingContext2D,
@@ -136,23 +136,24 @@ export function drawSprite(
   y: number,
   scale = 1
 ): void {
-  // Round scale to integer for crisp pixels.
-  const s = Math.round(scale);
+  // Round destination size to integers for crisp pixels.
+  const w = Math.round(sprite.width * scale);
+  const h = Math.round(sprite.height * scale);
 
   // Draw entire sprite at position, scaled.
-  ctx.drawImage(sprite.image, x, y, sprite.width * s, sprite.height * s);
+  ctx.drawImage(sprite.image, x, y, w, h);
 }
 
 /**
  * Draw a region of a sprite atlas to the canvas.
- * Scale is rounded to nearest integer for crisp pixel art.
+ * Destination size is rounded to integers for crisp pixel art.
  *
  * @param ctx - The 2D rendering context.
  * @param sprite - The sprite atlas to draw from.
  * @param region - The region within the atlas to draw.
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
- * @param scale - Optional scale factor (default 1), rounded to integer.
+ * @param scale - Optional scale factor (default 1).
  */
 export function drawSpriteRegion(
   ctx: CanvasRenderingContext2D,
@@ -162,8 +163,9 @@ export function drawSpriteRegion(
   y: number,
   scale = 1
 ): void {
-  // Round scale to integer for crisp pixels.
-  const s = Math.round(scale);
+  // Round destination size to integers for crisp pixels.
+  const w = Math.round(region.width * scale);
+  const h = Math.round(region.height * scale);
 
   // Draw specified region at position, scaled.
   ctx.drawImage(
@@ -174,8 +176,8 @@ export function drawSpriteRegion(
     region.height,
     x,
     y,
-    region.width * s,
-    region.height * s
+    w,
+    h
   );
 }
 
