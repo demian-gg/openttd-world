@@ -1,8 +1,19 @@
-import { createCanvas } from "./engine/canvas";
-import { render } from "./engine/renderer";
-import { showModal } from "./ui/modals";
-import { createButton } from "./ui/buttons";
+import { init, resize } from "./engine/canvas";
 
-export { createCanvas, render, showModal, createButton };
+// Create canvas element.
+const canvas = document.createElement("canvas");
 
-console.log("Main module loaded");
+// Attach canvas to document body.
+document.body.appendChild(canvas);
+
+// Initialize engine with canvas and pixel scale.
+const engine = init({
+  canvas,
+  resolution: { pixelScale: 2 },
+});
+
+// Register resize handler to update resolution on window resize.
+window.addEventListener("resize", () => resize());
+
+// Log engine state for debugging.
+console.log("Engine ready", engine);
