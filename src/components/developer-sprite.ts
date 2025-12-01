@@ -5,7 +5,7 @@
 
 import {
   loadSprite,
-  drawSpriteRegion,
+  drawAtlasSprite,
   Sprite,
   SpriteRegion,
   RenderContext,
@@ -102,6 +102,6 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
     setLayerScale(this.props.layer, scale);
 
     // Draw sprite region at top-left (no sprite scaling, layer handles it).
-    drawSpriteRegion(ctx, this.spriteAtlas, region, 0, 0);
+    drawAtlasSprite(ctx, this.spriteAtlas, region, 0, 0);
   }
 }

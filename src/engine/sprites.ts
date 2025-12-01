@@ -156,7 +156,7 @@ export function drawSprite(
  * @param y - Y position in game pixels.
  * @param scale - Optional scale factor (default 1).
  */
-export function drawSpriteRegion(
+export function drawAtlasSprite(
   ctx: RenderContext,
   sprite: Sprite,
   region: SpriteRegion,
