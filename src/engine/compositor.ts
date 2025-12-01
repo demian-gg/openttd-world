@@ -54,10 +54,12 @@ function compositeFrame(): void {
 
     // Draw layer canvas, applying scale if set.
     if (layer.scale !== 1) {
-      // Round to integers for crisp pixels.
+      // Scale from center pivot.
       const scaledWidth = Math.round(layer.canvas.width * layer.scale);
       const scaledHeight = Math.round(layer.canvas.height * layer.scale);
-      ctx.drawImage(layer.canvas, 0, 0, scaledWidth, scaledHeight);
+      const offsetX = Math.round((ctx.canvas.width - scaledWidth) / 2);
+      const offsetY = Math.round((ctx.canvas.height - scaledHeight) / 2);
+      ctx.drawImage(layer.canvas, offsetX, offsetY, scaledWidth, scaledHeight);
     } else {
       ctx.drawImage(layer.canvas, 0, 0);
     }
