@@ -12,6 +12,27 @@ import {
   CanvasResizedEvent,
 } from "./canvas";
 import { initializeLayers } from "./layers";
+import { setupCompositor } from "./compositor";
+import { setupPointer } from "./pointer";
+
+/** Event target for engine lifecycle events. */
+export const engineEvents = new EventTarget();
+
+/** Event fired when the engine starts. */
+export class EngineStartedEvent extends Event {
+  static readonly type = "engineStarted";
+  constructor() {
+    super(EngineStartedEvent.type);
+  }
+}
+
+/** Event fired when the engine stops. */
+export class EngineStoppedEvent extends Event {
+  static readonly type = "engineStopped";
+  constructor() {
+    super(EngineStoppedEvent.type);
+  }
+}
 
 /**
  * Configuration passed to the engine init function.
@@ -55,13 +76,13 @@ let state: EngineState | null = null;
 let running = false;
 
 /**
- * Initialize the engine with the provided configuration.
+ * Setup the engine with the provided configuration.
  * Sets up the canvas, computes resolution, and stores engine state.
  *
  * @param config - The engine configuration.
  * @returns The initialized engine state.
  */
-export function initializeEngine(config: EngineConfig): EngineState {
+export function setupEngine(config: EngineConfig): EngineState {
   // Initialize canvas.
   const canvasContext: CanvasContext = initializeCanvas({
     canvas: config.canvas,
@@ -84,6 +105,12 @@ export function initializeEngine(config: EngineConfig): EngineState {
     if (!state) return;
     state.resolution = (e as CanvasResizedEvent).resolution;
   });
+
+  // Setup compositor (subscribes to engine lifecycle events).
+  setupCompositor();
+
+  // Setup pointer (subscribes to engine lifecycle events).
+  setupPointer();
 
   return state;
 }
@@ -112,10 +139,21 @@ export function isEngineRunning(): boolean {
 }
 
 /**
- * Set the engine running state.
- *
- * @param value - Whether the engine is running.
+ * Start the engine.
+ * Emits EngineStartedEvent for listeners like the compositor.
  */
-export function setEngineRunning(value: boolean): void {
-  running = value;
+export function startEngine(): void {
+  if (running) return;
+  running = true;
+  engineEvents.dispatchEvent(new EngineStartedEvent());
+}
+
+/**
+ * Stop the engine.
+ * Emits EngineStoppedEvent for listeners like the compositor.
+ */
+export function stopEngine(): void {
+  if (!running) return;
+  running = false;
+  engineEvents.dispatchEvent(new EngineStoppedEvent());
 }

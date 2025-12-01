@@ -11,7 +11,8 @@ import {
   RenderContext,
 } from "../engine/sprites";
 import { Component, ComponentProps } from "../engine/components";
-import { setLayerScale } from "../engine/layers";
+import { getEngineState } from "../engine/engine";
+import { registerPointerArea } from "../engine/pointer";
 
 /** Props for the developer sprite component. */
 export interface DeveloperSpriteProps extends ComponentProps {
@@ -30,14 +31,8 @@ export interface DeveloperSpriteProps extends ComponentProps {
   /** Interval between sprite changes in milliseconds. */
   changeInterval: number;
 
-  /** Minimum scale for zoom animation. */
-  minScale: number;
-
-  /** Maximum scale for zoom animation. */
-  maxScale: number;
-
-  /** Duration of one zoom cycle in milliseconds. */
-  zoomCycleMs: number;
+  /** Scale factor for rendering. */
+  scale: number;
 }
 
 /** Default props. */
@@ -47,9 +42,7 @@ const defaultProps: DeveloperSpriteProps = {
   tileSize: 32,
   atlasColumns: 4,
   changeInterval: 1000,
-  minScale: 2,
-  maxScale: 8,
-  zoomCycleMs: 3000,
+  scale: 3,
 };
 
 /**
@@ -79,29 +72,51 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
     // Skip if atlas not loaded.
     if (!this.spriteAtlas) return;
 
-    // Compute column and row from index.
-    const col = this.currentSpriteIndex % this.props.atlasColumns;
-    const row = Math.floor(this.currentSpriteIndex / this.props.atlasColumns);
+    const { resolution } = getEngineState();
+    const { scale } = this.props;
+    const scaledTile = Math.round(this.props.tileSize * scale);
+    const gridSize = 3;
+    const totalSize = scaledTile * gridSize;
 
-    // Compute region for current sprite.
-    const region: SpriteRegion = {
-      x: col * this.props.tileSize,
-      y: row * this.props.tileSize,
-      width: this.props.tileSize,
-      height: this.props.tileSize,
-    };
+    // Center the grid in viewport.
+    const startX = Math.round((resolution.width - totalSize) / 2);
+    const startY = Math.round((resolution.height - totalSize) / 2);
 
-    // Compute animated scale using sin(t), oscillating between MIN and MAX.
-    const t = (Date.now() % this.props.zoomCycleMs) / this.props.zoomCycleMs;
-    const normalized = (Math.sin(t * Math.PI * 2) + 1) / 2;
-    const scale =
-      this.props.minScale +
-      normalized * (this.props.maxScale - this.props.minScale);
+    // Draw 3x3 grid of sprites.
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const spriteIndex =
+          (this.currentSpriteIndex + row * gridSize + col) %
+          this.props.spriteCount;
+        const atlasCol = spriteIndex % this.props.atlasColumns;
+        const atlasRow = Math.floor(spriteIndex / this.props.atlasColumns);
 
-    // Apply scale to the layer.
-    setLayerScale(this.props.layer, scale);
+        const region: SpriteRegion = {
+          x: atlasCol * this.props.tileSize,
+          y: atlasRow * this.props.tileSize,
+          width: this.props.tileSize,
+          height: this.props.tileSize,
+        };
 
-    // Draw sprite region at top-left (no sprite scaling, layer handles it).
-    drawAtlasSprite(ctx, this.spriteAtlas, region, 0, 0);
+        const x = startX + col * scaledTile;
+        const y = startY + row * scaledTile;
+
+        drawAtlasSprite(ctx, this.spriteAtlas, region, x, y, scale);
+
+        // Register pointer area for this sprite.
+        registerPointerArea({
+          x,
+          y,
+          width: scaledTile,
+          height: scaledTile,
+          layer: this.props.layer,
+          onClick: () => {
+            console.log(
+              `Clicked sprite at grid [${row}, ${col}], index ${spriteIndex}`
+            );
+          },
+        });
+      }
+    }
   }
 }

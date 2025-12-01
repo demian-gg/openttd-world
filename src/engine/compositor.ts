@@ -3,10 +3,17 @@
  * Handles layer compositing, component rendering, and the main game loop.
  */
 
-import { getEngineState, isEngineRunning, setEngineRunning } from "./engine";
+import {
+  getEngineState,
+  isEngineRunning,
+  engineEvents,
+  EngineStartedEvent,
+  EngineStoppedEvent,
+} from "./engine";
 import { handleCanvasResize } from "./canvas";
 import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
 import { getComponents } from "./components";
+import { clearPointerAreas } from "./pointer";
 
 /**
  * Composites a single frame, outputting to the main canvas.
@@ -14,6 +21,9 @@ import { getComponents } from "./components";
 function compositeFrame(): void {
   const { ctx, backgroundColor } = getEngineState();
   const components = getComponents();
+
+  // Clear pointer areas from previous frame.
+  clearPointerAreas();
 
   // Clear main canvas with background.
   ctx.fillStyle = backgroundColor;
@@ -65,13 +75,10 @@ function handleCompositorResize(): void {
 }
 
 /**
- * Initializes and starts the compositor.
+ * Handle engine started event.
+ * Starts the compositor render loop.
  */
-export function initializeCompositor(): void {
-  // Prevent multiple initializations.
-  if (isEngineRunning()) return;
-  setEngineRunning(true);
-
+function handleEngineStarted(): void {
   // Attach event listeners.
   window.addEventListener("resize", handleCompositorResize);
 
@@ -84,11 +91,18 @@ export function initializeCompositor(): void {
 }
 
 /**
- * Stop the compositor.
+ * Handle engine stopped event.
  */
-export function stopCompositor(): void {
-  setEngineRunning(false);
-
+function handleEngineStopped(): void {
   // Remove event listeners.
   window.removeEventListener("resize", handleCompositorResize);
+}
+
+/**
+ * Setup the compositor module.
+ * Subscribes to engine lifecycle events.
+ */
+export function setupCompositor(): void {
+  engineEvents.addEventListener(EngineStartedEvent.type, handleEngineStarted);
+  engineEvents.addEventListener(EngineStoppedEvent.type, handleEngineStopped);
 }
