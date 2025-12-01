@@ -53,6 +53,9 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
   private spriteAtlas: Sprite | null = null;
   private currentSpriteIndex = 0;
 
+  /** Position offsets for each sprite in the grid (keyed by "row,col"). */
+  private spriteOffsets = new Map<string, { x: number; y: number }>();
+
   constructor(propsOverride?: Partial<DeveloperSpriteProps>) {
     super({ ...defaultProps, ...propsOverride });
   }
@@ -98,8 +101,12 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
           height: this.props.tileSize,
         };
 
-        const x = startX + col * scaledTile;
-        const y = startY + row * scaledTile;
+        // Get position offset for this sprite.
+        const key = `${row},${col}`;
+        const offset = this.spriteOffsets.get(key) ?? { x: 0, y: 0 };
+
+        const x = startX + col * scaledTile + offset.x;
+        const y = startY + row * scaledTile + offset.y;
 
         drawAtlasSprite(ctx, this.spriteAtlas, region, x, y, scale);
 
@@ -114,6 +121,13 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
             console.log(
               `Clicked sprite at grid [${row}, ${col}], index ${spriteIndex}`
             );
+          },
+          onDrag: (_x, _y, deltaX, deltaY) => {
+            const current = this.spriteOffsets.get(key) ?? { x: 0, y: 0 };
+            this.spriteOffsets.set(key, {
+              x: current.x + deltaX,
+              y: current.y + deltaY,
+            });
           },
         });
       }
