@@ -5,7 +5,7 @@
 import { setupEngine, startEngine } from "./engine/engine";
 import { registerComponent, loadComponents } from "./engine/components";
 
-import { DeveloperSprite } from "./components/developer-sprite";
+import { WorldMap } from "./components/world-map";
 
 /**
  * Initialize and start the application.
@@ -18,12 +18,11 @@ async function main(): Promise<void> {
   // Setup the engine.
   setupEngine({
     canvas,
-    resolution: { pixelScale: 2 },
     backgroundColor: "#306499",
   });
 
   // Register components.
-  registerComponent(new DeveloperSprite());
+  registerComponent(new WorldMap());
 
   // Load all previously registered components.
   await loadComponents();

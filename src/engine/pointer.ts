@@ -3,8 +3,8 @@
  * Components register pointer areas each frame during render.
  */
 
-import { getCanvasContext } from "./canvas";
 import { engineEvents, EngineStartedEvent, EngineStoppedEvent } from "./engine";
+import { getCanvasContext } from "./canvas";
 
 /** A pointer area registered by a component. */
 export interface PointerArea {
@@ -58,19 +58,13 @@ export function registerPointerArea(area: PointerArea): void {
 
 /**
  * Convert display coordinates to game pixel coordinates.
- *
- * @param displayX - X in CSS pixels.
- * @param displayY - Y in CSS pixels.
- * @returns Coordinates in game pixels.
+ * Since canvas is 1:1 with screen, this is just flooring.
  */
 function displayToGameCoords(
   displayX: number,
   displayY: number
 ): { x: number; y: number } {
-  const { resolution } = getCanvasContext();
-  const x = Math.floor(displayX / resolution.pixelScale);
-  const y = Math.floor(displayY / resolution.pixelScale);
-  return { x, y };
+  return { x: Math.floor(displayX), y: Math.floor(displayY) };
 }
 
 /**

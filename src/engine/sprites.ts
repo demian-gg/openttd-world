@@ -122,12 +122,14 @@ export function drawSprite(
   y: number,
   scale = 1
 ): void {
-  // Round destination size to integers for crisp pixels.
+  // Round position and size to integers for crisp pixels.
+  const px = Math.round(x);
+  const py = Math.round(y);
   const w = Math.round(sprite.width * scale);
   const h = Math.round(sprite.height * scale);
 
   // Draw entire sprite at position, scaled.
-  ctx.drawImage(sprite.image, x, y, w, h);
+  ctx.drawImage(sprite.image, px, py, w, h);
 }
 
 /**
@@ -149,7 +151,9 @@ export function drawAtlasSprite(
   y: number,
   scale = 1
 ): void {
-  // Round destination size to integers for crisp pixels.
+  // Round position and size to integers for crisp pixels.
+  const px = Math.round(x);
+  const py = Math.round(y);
   const w = Math.round(region.width * scale);
   const h = Math.round(region.height * scale);
 
@@ -160,8 +164,8 @@ export function drawAtlasSprite(
     region.y,
     region.width,
     region.height,
-    x,
-    y,
+    px,
+    py,
     w,
     h
   );

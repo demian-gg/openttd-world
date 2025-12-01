@@ -8,6 +8,12 @@ import type { RenderContext } from "./canvas";
 export interface ComponentProps {
   /** Layer for render ordering. Lower renders first. */
   layer?: number;
+
+  /** Initial X position. */
+  x?: number;
+
+  /** Initial Y position. */
+  y?: number;
 }
 
 /**

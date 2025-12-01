@@ -16,13 +16,8 @@ export class CanvasResizedEvent extends Event {
 
 /**
  * Configuration for computing canvas resolution.
- * Controls how the engine scales pixel art to fit the display.
  */
 export interface CanvasResolutionConfig {
-  /** Pixel scale factor for upscaling. A value of 2 renders at half resolution,
-   * then upscales 2x. */
-  pixelScale?: number;
-
   /** Maximum internal render width in game pixels. Caps resolution to prevent
    * excessive memory usage. */
   maxWidth?: number;
@@ -33,29 +28,15 @@ export interface CanvasResolutionConfig {
 }
 
 /**
- * Computed canvas resolution after applying pixel scaling and constraints.
- * Represents both the render target size and display size.
+ * Computed canvas resolution.
+ * Canvas is always 1:1 with screen pixels for crisp rendering.
  */
 export interface CanvasResolution {
-  /** Internal render width in game pixels. All game logic and rendering uses
-   * this coordinate space. */
+  /** Canvas width in pixels. */
   width: number;
 
-  /** Internal render height in game pixels. All game logic and rendering uses
-   * this coordinate space. */
+  /** Canvas height in pixels. */
   height: number;
-
-  /** Display width in CSS pixels. The canvas is stretched to this size on
-   * screen. */
-  displayWidth: number;
-
-  /** Display height in CSS pixels. The canvas is stretched to this size on
-   * screen. */
-  displayHeight: number;
-
-  /** The pixel scale factor used for this resolution. Stored for use during
-   * resize operations. */
-  pixelScale: number;
 }
 
 /**
@@ -84,42 +65,27 @@ export interface CanvasContext {
 /** Singleton canvas context, `null` until `initCanvas()` is called. */
 let context: CanvasContext | null = null;
 
-/** Default pixel scale factor for upscaling. */
-const DEFAULT_PIXEL_SCALE = 2;
-
 /**
- * Compute the internal render resolution based on window size and config.
- * Applies pixel scaling and clamps to max constraints if provided.
+ * Compute the canvas resolution based on window size and config.
  *
  * @param config - Optional resolution configuration overrides.
- * @returns The computed internal resolution.
+ * @returns The computed resolution.
  */
 function computeCanvasResolution(
   config: CanvasResolutionConfig = {}
 ): CanvasResolution {
-  // Extract config values with defaults.
-  const pixelScale = config.pixelScale ?? DEFAULT_PIXEL_SCALE;
   const maxWidth = config.maxWidth ?? Infinity;
   const maxHeight = config.maxHeight ?? Infinity;
 
-  // Capture current window dimensions.
-  const displayWidth = window.innerWidth;
-  const displayHeight = window.innerHeight;
+  // Use window dimensions, clamped to max constraints.
+  const width = Math.min(maxWidth, window.innerWidth);
+  const height = Math.min(maxHeight, window.innerHeight);
 
-  // Compute internal resolution by dividing display size by pixel scale.
-  let width = Math.floor(displayWidth / pixelScale);
-  let height = Math.floor(displayHeight / pixelScale);
-
-  // Clamp dimensions to max constraints if provided.
-  width = Math.min(maxWidth, width);
-  height = Math.min(maxHeight, height);
-
-  return { width, height, displayWidth, displayHeight, pixelScale };
+  return { width, height };
 }
 
 /**
  * Apply the computed resolution to the canvas and context.
- * Sets internal dimensions, display size, and disables image smoothing.
  *
  * @param canvas - The canvas element to configure.
  * @param ctx - The 2D rendering context.
@@ -130,19 +96,17 @@ function applyCanvasResolution(
   ctx: CanvasRenderingContext2D,
   resolution: CanvasResolution
 ): void {
-  // Set internal canvas resolution.
+  // Set canvas resolution (1:1 with screen).
   canvas.width = resolution.width;
   canvas.height = resolution.height;
 
-  // Set CSS display size for upscaling.
-  canvas.style.width = `${resolution.displayWidth}px`;
-  canvas.style.height = `${resolution.displayHeight}px`;
+  // Set CSS size to match.
+  canvas.style.width = `${resolution.width}px`;
+  canvas.style.height = `${resolution.height}px`;
 
-  // Match body dimensions to canvas display size.
+  // Reset body styles.
   document.body.style.margin = "0";
   document.body.style.overflow = "hidden";
-  document.body.style.width = `${resolution.displayWidth}px`;
-  document.body.style.height = `${resolution.displayHeight}px`;
 
   // Disable smoothing for crisp pixel art.
   ctx.imageSmoothingEnabled = false;
@@ -191,7 +155,6 @@ export function initializeCanvas(config: CanvasConfig): CanvasContext {
 
 /**
  * Resize the canvas to match current window dimensions.
- * Recomputes resolution while preserving the current pixel scale.
  *
  * @param resolutionConfig - Optional resolution config overrides.
  * @returns The new computed resolution.
@@ -200,23 +163,14 @@ export function initializeCanvas(config: CanvasConfig): CanvasContext {
 export function handleCanvasResize(
   resolutionConfig?: CanvasResolutionConfig
 ): CanvasResolution {
-  // Ensure canvas is initialized.
   if (!context) {
     throw new Error("Canvas not initialized.");
   }
 
-  // Compute new resolution, preserving pixel scale if not overridden.
-  const resolution = computeCanvasResolution(
-    resolutionConfig ?? { pixelScale: context.resolution.pixelScale }
-  );
-
-  // Apply new resolution to canvas.
+  const resolution = computeCanvasResolution(resolutionConfig);
   applyCanvasResolution(context.canvas, context.ctx, resolution);
-
-  // Update stored resolution.
   context.resolution = resolution;
 
-  // Emit resize event.
   canvasEvents.dispatchEvent(new CanvasResizedEvent(resolution));
 
   return resolution;
