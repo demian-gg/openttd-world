@@ -31,6 +31,9 @@ export interface Layer {
 
   /** Blend mode for compositing. */
   blendMode: GlobalCompositeOperation;
+
+  /** Scale factor for compositing (1 = no scaling). */
+  scale: number;
 }
 
 /** Map of layer id to layer instance. */
@@ -73,6 +76,7 @@ function createLayer(id: number): Layer {
     dirty: true,
     opacity: 1,
     blendMode: "source-over",
+    scale: 1,
   };
 
   // Store in map.
@@ -151,6 +155,19 @@ export function setLayerBlendMode(
   const layer = layers.get(id);
   if (layer) {
     layer.blendMode = blendMode;
+  }
+}
+
+/**
+ * Set layer scale.
+ *
+ * @param id - The layer z-index.
+ * @param scale - Scale factor (1 = no scaling).
+ */
+export function setLayerScale(id: number, scale: number): void {
+  const layer = layers.get(id);
+  if (layer) {
+    layer.scale = scale;
   }
 }
 

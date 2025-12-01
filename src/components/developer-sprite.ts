@@ -11,6 +11,7 @@ import {
   RenderContext,
 } from "../engine/sprites";
 import { Component, ComponentProps } from "../engine/components";
+import { setLayerScale } from "../engine/layers";
 
 /** Props for the developer sprite component. */
 export interface DeveloperSpriteProps extends ComponentProps {
@@ -97,7 +98,10 @@ export class DeveloperSprite extends Component<DeveloperSpriteProps> {
       this.props.minScale +
       normalized * (this.props.maxScale - this.props.minScale);
 
-    // Draw sprite region at top-left.
-    drawSpriteRegion(ctx, this.spriteAtlas, region, 0, 0, scale);
+    // Apply scale to the layer.
+    setLayerScale(this.props.layer, scale);
+
+    // Draw sprite region at top-left (no sprite scaling, layer handles it).
+    drawSpriteRegion(ctx, this.spriteAtlas, region, 0, 0);
   }
 }

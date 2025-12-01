@@ -41,7 +41,17 @@ function compositeFrame(): void {
     ctx.save();
     ctx.globalAlpha = layer.opacity;
     ctx.globalCompositeOperation = layer.blendMode;
-    ctx.drawImage(layer.canvas, 0, 0);
+
+    // Draw layer canvas, applying scale if set.
+    if (layer.scale !== 1) {
+      // Round to integers for crisp pixels.
+      const scaledWidth = Math.round(layer.canvas.width * layer.scale);
+      const scaledHeight = Math.round(layer.canvas.height * layer.scale);
+      ctx.drawImage(layer.canvas, 0, 0, scaledWidth, scaledHeight);
+    } else {
+      ctx.drawImage(layer.canvas, 0, 0);
+    }
+
     ctx.restore();
   }
 }
