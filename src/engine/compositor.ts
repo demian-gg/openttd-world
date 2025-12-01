@@ -35,35 +35,44 @@ function compositeFrame(): void {
     (c) => (c.props?.layer as number) ?? DEFAULT_LAYER
   );
 
-  // Clear and render each layer.
+  // Update and render layers.
   for (const [layerId, group] of byLayer) {
     const layer = getLayer(layerId);
-    clearLayer(layerId);
 
+    // Update all components every frame (for input, position changes, etc).
     for (const component of group) {
-      component.render(layer.ctx);
+      component.update?.();
+    }
+
+    // Only render if layer is dirty.
+    if (layer.dirty) {
+      clearLayer(layerId);
+      for (const component of group) {
+        component.render(layer.ctx);
+      }
+      layer.dirty = false;
     }
   }
 
   // Flatten all layers onto main canvas.
   for (const layer of getLayers()) {
+    // Skip invisible layers.
     if (layer.opacity <= 0) continue;
+
+    // Save context state so we can restore later.
     ctx.save();
     ctx.globalAlpha = layer.opacity;
     ctx.globalCompositeOperation = layer.blendMode;
 
-    // Draw layer canvas, applying scale if set.
-    if (layer.scale !== 1) {
-      // Scale from center pivot.
-      const scaledWidth = Math.round(layer.canvas.width * layer.scale);
-      const scaledHeight = Math.round(layer.canvas.height * layer.scale);
-      const offsetX = Math.round((ctx.canvas.width - scaledWidth) / 2);
-      const offsetY = Math.round((ctx.canvas.height - scaledHeight) / 2);
-      ctx.drawImage(layer.canvas, offsetX, offsetY, scaledWidth, scaledHeight);
-    } else {
-      ctx.drawImage(layer.canvas, 0, 0);
-    }
+    // Calculate destination position (centered with offset).
+    const destWidth = Math.round(layer.canvas.width * layer.scale);
+    const destHeight = Math.round(layer.canvas.height * layer.scale);
+    const destX = Math.round((ctx.canvas.width - destWidth) / 2) + layer.x;
+    const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
+    ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
+
+    // Restore context state.
     ctx.restore();
   }
 }

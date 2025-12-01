@@ -11,11 +11,21 @@ import {
 } from "../engine/sprites";
 import { Component, ComponentProps } from "../engine/components";
 import { getEngineState } from "../engine/engine";
+import { registerPointerArea } from "../engine/pointer";
+import {
+  setLayerPosition,
+  setLayerScale,
+  setLayerSize,
+} from "../engine/layers";
 
 /** Props for the world map component. */
 export interface WorldMapProps extends ComponentProps {
   layer: number;
+
+  /** X offset from center (0 = centered). */
   x: number;
+
+  /** Y offset from center (0 = centered). */
   y: number;
 
   /** Initial zoom level. */
@@ -37,28 +47,54 @@ const defaultProps: WorldMapProps = {
 export class WorldMap extends Component<WorldMapProps> {
   private sprite: Sprite | null = null;
 
+  /** Current layer offset from dragging. */
+  private offsetX = 0;
+  private offsetY = 0;
+
   constructor(propsOverride?: Partial<WorldMapProps>) {
     super({ ...defaultProps, ...propsOverride });
+    this.offsetX = this.props.x;
+    this.offsetY = this.props.y;
   }
 
   async load(): Promise<void> {
     this.sprite = await loadSprite("/sprites/world-map.png");
   }
 
-  render(ctx: RenderContext): void {
+  update(): void {
     if (!this.sprite) return;
 
     const { resolution } = getEngineState();
-    const { x, y, zoom } = this.props;
+    const { layer, zoom } = this.props;
 
-    // Calculate scaled dimensions.
-    const scaledWidth = Math.round(this.sprite.width * zoom);
-    const scaledHeight = Math.round(this.sprite.height * zoom);
+    // Set layer size to sprite's natural size (not zoomed).
+    setLayerSize(layer, this.sprite.width, this.sprite.height);
 
-    // Center the map in the viewport with initial offsets.
-    const centeredX = Math.round((resolution.width - scaledWidth) / 2) + x;
-    const centeredY = Math.round((resolution.height - scaledHeight) / 2) + y;
+    // Let the compositor handle zoom via layer scale.
+    setLayerScale(layer, zoom);
 
-    drawSprite(ctx, this.sprite, centeredX, centeredY, zoom);
+    // Update layer position.
+    setLayerPosition(layer, this.offsetX, this.offsetY);
+
+    // Register the entire viewport as a draggable area.
+    registerPointerArea({
+      x: 0,
+      y: 0,
+      width: resolution.width,
+      height: resolution.height,
+      layer,
+      onDrag: (_x, _y, dx, dy) => {
+        this.offsetX += dx;
+        this.offsetY += dy;
+      },
+    });
+  }
+
+  render(ctx: RenderContext): void {
+    // Ensure sprite is loaded.
+    if (!this.sprite) return;
+
+    // Draw the sprite at 1:1 scale (layer scale handles zoom).
+    drawSprite(ctx, this.sprite, 0, 0);
   }
 }

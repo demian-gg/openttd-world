@@ -8,12 +8,6 @@ import type { RenderContext } from "./canvas";
 export interface ComponentProps {
   /** Layer for render ordering. Lower renders first. */
   layer?: number;
-
-  /** Initial X position. */
-  x?: number;
-
-  /** Initial Y position. */
-  y?: number;
 }
 
 /**
@@ -31,7 +25,10 @@ export abstract class Component<P extends ComponentProps = ComponentProps> {
   /** Optional async load function called before first render. */
   load?(): Promise<void>;
 
-  /** Render function called each frame. */
+  /** Optional update function called each frame (for input handling, etc). */
+  update?(): void;
+
+  /** Render function called when layer is dirty. */
   abstract render(ctx: RenderContext): void;
 }
 

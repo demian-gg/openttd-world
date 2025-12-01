@@ -34,6 +34,12 @@ export interface Layer {
 
   /** Scale factor for compositing (1 = no scaling). */
   scale: number;
+
+  /** X offset from center (0 = centered). */
+  x: number;
+
+  /** Y offset from center (0 = centered). */
+  y: number;
 }
 
 /** Map of layer id to layer instance. */
@@ -77,6 +83,8 @@ function createLayer(id: number): Layer {
     opacity: 1,
     blendMode: "source-over",
     scale: 1,
+    x: 0,
+    y: 0,
   };
 
   // Store in map.
@@ -172,6 +180,41 @@ export function setLayerScale(id: number, scale: number): void {
 }
 
 /**
+ * Set layer position offset from center.
+ *
+ * @param id - The layer z-index.
+ * @param x - X offset from center (0 = centered).
+ * @param y - Y offset from center (0 = centered).
+ */
+export function setLayerPosition(id: number, x: number, y: number): void {
+  const layer = layers.get(id);
+  if (layer) {
+    layer.x = x;
+    layer.y = y;
+  }
+}
+
+/**
+ * Set layer canvas size.
+ * This resizes the layer's offscreen canvas.
+ *
+ * @param id - The layer z-index.
+ * @param width - Custom width.
+ * @param height - Custom height.
+ */
+export function setLayerSize(id: number, width: number, height: number): void {
+  const layer = layers.get(id);
+  if (layer) {
+    if (layer.canvas.width !== width || layer.canvas.height !== height) {
+      layer.canvas.width = width;
+      layer.canvas.height = height;
+      layer.ctx.imageSmoothingEnabled = false;
+      layer.dirty = true;
+    }
+  }
+}
+
+/**
  * Initialize the layer system.
  * Subscribes to canvas resize events.
  *
@@ -186,7 +229,7 @@ export function initializeLayers(resolution: CanvasResolution): void {
     currentResolution = newResolution;
 
     for (const layer of layers.values()) {
-      // Resize canvas.
+      // Resize to match new viewport.
       layer.canvas.width = newResolution.width;
       layer.canvas.height = newResolution.height;
 
