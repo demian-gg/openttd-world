@@ -30,6 +30,12 @@ export interface WorldMapProps extends ComponentProps {
 
   /** Initial zoom level. */
   zoom: number;
+
+  /** Minimum zoom level. */
+  minZoom?: number;
+
+  /** Maximum zoom level. */
+  maxZoom?: number;
 }
 
 /** Default props. */
@@ -38,6 +44,8 @@ const defaultProps: WorldMapProps = {
   x: -150,
   y: 800,
   zoom: 3,
+  minZoom: 2,
+  maxZoom: 6,
 };
 
 /**
@@ -51,10 +59,14 @@ export class WorldMap extends Component<WorldMapProps> {
   private offsetX = 0;
   private offsetY = 0;
 
+  /** Current zoom level. */
+  private zoom: number;
+
   constructor(propsOverride?: Partial<WorldMapProps>) {
     super({ ...defaultProps, ...propsOverride });
     this.offsetX = this.props.x;
     this.offsetY = this.props.y;
+    this.zoom = this.props.zoom;
   }
 
   async load(): Promise<void> {
@@ -65,18 +77,18 @@ export class WorldMap extends Component<WorldMapProps> {
     if (!this.sprite) return;
 
     const { resolution } = getEngineState();
-    const { layer, zoom } = this.props;
+    const { layer } = this.props;
 
     // Set layer size to sprite's natural size (not zoomed).
     setLayerSize(layer, this.sprite.width, this.sprite.height);
 
     // Let the compositor handle zoom via layer scale.
-    setLayerScale(layer, zoom);
+    setLayerScale(layer, this.zoom);
 
     // Update layer position.
     setLayerPosition(layer, this.offsetX, this.offsetY);
 
-    // Register the entire viewport as a draggable area.
+    // Register the entire viewport as a draggable/scrollable area.
     registerPointerArea({
       x: 0,
       y: 0,
@@ -86,6 +98,30 @@ export class WorldMap extends Component<WorldMapProps> {
       onDrag: (_x, _y, dx, dy) => {
         this.offsetX += dx;
         this.offsetY += dy;
+      },
+      onScroll: (x, y, deltaY) => {
+        // Zoom in when scrolling up, out when scrolling down.
+        const zoomFactor = deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = Math.max(
+          this.props.minZoom!,
+          Math.min(this.props.maxZoom!, this.zoom * zoomFactor)
+        );
+
+        // Calculate cursor position relative to viewport center.
+        const { resolution } = getEngineState();
+        const cursorFromCenterX = x - resolution.width / 2;
+        const cursorFromCenterY = y - resolution.height / 2;
+
+        // Adjust offset so the point under cursor stays fixed.
+        // The point under cursor in world coords: (cursorFromCenter - offset) / zoom
+        // After zoom change, we want the same world point under cursor.
+        const scale = newZoom / this.zoom;
+        this.offsetX =
+          cursorFromCenterX - (cursorFromCenterX - this.offsetX) * scale;
+        this.offsetY =
+          cursorFromCenterY - (cursorFromCenterY - this.offsetY) * scale;
+
+        this.zoom = newZoom;
       },
     });
   }

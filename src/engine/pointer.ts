@@ -34,6 +34,9 @@ export interface PointerArea {
 
   /** Callback when drag ends. */
   onDragEnd?: (x: number, y: number) => void;
+
+  /** Callback when scrolling over this area. */
+  onScroll?: (x: number, y: number, deltaY: number) => void;
 }
 
 /** Registered pointer areas for the current frame. */
@@ -191,6 +194,19 @@ function handlePointerUp(event: MouseEvent): void {
   }
 }
 
+/**
+ * Handle mouse wheel event on the canvas.
+ */
+function handleWheel(event: WheelEvent): void {
+  const { x, y } = displayToGameCoords(event.clientX, event.clientY);
+  const hitArea = findTopHitArea(x, y);
+
+  if (hitArea?.onScroll) {
+    event.preventDefault();
+    hitArea.onScroll(x, y, event.deltaY);
+  }
+}
+
 /** Whether pointer listeners are attached. */
 let active = false;
 
@@ -205,6 +221,7 @@ function handleEngineStarted(): void {
   canvas.addEventListener("mousedown", handlePointerDown);
   canvas.addEventListener("mousemove", handlePointerMove);
   canvas.addEventListener("mouseup", handlePointerUp);
+  canvas.addEventListener("wheel", handleWheel, { passive: false });
 
   active = true;
 }
@@ -220,6 +237,7 @@ function handleEngineStopped(): void {
   canvas.removeEventListener("mousedown", handlePointerDown);
   canvas.removeEventListener("mousemove", handlePointerMove);
   canvas.removeEventListener("mouseup", handlePointerUp);
+  canvas.removeEventListener("wheel", handleWheel);
   canvas.style.cursor = "default";
   dragState = null;
 
