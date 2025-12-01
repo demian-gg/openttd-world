@@ -19,21 +19,6 @@ import type { RenderContext } from "./canvas";
 
 export type { RenderContext };
 
-/**
- * Configuration for loading a sprite atlas.
- * Defines the source image and tile dimensions.
- */
-export interface SpriteAtlasConfig {
-  /** Path or URL to the sprite atlas image file. */
-  src: string;
-
-  /** Width of each tile in the atlas, in pixels. */
-  tileWidth: number;
-
-  /** Height of each tile in the atlas, in pixels. */
-  tileHeight: number;
-}
-
 /** Represents a loaded sprite image ready for rendering. */
 export interface Sprite {
   /** The loaded image element. */

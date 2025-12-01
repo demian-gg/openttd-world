@@ -12,7 +12,6 @@ import {
   CanvasResizedEvent,
 } from "./canvas";
 import { initializeLayers } from "./layers";
-import type { SpriteAtlasConfig } from "./sprites";
 
 /**
  * Configuration passed to the engine init function.
@@ -26,10 +25,6 @@ export interface EngineConfig {
   /** Optional resolution configuration. If omitted, default pixel scale and
    * constraints are used. */
   resolution?: CanvasResolutionConfig;
-
-  /** Optional sprite atlas configuration. If provided, the atlas will be
-   * loaded during init. */
-  sprites?: SpriteAtlasConfig;
 
   /** Optional background color. Defaults to "#000". */
   backgroundColor?: string;
@@ -48,9 +43,6 @@ export interface EngineState {
 
   /** The current computed canvas resolution. */
   resolution: CanvasResolution;
-
-  /** The sprite atlas configuration, if provided. */
-  sprites?: SpriteAtlasConfig;
 
   /** The background color for clearing the canvas. */
   backgroundColor: string;
@@ -81,7 +73,6 @@ export function initializeEngine(config: EngineConfig): EngineState {
     canvas: canvasContext.canvas,
     ctx: canvasContext.ctx,
     resolution: canvasContext.resolution,
-    sprites: config.sprites,
     backgroundColor: config.backgroundColor ?? "#000",
   };
 
