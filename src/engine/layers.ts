@@ -26,6 +26,9 @@ export interface Layer {
   /** Whether this layer needs to be re-rendered. */
   dirty: boolean;
 
+  /** Whether this layer transform changed and needs re-compositing. */
+  moved: boolean;
+
   /** Layer opacity (0-1). */
   opacity: number;
 
@@ -80,6 +83,7 @@ function createLayer(id: number): Layer {
     canvas,
     ctx,
     dirty: true,
+    moved: true,
     opacity: 1,
     blendMode: "source-over",
     scale: 1,
@@ -174,8 +178,9 @@ export function setLayerBlendMode(
  */
 export function setLayerScale(id: number, scale: number): void {
   const layer = layers.get(id);
-  if (layer) {
+  if (layer && layer.scale !== scale) {
     layer.scale = scale;
+    layer.moved = true;
   }
 }
 
@@ -188,9 +193,10 @@ export function setLayerScale(id: number, scale: number): void {
  */
 export function setLayerPosition(id: number, x: number, y: number): void {
   const layer = layers.get(id);
-  if (layer) {
+  if (layer && (layer.x !== x || layer.y !== y)) {
     layer.x = x;
     layer.y = y;
+    layer.moved = true;
   }
 }
 

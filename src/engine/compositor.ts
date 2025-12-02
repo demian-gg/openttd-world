@@ -25,26 +25,36 @@ function compositeFrame(): void {
   // Clear pointer areas from previous frame.
   clearPointerAreas();
 
-  // Clear main canvas with background.
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
   // Group components by layer.
   const byLayer = Map.groupBy(
     components,
     (c) => (c.props?.layer as number) ?? DEFAULT_LAYER
   );
 
-  // Update and render layers.
+  // Ensure layers exist and update all components.
   for (const [layerId, group] of byLayer) {
-    const layer = getLayer(layerId);
-
-    // Update all components every frame (for input, position changes, etc).
+    getLayer(layerId); // Ensure layer exists.
     for (const component of group) {
       component.update?.();
     }
+  }
 
-    // Only render if layer is dirty.
+  // Get layers after they've been created/updated.
+  const layers = getLayers();
+
+  // Skip compositing if nothing changed.
+  const needsWork = layers.some((l) => l.dirty || l.moved);
+  if (!needsWork) return;
+
+  // Clear main canvas with background.
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  // Render dirty layers.
+  for (const [layerId, group] of byLayer) {
+    const layer = getLayer(layerId);
+
+    // Only render if layer content is dirty.
     if (layer.dirty) {
       clearLayer(layerId);
       for (const component of group) {
@@ -55,7 +65,7 @@ function compositeFrame(): void {
   }
 
   // Flatten all layers onto main canvas.
-  for (const layer of getLayers()) {
+  for (const layer of layers) {
     // Skip invisible layers.
     if (layer.opacity <= 0) continue;
 
@@ -71,6 +81,9 @@ function compositeFrame(): void {
     const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
     ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
+
+    // Clear moved flag.
+    layer.moved = false;
 
     // Restore context state.
     ctx.restore();
