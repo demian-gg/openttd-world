@@ -69,6 +69,24 @@ export class WorldMap extends Component<WorldMapProps> {
     this.zoom = this.props.zoom;
   }
 
+  /** Clamp offset values to keep the map within viewable bounds. */
+  private clampOffset(): void {
+    if (!this.sprite) return;
+
+    // Calculate the scaled sprite dimensions.
+    const scaledWidth = this.sprite.width * this.zoom;
+    const scaledHeight = this.sprite.height * this.zoom;
+
+    // Calculate bounds: the map edge should not go past the center.
+    const maxOffsetX = scaledWidth / 2;
+    const minOffsetX = -scaledWidth / 2;
+    const maxOffsetY = scaledHeight / 2;
+    const minOffsetY = -scaledHeight / 2;
+
+    this.offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, this.offsetX));
+    this.offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, this.offsetY));
+  }
+
   async load(): Promise<void> {
     this.sprite = await loadSprite("/sprites/world-map.png");
   }
@@ -98,6 +116,7 @@ export class WorldMap extends Component<WorldMapProps> {
       onDrag: (_x, _y, dx, dy) => {
         this.offsetX += dx;
         this.offsetY += dy;
+        this.clampOffset();
       },
       onScroll: (x, y, deltaY) => {
         // Zoom in when scrolling up, out when scrolling down.
@@ -122,6 +141,7 @@ export class WorldMap extends Component<WorldMapProps> {
           cursorFromCenterY - (cursorFromCenterY - this.offsetY) * scale;
 
         this.zoom = newZoom;
+        this.clampOffset();
       },
     });
   }
