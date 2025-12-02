@@ -24,7 +24,7 @@ export interface WorldGridProps extends ComponentProps {
 /** Default props. */
 const defaultProps: WorldGridProps = {
   layer: 0,
-  cellSize: 10,
+  cellSize: 12,
   color: "#ffffff",
   opacity: 0.025,
 };
