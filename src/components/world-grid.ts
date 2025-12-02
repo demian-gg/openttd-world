@@ -5,7 +5,6 @@
 
 import { Component, ComponentProps } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
-import { getEngineState } from "../engine/engine";
 
 /** Props for the world grid component. */
 export interface WorldGridProps extends ComponentProps {
@@ -39,8 +38,11 @@ export class WorldGrid extends Component<WorldGridProps> {
   }
 
   render(ctx: RenderContext): void {
-    const { resolution } = getEngineState();
     const { cellSize, color, opacity } = this.props;
+
+    // Get the layer's canvas dimensions (not viewport).
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
 
     // -30 degree skew factor (tan(-30°) ≈ -0.577).
     const skewFactor = Math.tan(-Math.PI / 6);
@@ -50,24 +52,22 @@ export class WorldGrid extends Component<WorldGridProps> {
     ctx.globalAlpha = opacity;
 
     // Draw horizontal lines using fillRect for crisp pixels.
-    for (let y = 0; y <= resolution.height; y += cellSize) {
+    for (let y = 0; y <= height; y += cellSize) {
       const yPos = Math.floor(y);
-      ctx.fillRect(0, yPos, resolution.width, 1);
+      ctx.fillRect(0, yPos, width, 1);
     }
 
     // Draw skewed vertical lines using Bresenham-style pixel stepping.
-    const extraWidth = Math.abs(resolution.height * skewFactor);
-    const numVerticalLines = Math.ceil(
-      (resolution.width + extraWidth) / cellSize
-    );
+    const extraWidth = Math.abs(height * skewFactor);
+    const numVerticalLines = Math.ceil((width + extraWidth) / cellSize);
 
     for (let i = -numVerticalLines; i <= numVerticalLines * 2; i++) {
       const startX = Math.floor(i * cellSize);
 
       // Draw pixel by pixel along the skewed line.
-      for (let y = 0; y < resolution.height; y++) {
+      for (let y = 0; y < height; y++) {
         const x = Math.floor(startX + y * skewFactor);
-        if (x >= 0 && x < resolution.width) {
+        if (x >= 0 && x < width) {
           ctx.fillRect(x, y, 1, 1);
         }
       }
