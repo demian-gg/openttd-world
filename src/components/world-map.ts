@@ -45,7 +45,7 @@ const defaultProps: WorldMapProps = {
   y: 800,
   zoom: 3,
   minZoom: 2,
-  maxZoom: 6,
+  maxZoom: 4,
 };
 
 /**
