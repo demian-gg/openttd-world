@@ -27,7 +27,7 @@ const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
   [768, 1.75], // Tablet
   [1280, 2.5], // Desktop
   [1920, 2.5], // Large desktop
-  [Infinity, 2], // Ultrawide
+  [Infinity, 2.75], // Ultrawide
 ];
 
 /** Maximum zoom level. */
@@ -97,10 +97,10 @@ export class WorldMap extends Component<WorldMapProps> {
     const scaledHeight = this.sprite.height * this.zoom;
 
     // Calculate bounds: the map edge should not go past the center.
-    const maxOffsetX = scaledWidth / 2;
-    const minOffsetX = -scaledWidth / 2;
-    const maxOffsetY = scaledHeight / 2;
-    const minOffsetY = -scaledHeight / 2;
+    const maxOffsetX = scaledWidth / 3;
+    const minOffsetX = -scaledWidth / 3;
+    const maxOffsetY = scaledHeight / 3;
+    const minOffsetY = -scaledHeight / 3;
 
     this.offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, this.offsetX));
     this.offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, this.offsetY));
