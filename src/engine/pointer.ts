@@ -339,9 +339,9 @@ function handleTouchMove(event: TouchEvent): void {
 
     // Convert pinch ratio to a scroll-like delta for the onScroll callback.
     // We invert it (initial/new) so spreading fingers = negative delta = zoom in.
-    // Use a smaller multiplier (30) for lower sensitivity than mouse wheel.
+    // Use a small multiplier for fine-grained control on touch.
     const scale = pinchState.initialDistance / newDistance;
-    const deltaY = (scale - 1) * 30;
+    const deltaY = (scale - 1) * 10;
 
     // Fire scroll callback on the area under the pinch center.
     const hitArea = findTopHitArea(x, y);
