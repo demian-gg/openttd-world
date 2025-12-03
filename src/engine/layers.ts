@@ -49,6 +49,18 @@ export interface Layer {
 
   /** Y offset from center (0 = centered). */
   y: number;
+
+  /** Shadow color (null = no shadow). */
+  shadowColor: string | null;
+
+  /** Shadow blur radius. */
+  shadowBlur: number;
+
+  /** Shadow X offset. */
+  shadowOffsetX: number;
+
+  /** Shadow Y offset. */
+  shadowOffsetY: number;
 }
 
 /** Map of layer id to layer instance. */
@@ -95,6 +107,10 @@ function createLayer(id: number): Layer {
     scale: 1,
     x: 0,
     y: 0,
+    shadowColor: null,
+    shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
   };
 
   // Store in map.
@@ -224,6 +240,29 @@ export function setLayerSize(id: number, width: number, height: number): void {
       layer.dirty = true;
     }
   }
+}
+
+/**
+ * Set layer shadow.
+ *
+ * @param id - The layer z-index.
+ * @param color - Shadow color (null to disable).
+ * @param blur - Shadow blur radius.
+ * @param offsetX - Shadow X offset.
+ * @param offsetY - Shadow Y offset.
+ */
+export function setLayerShadow(
+  id: number,
+  color: string | null,
+  blur = 0,
+  offsetX = 0,
+  offsetY = 0
+): void {
+  const layer = getLayer(id);
+  layer.shadowColor = color;
+  layer.shadowBlur = blur;
+  layer.shadowOffsetX = offsetX;
+  layer.shadowOffsetY = offsetY;
 }
 
 // Self-register on engine setup.

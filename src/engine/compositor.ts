@@ -74,6 +74,14 @@ function compositeFrame(): void {
     ctx.globalAlpha = layer.opacity;
     ctx.globalCompositeOperation = layer.blendMode;
 
+    // Apply shadow if set.
+    if (layer.shadowColor) {
+      ctx.shadowColor = layer.shadowColor;
+      ctx.shadowBlur = layer.shadowBlur;
+      ctx.shadowOffsetX = layer.shadowOffsetX;
+      ctx.shadowOffsetY = layer.shadowOffsetY;
+    }
+
     // Calculate destination position (centered with offset).
     const destWidth = Math.round(layer.canvas.width * layer.scale);
     const destHeight = Math.round(layer.canvas.height * layer.scale);
