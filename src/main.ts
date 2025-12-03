@@ -5,6 +5,7 @@
 import { setupEngine, startEngine } from "./engine/engine";
 import { registerComponent, loadComponents } from "./engine/components";
 
+import { Vignette } from "./components/vignette";
 import { WorldGrid } from "./components/world-grid";
 import { WorldMap } from "./components/world-map";
 
@@ -25,6 +26,7 @@ async function main(): Promise<void> {
   // Register components.
   registerComponent(new WorldGrid());
   registerComponent(new WorldMap());
+  registerComponent(new Vignette());
 
   // Load all previously registered components.
   await loadComponents();
