@@ -227,7 +227,12 @@ let pinchState: {
   centerX: number;
   /** Center Y of pinch in game coords, used as zoom anchor point. */
   centerY: number;
+  /** Accumulated scale ratio since last scroll event fired. */
+  accumulatedScale: number;
 } | null = null;
+
+/** Threshold for pinch scale change before firing scroll event. */
+const PINCH_THRESHOLD = 0.08;
 
 /**
  * Calculate the distance between two touch points.
@@ -285,6 +290,7 @@ function handleTouchStart(event: TouchEvent): void {
       initialDistance: getTouchDistance(event.touches),
       centerX: x,
       centerY: y,
+      accumulatedScale: 1,
     };
 
     // Cancel any in-progress single-finger drag since user switched to pinch.
@@ -331,25 +337,27 @@ function handleTouchMove(event: TouchEvent): void {
     event.preventDefault();
 
     // Calculate how much the finger distance changed.
-    // Ratio > 1 means fingers moved apart (zoom in).
-    // Ratio < 1 means fingers moved together (zoom out).
     const newDistance = getTouchDistance(event.touches);
     const center = getTouchCenter(event.touches);
     const { x, y } = displayToGameCoords(center.x, center.y);
 
-    // Convert pinch ratio to a scroll-like delta for the onScroll callback.
-    // We invert it (initial/new) so spreading fingers = negative delta = zoom in.
-    // Use a small multiplier for fine-grained control on touch.
-    const scale = pinchState.initialDistance / newDistance;
-    const deltaY = (scale - 1) * 10;
+    // Accumulate scale ratio (< 1 = zoom in, > 1 = zoom out).
+    const scaleChange = pinchState.initialDistance / newDistance;
+    pinchState.accumulatedScale *= scaleChange;
 
-    // Fire scroll callback on the area under the pinch center.
-    const hitArea = findTopHitArea(x, y);
-    if (hitArea?.onScroll) {
-      hitArea.onScroll(x, y, deltaY);
+    // Only fire scroll when accumulated change exceeds threshold.
+    if (Math.abs(pinchState.accumulatedScale - 1) >= PINCH_THRESHOLD) {
+      const hitArea = findTopHitArea(x, y);
+      if (hitArea?.onScroll) {
+        // Positive delta = zoom out, negative = zoom in.
+        const deltaY = pinchState.accumulatedScale > 1 ? 1 : -1;
+        hitArea.onScroll(x, y, deltaY);
+      }
+      // Reset accumulator.
+      pinchState.accumulatedScale = 1;
     }
 
-    // Update baseline for next move event (makes zooming smooth/continuous).
+    // Update baseline for next move event.
     pinchState.initialDistance = newDistance;
     pinchState.centerX = x;
     pinchState.centerY = y;
