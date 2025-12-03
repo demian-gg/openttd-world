@@ -26,7 +26,7 @@ export interface LogoProps {
 /** Default props. */
 const defaultProps = {
   padding: 32,
-  scale: 0.5,
+  scale: 1,
 };
 
 /**
