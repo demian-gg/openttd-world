@@ -23,8 +23,8 @@ import {
  * Smaller screens can zoom out more, larger screens are more restricted.
  */
 const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
-  [480, 1.75], // Mobile
-  [768, 1.75], // Tablet
+  [480, 2], // Mobile
+  [768, 2], // Tablet
   [1280, 2.5], // Desktop
   [1920, 2.5], // Large desktop
   [Infinity, 2.75], // Ultrawide
