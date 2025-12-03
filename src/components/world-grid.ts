@@ -1,7 +1,6 @@
 /**
  * World grid component.
  * Renders an isometric grid with 30 degree horizontal skew.
- * Sized at 2x the world map so it appears infinite.
  */
 
 import { Component, ComponentProps } from "../engine/components";
@@ -41,7 +40,7 @@ const defaultProps = {
 
 /**
  * World grid component.
- * Renders an isometric grid (-30deg skew) at 2x map size.
+ * Renders an isometric grid (-30deg skew) matching map size.
  */
 export class WorldGrid extends Component<WorldGridProps & ComponentProps> {
   constructor(props: WorldGridProps & ComponentProps) {
@@ -51,8 +50,8 @@ export class WorldGrid extends Component<WorldGridProps & ComponentProps> {
   update(): void {
     const { layer, tracksLayer } = this.props;
 
-    // Set layer size to 2x map size.
-    setLayerSize(layer, MAP_WIDTH * 2, MAP_HEIGHT * 2);
+    // Set layer size to match map size.
+    setLayerSize(layer, MAP_WIDTH, MAP_HEIGHT);
 
     // Copy transforms from tracked layer.
     if (tracksLayer !== undefined) {
@@ -65,9 +64,8 @@ export class WorldGrid extends Component<WorldGridProps & ComponentProps> {
   render(ctx: RenderContext): void {
     const { cellSize, color, opacity } = this.props as Required<WorldGridProps>;
 
-    // Grid canvas is 2x map size.
-    const width = MAP_WIDTH * 2;
-    const height = MAP_HEIGHT * 2;
+    const width = MAP_WIDTH;
+    const height = MAP_HEIGHT;
 
     // -30 degree skew factor (tan(-30°) ≈ -0.577).
     const skewFactor = Math.tan(-Math.PI / 6);
@@ -86,7 +84,7 @@ export class WorldGrid extends Component<WorldGridProps & ComponentProps> {
     const numVerticalLines = Math.ceil((width + extraWidth) / cellSize) + 2;
 
     for (let i = -numVerticalLines; i <= numVerticalLines; i++) {
-      const startX = i * cellSize + MAP_WIDTH / 2;
+      const startX = i * cellSize;
 
       // Draw pixel by pixel along the skewed line.
       for (let y = 0; y < height; y++) {

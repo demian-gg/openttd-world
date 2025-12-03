@@ -85,22 +85,28 @@ export class WorldMap extends Component<WorldMapProps & ComponentProps> {
     this.zoom = this.props.zoom!;
   }
 
-  /** Clamp offset values to keep the map within viewable bounds. */
+  /** Clamp offset values to keep the map covering the viewport. */
   private clampOffset(): void {
     if (!this.sprite) return;
+
+    const { resolution } = getEngineState();
 
     // Calculate the scaled sprite dimensions.
     const scaledWidth = this.sprite.width * this.zoom;
     const scaledHeight = this.sprite.height * this.zoom;
 
-    // Calculate bounds: the map edge should not go past the center.
-    const maxOffsetX = scaledWidth / 3;
-    const minOffsetX = -scaledWidth / 3;
-    const maxOffsetY = scaledHeight / 3;
-    const minOffsetY = -scaledHeight / 3;
+    // Calculate how much the map extends beyond the viewport on each side.
+    // If map is larger than viewport, we can pan until the edge aligns with
+    // viewport edge. If map is smaller than viewport (shouldn't happen with
+    // proper zoom limits), clamp to 0.
+    const excessWidth = Math.max(0, scaledWidth - resolution.width) / 2;
+    const excessHeight = Math.max(0, scaledHeight - resolution.height) / 2;
 
-    this.offsetX = Math.max(minOffsetX, Math.min(maxOffsetX, this.offsetX));
-    this.offsetY = Math.max(minOffsetY, Math.min(maxOffsetY, this.offsetY));
+    this.offsetX = Math.max(-excessWidth, Math.min(excessWidth, this.offsetX));
+    this.offsetY = Math.max(
+      -excessHeight,
+      Math.min(excessHeight, this.offsetY)
+    );
   }
 
   async load(): Promise<void> {
