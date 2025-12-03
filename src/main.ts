@@ -8,6 +8,7 @@ import { registerComponent, loadComponents } from "./engine/components";
 import { Vignette } from "./components/vignette";
 import { WorldGrid } from "./components/world-grid";
 import { WorldMap } from "./components/world-map";
+import { Logo } from "./components/logo";
 
 /**
  * Initialize and start the application.
@@ -27,6 +28,7 @@ async function main(): Promise<void> {
   registerComponent(new WorldGrid({ layer: 0 }));
   registerComponent(new WorldMap({ layer: 0 }));
   registerComponent(new Vignette({ layer: 1 }));
+  registerComponent(new Logo({ layer: 2 }));
 
   // Load all previously registered components.
   await loadComponents();
