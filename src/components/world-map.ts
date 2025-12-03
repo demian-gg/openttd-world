@@ -27,7 +27,7 @@ const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
   [768, 1.5], // Tablet
   [1280, 2.5], // Desktop
   [1920, 2.5], // Large desktop
-  [Infinity, 2.5], // Ultrawide
+  [Infinity, 2], // Ultrawide
 ];
 
 /** Maximum zoom level. */
