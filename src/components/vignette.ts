@@ -22,7 +22,7 @@ export interface VignetteProps {
 /** Default props. */
 const defaultProps = {
   color: "#000000",
-  opacity: 0.25,
+  opacity: 0.15,
 };
 
 /**
