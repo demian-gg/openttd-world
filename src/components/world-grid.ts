@@ -1,16 +1,24 @@
 /**
  * World grid component.
  * Renders an isometric grid with 30 degree horizontal skew.
+ * Sized at 2x the world map so it appears infinite.
  */
 
-import { Component } from "../engine/components";
+import { Component, ComponentProps } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
+import {
+  getLayer,
+  setLayerSize,
+  setLayerScale,
+  setLayerPosition,
+} from "../engine/layers";
+
+/** World map dimensions (must match world-map.png). */
+const MAP_WIDTH = 2176;
+const MAP_HEIGHT = 1152;
 
 /** Props for the world grid component. */
 export interface WorldGridProps {
-  /** Layer for render ordering. */
-  layer: number;
-
   /** Grid cell size in pixels. */
   cellSize?: number;
 
@@ -19,6 +27,9 @@ export interface WorldGridProps {
 
   /** Grid line opacity. */
   opacity?: number;
+
+  /** Layer to follow for transforms. */
+  tracksLayer?: number;
 }
 
 /** Default props. */
@@ -30,19 +41,33 @@ const defaultProps = {
 
 /**
  * World grid component.
- * Renders an isometric grid with 30 degree skew.
+ * Renders an isometric grid (-30deg skew) at 2x map size.
  */
-export class WorldGrid extends Component<WorldGridProps> {
-  constructor(props: WorldGridProps) {
+export class WorldGrid extends Component<WorldGridProps & ComponentProps> {
+  constructor(props: WorldGridProps & ComponentProps) {
     super({ ...defaultProps, ...props });
+  }
+
+  update(): void {
+    const { layer, tracksLayer } = this.props;
+
+    // Set layer size to 2x map size.
+    setLayerSize(layer, MAP_WIDTH * 2, MAP_HEIGHT * 2);
+
+    // Copy transforms from tracked layer.
+    if (tracksLayer !== undefined) {
+      const target = getLayer(tracksLayer);
+      setLayerScale(layer, target.scale);
+      setLayerPosition(layer, target.x, target.y);
+    }
   }
 
   render(ctx: RenderContext): void {
     const { cellSize, color, opacity } = this.props as Required<WorldGridProps>;
 
-    // Get the layer's canvas dimensions (not viewport).
-    const width = ctx.canvas.width;
-    const height = ctx.canvas.height;
+    // Grid canvas is 2x map size.
+    const width = MAP_WIDTH * 2;
+    const height = MAP_HEIGHT * 2;
 
     // -30 degree skew factor (tan(-30°) ≈ -0.577).
     const skewFactor = Math.tan(-Math.PI / 6);
@@ -51,18 +76,17 @@ export class WorldGrid extends Component<WorldGridProps> {
     ctx.fillStyle = color;
     ctx.globalAlpha = opacity;
 
-    // Draw horizontal lines using fillRect for crisp pixels.
+    // Draw horizontal lines.
     for (let y = 0; y <= height; y += cellSize) {
-      const yPos = Math.floor(y);
-      ctx.fillRect(0, yPos, width, 1);
+      ctx.fillRect(0, y, width, 1);
     }
 
-    // Draw skewed vertical lines using Bresenham-style pixel stepping.
+    // Draw skewed vertical lines.
     const extraWidth = Math.abs(height * skewFactor);
-    const numVerticalLines = Math.ceil((width + extraWidth) / cellSize);
+    const numVerticalLines = Math.ceil((width + extraWidth) / cellSize) + 2;
 
-    for (let i = -numVerticalLines; i <= numVerticalLines * 2; i++) {
-      const startX = Math.floor(i * cellSize);
+    for (let i = -numVerticalLines; i <= numVerticalLines; i++) {
+      const startX = i * cellSize + MAP_WIDTH / 2;
 
       // Draw pixel by pixel along the skewed line.
       for (let y = 0; y < height; y++) {

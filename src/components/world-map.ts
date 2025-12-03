@@ -9,7 +9,7 @@ import {
   Sprite,
   RenderContext,
 } from "../engine/sprites";
-import { Component } from "../engine/components";
+import { Component, ComponentProps } from "../engine/components";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
 import {
@@ -47,9 +47,6 @@ function getMinZoomForViewport(width: number): number {
 
 /** Props for the world map component. */
 export interface WorldMapProps {
-  /** Layer for render ordering. */
-  layer: number;
-
   /** X offset from center (0 = centered). */
   x?: number;
 
@@ -71,7 +68,7 @@ const defaultProps = {
  * World map component.
  * Renders the world map sprite at the specified position.
  */
-export class WorldMap extends Component<WorldMapProps> {
+export class WorldMap extends Component<WorldMapProps & ComponentProps> {
   private sprite: Sprite | null = null;
 
   /** Current layer offset from dragging. */
@@ -81,7 +78,7 @@ export class WorldMap extends Component<WorldMapProps> {
   /** Current zoom level. */
   private zoom: number;
 
-  constructor(props: WorldMapProps) {
+  constructor(props: WorldMapProps & ComponentProps) {
     super({ ...defaultProps, ...props });
     this.offsetX = this.props.x!;
     this.offsetY = this.props.y!;

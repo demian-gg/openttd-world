@@ -3,15 +3,12 @@
  * Renders a dark vignette effect around the edges of the screen.
  */
 
-import { Component } from "../engine/components";
+import { Component, ComponentProps } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
 
 /** Props for the vignette component. */
 export interface VignetteProps {
-  /** Layer for render ordering. */
-  layer: number;
-
   /** Vignette color. */
   color?: string;
 
@@ -29,8 +26,8 @@ const defaultProps = {
  * Vignette component.
  * Renders a radial gradient vignette effect.
  */
-export class Vignette extends Component<VignetteProps> {
-  constructor(props: VignetteProps) {
+export class Vignette extends Component<VignetteProps & ComponentProps> {
+  constructor(props: VignetteProps & ComponentProps) {
     super({ ...defaultProps, ...props });
   }
 

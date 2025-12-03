@@ -3,7 +3,7 @@
  * Renders the logo sprite in the top left corner.
  */
 
-import { Component } from "../engine/components";
+import { Component, ComponentProps } from "../engine/components";
 import {
   loadSprite,
   drawSprite,
@@ -13,9 +13,6 @@ import {
 
 /** Props for the logo component. */
 export interface LogoProps {
-  /** Layer for render ordering. */
-  layer: number;
-
   /** Padding from the top left corner. */
   padding?: number;
 
@@ -33,10 +30,10 @@ const defaultProps = {
  * Logo component.
  * Renders the logo sprite positioned in the top left corner.
  */
-export class Logo extends Component<LogoProps> {
+export class Logo extends Component<LogoProps & ComponentProps> {
   private sprite: Sprite | null = null;
 
-  constructor(props: LogoProps) {
+  constructor(props: LogoProps & ComponentProps) {
     super({ ...defaultProps, ...props });
   }
 

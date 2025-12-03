@@ -33,7 +33,7 @@ function compositeFrame(): void {
 
   // Ensure layers exist and update all components.
   for (const [layerId, group] of byLayer) {
-    getLayer(layerId); // Ensure layer exists.
+    getLayer(layerId);
     for (const component of group) {
       component.update?.();
     }
