@@ -3,13 +3,13 @@
  * Handles layer compositing, component rendering, and the main game loop.
  */
 
+import { getEngineState, isEngineRunning } from "./engine";
 import {
-  getEngineState,
-  isEngineRunning,
   engineEvents,
+  EngineSetupEvent,
   EngineStartedEvent,
   EngineStoppedEvent,
-} from "./engine";
+} from "./events";
 import { handleCanvasResize } from "./canvas";
 import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
 import { getComponents } from "./components";
@@ -122,11 +122,8 @@ function handleEngineStopped(): void {
   window.removeEventListener("resize", handleCompositorResize);
 }
 
-/**
- * Setup the compositor module.
- * Subscribes to engine lifecycle events.
- */
-export function setupCompositor(): void {
-  engineEvents.addEventListener(EngineStartedEvent.type, handleEngineStarted);
-  engineEvents.addEventListener(EngineStoppedEvent.type, handleEngineStopped);
-}
+// Self-register on engine setup.
+engineEvents.on(EngineSetupEvent, () => {
+  engineEvents.on(EngineStartedEvent, handleEngineStarted);
+  engineEvents.on(EngineStoppedEvent, handleEngineStopped);
+});

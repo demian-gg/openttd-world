@@ -8,31 +8,28 @@ import {
   CanvasContext,
   CanvasResolution,
   CanvasResolutionConfig,
+} from "./canvas";
+import {
   canvasEvents,
   CanvasResizedEvent,
-} from "./canvas";
-import { initializeLayers } from "./layers";
-import { setupCompositor } from "./compositor";
-import { setupPointer } from "./pointer";
+  engineEvents,
+  EngineSetupEvent,
+  EngineStartedEvent,
+  EngineStoppedEvent,
+} from "./events";
 
-/** Event target for engine lifecycle events. */
-export const engineEvents = new EventTarget();
+// Import modules for side-effect registration.
+import "./layers";
+import "./compositor";
+import "./pointer";
 
-/** Event fired when the engine starts. */
-export class EngineStartedEvent extends Event {
-  static readonly type = "engineStarted";
-  constructor() {
-    super(EngineStartedEvent.type);
-  }
-}
-
-/** Event fired when the engine stops. */
-export class EngineStoppedEvent extends Event {
-  static readonly type = "engineStopped";
-  constructor() {
-    super(EngineStoppedEvent.type);
-  }
-}
+// Re-export events for convenience.
+export {
+  engineEvents,
+  EngineSetupEvent,
+  EngineStartedEvent,
+  EngineStoppedEvent,
+};
 
 /**
  * Configuration passed to the engine init function.
@@ -97,20 +94,14 @@ export function setupEngine(config: EngineConfig): EngineState {
     backgroundColor: config.backgroundColor ?? "#000",
   };
 
-  // Initialize layers with current resolution.
-  initializeLayers(canvasContext.resolution);
-
   // Subscribe to canvas resize events to update engine state.
-  canvasEvents.addEventListener(CanvasResizedEvent.type, (e) => {
+  canvasEvents.on(CanvasResizedEvent, (e) => {
     if (!state) return;
-    state.resolution = (e as CanvasResizedEvent).resolution;
+    state.resolution = e.resolution;
   });
 
-  // Setup compositor (subscribes to engine lifecycle events).
-  setupCompositor();
-
-  // Setup pointer (subscribes to engine lifecycle events).
-  setupPointer();
+  // Emit setup event so modules can self-register.
+  engineEvents.emit(new EngineSetupEvent(canvasContext.resolution));
 
   return state;
 }
@@ -145,7 +136,7 @@ export function isEngineRunning(): boolean {
 export function startEngine(): void {
   if (running) return;
   running = true;
-  engineEvents.dispatchEvent(new EngineStartedEvent());
+  engineEvents.emit(new EngineStartedEvent());
 }
 
 /**
@@ -155,5 +146,5 @@ export function startEngine(): void {
 export function stopEngine(): void {
   if (!running) return;
   running = false;
-  engineEvents.dispatchEvent(new EngineStoppedEvent());
+  engineEvents.emit(new EngineStoppedEvent());
 }

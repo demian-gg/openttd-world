@@ -3,7 +3,12 @@
  * Components register pointer areas each frame during render.
  */
 
-import { engineEvents, EngineStartedEvent, EngineStoppedEvent } from "./engine";
+import {
+  engineEvents,
+  EngineSetupEvent,
+  EngineStartedEvent,
+  EngineStoppedEvent,
+} from "./events";
 import { getCanvasContext } from "./canvas";
 
 /** A pointer area registered by a component. */
@@ -244,11 +249,8 @@ function handleEngineStopped(): void {
   active = false;
 }
 
-/**
- * Setup the pointer module.
- * Subscribes to engine lifecycle events.
- */
-export function setupPointer(): void {
-  engineEvents.addEventListener(EngineStartedEvent.type, handleEngineStarted);
-  engineEvents.addEventListener(EngineStoppedEvent.type, handleEngineStopped);
-}
+// Self-register on engine setup.
+engineEvents.on(EngineSetupEvent, () => {
+  engineEvents.on(EngineStartedEvent, handleEngineStarted);
+  engineEvents.on(EngineStoppedEvent, handleEngineStopped);
+});

@@ -4,7 +4,13 @@
  * Layers are composited onto the main canvas in z-order.
  */
 
-import { canvasEvents, CanvasResizedEvent, CanvasResolution } from "./canvas";
+import { CanvasResolution } from "./canvas";
+import {
+  canvasEvents,
+  CanvasResizedEvent,
+  engineEvents,
+  EngineSetupEvent,
+} from "./events";
 
 /** Default layer for components that don't specify one. */
 export const DEFAULT_LAYER = 0;
@@ -220,24 +226,18 @@ export function setLayerSize(id: number, width: number, height: number): void {
   }
 }
 
-/**
- * Initialize the layer system.
- * Subscribes to canvas resize events.
- *
- * @param resolution - The initial canvas resolution.
- */
-export function initializeLayers(resolution: CanvasResolution): void {
-  currentResolution = resolution;
+// Self-register on engine setup.
+engineEvents.on(EngineSetupEvent, (e) => {
+  currentResolution = e.resolution;
 
   // Subscribe to canvas resize events.
-  canvasEvents.addEventListener(CanvasResizedEvent.type, (e) => {
-    const newResolution = (e as CanvasResizedEvent).resolution;
-    currentResolution = newResolution;
+  canvasEvents.on(CanvasResizedEvent, (e) => {
+    currentResolution = e.resolution;
 
     for (const layer of layers.values()) {
       // Resize to match new viewport.
-      layer.canvas.width = newResolution.width;
-      layer.canvas.height = newResolution.height;
+      layer.canvas.width = e.resolution.width;
+      layer.canvas.height = e.resolution.height;
 
       // Re-disable smoothing after resize.
       layer.ctx.imageSmoothingEnabled = false;
@@ -246,7 +246,7 @@ export function initializeLayers(resolution: CanvasResolution): void {
       layer.dirty = true;
     }
   });
-}
+});
 
 /**
  * Get all layers sorted by id (lowest first).

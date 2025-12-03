@@ -3,16 +3,10 @@
  * Handles canvas setup, resolution scaling, and context configuration.
  */
 
-/** Event target for canvas events. */
-export const canvasEvents = new EventTarget();
+import { canvasEvents, CanvasResizedEvent } from "./events";
 
-/** Event fired when canvas resolution changes. */
-export class CanvasResizedEvent extends Event {
-  static readonly type = "canvasResized";
-  constructor(public readonly resolution: CanvasResolution) {
-    super(CanvasResizedEvent.type);
-  }
-}
+// Re-export events for convenience.
+export { canvasEvents, CanvasResizedEvent };
 
 /**
  * Configuration for computing canvas resolution.
@@ -171,7 +165,7 @@ export function handleCanvasResize(
   applyCanvasResolution(context.canvas, context.ctx, resolution);
   context.resolution = resolution;
 
-  canvasEvents.dispatchEvent(new CanvasResizedEvent(resolution));
+  canvasEvents.emit(new CanvasResizedEvent(resolution));
 
   return resolution;
 }
