@@ -18,6 +18,33 @@ import {
   setLayerSize,
 } from "../engine/layers";
 
+/**
+ * Viewport width breakpoints mapped to minimum zoom levels.
+ * Smaller screens can zoom out more, larger screens are more restricted.
+ */
+const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
+  [480, 1.5], // Mobile
+  [768, 1.5], // Tablet
+  [1280, 2.5], // Desktop
+  [1920, 2.5], // Large desktop
+  [Infinity, 2.5], // Ultrawide
+];
+
+/** Maximum zoom level. */
+const MAX_ZOOM = 4;
+
+/**
+ * Get minimum zoom level for a given viewport width.
+ */
+function getMinZoomForViewport(width: number): number {
+  for (const [breakpoint, minZoom] of MIN_ZOOM_BREAKPOINTS) {
+    if (width <= breakpoint) {
+      return minZoom;
+    }
+  }
+  return MIN_ZOOM_BREAKPOINTS[MIN_ZOOM_BREAKPOINTS.length - 1][1];
+}
+
 /** Props for the world map component. */
 export interface WorldMapProps {
   /** Layer for render ordering. */
@@ -31,12 +58,6 @@ export interface WorldMapProps {
 
   /** Initial zoom level. */
   zoom?: number;
-
-  /** Minimum zoom level. */
-  minZoom?: number;
-
-  /** Maximum zoom level. */
-  maxZoom?: number;
 }
 
 /** Default props. */
@@ -44,8 +65,6 @@ const defaultProps = {
   x: -150,
   y: 800,
   zoom: 3,
-  minZoom: 2,
-  maxZoom: 4,
 };
 
 /**
@@ -119,28 +138,30 @@ export class WorldMap extends Component<WorldMapProps> {
         this.clampOffset();
       },
       onScroll: (x, y, deltaY) => {
-        // Zoom in when scrolling up, out when scrolling down.
-        const zoomFactor = deltaY > 0 ? 0.9 : 1.1;
-        const newZoom = Math.max(
-          this.props.minZoom!,
-          Math.min(this.props.maxZoom!, this.zoom * zoomFactor)
+        const { resolution } = getEngineState();
+
+        // Calculate min zoom: largest of breakpoint limit and map coverage requirements.
+        const minZoom = Math.max(
+          getMinZoomForViewport(resolution.width),
+          resolution.width / this.sprite!.width,
+          resolution.height / this.sprite!.height
         );
 
-        // Calculate cursor position relative to viewport center.
-        const { resolution } = getEngineState();
+        // Apply zoom: scroll up = zoom in, scroll down = zoom out.
+        const zoomFactor = deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = Math.max(
+          minZoom,
+          Math.min(MAX_ZOOM, this.zoom * zoomFactor)
+        );
+
+        // Adjust offset to keep the point under cursor fixed during zoom.
         const cursorFromCenterX = x - resolution.width / 2;
         const cursorFromCenterY = y - resolution.height / 2;
-
-        // Adjust offset so the point under cursor stays fixed.
-        // After zoom change, we want the same world point under cursor.
-        //
-        // The point under cursor in world coords:
-        // (cursorFromCenter - offset) / zoom
-        const scale = newZoom / this.zoom;
+        const zoomRatio = newZoom / this.zoom;
         this.offsetX =
-          cursorFromCenterX - (cursorFromCenterX - this.offsetX) * scale;
+          cursorFromCenterX - (cursorFromCenterX - this.offsetX) * zoomRatio;
         this.offsetY =
-          cursorFromCenterY - (cursorFromCenterY - this.offsetY) * scale;
+          cursorFromCenterY - (cursorFromCenterY - this.offsetY) * zoomRatio;
 
         this.zoom = newZoom;
         this.clampOffset();
