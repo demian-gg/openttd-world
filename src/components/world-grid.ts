@@ -3,26 +3,26 @@
  * Renders an isometric grid with 30 degree horizontal skew.
  */
 
-import { Component, ComponentProps } from "../engine/components";
+import { Component } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 
 /** Props for the world grid component. */
-export interface WorldGridProps extends ComponentProps {
+export interface WorldGridProps {
+  /** Layer for render ordering. */
   layer: number;
 
   /** Grid cell size in pixels. */
-  cellSize: number;
+  cellSize?: number;
 
   /** Grid line color. */
-  color: string;
+  color?: string;
 
   /** Grid line opacity. */
-  opacity: number;
+  opacity?: number;
 }
 
 /** Default props. */
-const defaultProps: WorldGridProps = {
-  layer: 0,
+const defaultProps = {
   cellSize: 12,
   color: "#ffffff",
   opacity: 0.025,
@@ -33,12 +33,12 @@ const defaultProps: WorldGridProps = {
  * Renders an isometric grid with 30 degree skew.
  */
 export class WorldGrid extends Component<WorldGridProps> {
-  constructor(propsOverride?: Partial<WorldGridProps>) {
-    super({ ...defaultProps, ...propsOverride });
+  constructor(props: WorldGridProps) {
+    super({ ...defaultProps, ...props });
   }
 
   render(ctx: RenderContext): void {
-    const { cellSize, color, opacity } = this.props;
+    const { cellSize, color, opacity } = this.props as Required<WorldGridProps>;
 
     // Get the layer's canvas dimensions (not viewport).
     const width = ctx.canvas.width;

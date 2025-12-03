@@ -3,24 +3,24 @@
  * Renders a dark vignette effect around the edges of the screen.
  */
 
-import { Component, ComponentProps } from "../engine/components";
+import { Component } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
 
 /** Props for the vignette component. */
-export interface VignetteProps extends ComponentProps {
+export interface VignetteProps {
+  /** Layer for render ordering. */
   layer: number;
 
   /** Vignette color. */
-  color: string;
+  color?: string;
 
   /** Maximum opacity at the edges. */
-  opacity: number;
+  opacity?: number;
 }
 
 /** Default props. */
-const defaultProps: VignetteProps = {
-  layer: 1,
+const defaultProps = {
   color: "#000000",
   opacity: 0.25,
 };
@@ -30,13 +30,13 @@ const defaultProps: VignetteProps = {
  * Renders a radial gradient vignette effect.
  */
 export class Vignette extends Component<VignetteProps> {
-  constructor(propsOverride?: Partial<VignetteProps>) {
-    super({ ...defaultProps, ...propsOverride });
+  constructor(props: VignetteProps) {
+    super({ ...defaultProps, ...props });
   }
 
   render(ctx: RenderContext): void {
     const { resolution } = getEngineState();
-    const { color, opacity } = this.props;
+    const { color, opacity } = this.props as Required<VignetteProps>;
 
     const { width, height } = resolution;
     const centerX = width / 2;
@@ -44,7 +44,7 @@ export class Vignette extends Component<VignetteProps> {
 
     // Use diagonal distance to corners so gradient reaches all corners.
     const cornerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-    const innerRadius = cornerRadius * 0.25;
+    const innerRadius = cornerRadius * 0.5;
 
     ctx.save();
     ctx.globalAlpha = opacity;

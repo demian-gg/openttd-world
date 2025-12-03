@@ -7,7 +7,7 @@ import type { RenderContext } from "./canvas";
 /** Base props that all components must have. */
 export interface ComponentProps {
   /** Layer for render ordering. Lower renders first. */
-  layer?: number;
+  layer: number;
 }
 
 /**

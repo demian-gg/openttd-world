@@ -9,7 +9,7 @@ import {
   Sprite,
   RenderContext,
 } from "../engine/sprites";
-import { Component, ComponentProps } from "../engine/components";
+import { Component } from "../engine/components";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
 import {
@@ -19,17 +19,18 @@ import {
 } from "../engine/layers";
 
 /** Props for the world map component. */
-export interface WorldMapProps extends ComponentProps {
+export interface WorldMapProps {
+  /** Layer for render ordering. */
   layer: number;
 
   /** X offset from center (0 = centered). */
-  x: number;
+  x?: number;
 
   /** Y offset from center (0 = centered). */
-  y: number;
+  y?: number;
 
   /** Initial zoom level. */
-  zoom: number;
+  zoom?: number;
 
   /** Minimum zoom level. */
   minZoom?: number;
@@ -39,8 +40,7 @@ export interface WorldMapProps extends ComponentProps {
 }
 
 /** Default props. */
-const defaultProps: WorldMapProps = {
-  layer: 0,
+const defaultProps = {
   x: -150,
   y: 800,
   zoom: 3,
@@ -62,11 +62,11 @@ export class WorldMap extends Component<WorldMapProps> {
   /** Current zoom level. */
   private zoom: number;
 
-  constructor(propsOverride?: Partial<WorldMapProps>) {
-    super({ ...defaultProps, ...propsOverride });
-    this.offsetX = this.props.x;
-    this.offsetY = this.props.y;
-    this.zoom = this.props.zoom;
+  constructor(props: WorldMapProps) {
+    super({ ...defaultProps, ...props });
+    this.offsetX = this.props.x!;
+    this.offsetY = this.props.y!;
+    this.zoom = this.props.zoom!;
   }
 
   /** Clamp offset values to keep the map within viewable bounds. */
@@ -132,8 +132,10 @@ export class WorldMap extends Component<WorldMapProps> {
         const cursorFromCenterY = y - resolution.height / 2;
 
         // Adjust offset so the point under cursor stays fixed.
-        // The point under cursor in world coords: (cursorFromCenter - offset) / zoom
         // After zoom change, we want the same world point under cursor.
+        //
+        // The point under cursor in world coords:
+        // (cursorFromCenter - offset) / zoom
         const scale = newZoom / this.zoom;
         this.offsetX =
           cursorFromCenterX - (cursorFromCenterX - this.offsetX) * scale;

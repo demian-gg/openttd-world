@@ -24,9 +24,9 @@ async function main(): Promise<void> {
   });
 
   // Register components.
-  registerComponent(new WorldGrid());
-  registerComponent(new WorldMap());
-  registerComponent(new Vignette());
+  registerComponent(new WorldGrid({ layer: 0 }));
+  registerComponent(new WorldMap({ layer: 0 }));
+  registerComponent(new Vignette({ layer: 1 }));
 
   // Load all previously registered components.
   await loadComponents();
