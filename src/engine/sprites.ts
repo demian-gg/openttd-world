@@ -19,6 +19,92 @@ import type { RenderContext } from "./canvas";
 
 export type { RenderContext };
 
+/** Temporary recoloring canvas for sprite colorization. */
+let recolorCanvas: OffscreenCanvas | null = null;
+let recolorCtx: OffscreenCanvasRenderingContext2D | null = null;
+
+/**
+ * Get or create the temporary recoloring canvas.
+ * Resizes if needed to fit the sprite.
+ *
+ * @param width - Minimum width needed.
+ * @param height - Minimum height needed.
+ * @returns The temporary recoloring canvas context.
+ */
+export function getRecolorCanvas(
+  width: number,
+  height: number
+): OffscreenCanvasRenderingContext2D {
+  if (!recolorCanvas || !recolorCtx) {
+    recolorCanvas = new OffscreenCanvas(width, height);
+    recolorCtx = recolorCanvas.getContext("2d")!;
+    recolorCtx.imageSmoothingEnabled = false;
+  }
+
+  // Resize if needed.
+  if (recolorCanvas.width < width || recolorCanvas.height < height) {
+    recolorCanvas.width = Math.max(recolorCanvas.width, width);
+    recolorCanvas.height = Math.max(recolorCanvas.height, height);
+    recolorCtx.imageSmoothingEnabled = false;
+  }
+
+  return recolorCtx;
+}
+
+/**
+ * Apply a color tint to a region of the temporary recoloring canvas.
+ * Uses source-in composite to replace color while keeping alpha.
+ *
+ * @param width - Width of the region.
+ * @param height - Height of the region.
+ * @param color - The color to apply.
+ */
+export function applyColorTint(
+  width: number,
+  height: number,
+  color: string
+): void {
+  if (!recolorCtx) return;
+  recolorCtx.globalCompositeOperation = "source-in";
+  recolorCtx.fillStyle = color;
+  recolorCtx.fillRect(0, 0, width, height);
+  recolorCtx.globalCompositeOperation = "source-over";
+}
+
+/**
+ * Draw from the temporary recoloring canvas to a destination context.
+ *
+ * @param ctx - The destination rendering context.
+ * @param srcWidth - Source width in recoloring canvas.
+ * @param srcHeight - Source height in recoloring canvas.
+ * @param destX - Destination X position.
+ * @param destY - Destination Y position.
+ * @param destWidth - Destination width.
+ * @param destHeight - Destination height.
+ */
+export function drawFromRecolorCanvas(
+  ctx: RenderContext,
+  srcWidth: number,
+  srcHeight: number,
+  destX: number,
+  destY: number,
+  destWidth: number,
+  destHeight: number
+): void {
+  if (!recolorCanvas) return;
+  ctx.drawImage(
+    recolorCanvas,
+    0,
+    0,
+    srcWidth,
+    srcHeight,
+    destX,
+    destY,
+    destWidth,
+    destHeight
+  );
+}
+
 /** Represents a loaded sprite image ready for rendering. */
 export interface Sprite {
   /** The loaded image element. */
@@ -114,13 +200,15 @@ export async function loadSprites(sources: string[]): Promise<Sprite[]> {
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
  * @param scale - Optional scale factor (default 1).
+ * @param color - Optional color tint to apply.
  */
 export function drawSprite(
   ctx: RenderContext,
   sprite: Sprite,
   x: number,
   y: number,
-  scale = 1
+  scale = 1,
+  color?: string
 ): void {
   // Round position and size to integers for crisp pixels.
   const px = Math.round(x);
@@ -128,8 +216,18 @@ export function drawSprite(
   const w = Math.round(sprite.width * scale);
   const h = Math.round(sprite.height * scale);
 
-  // Draw entire sprite at position, scaled.
-  ctx.drawImage(sprite.image, px, py, w, h);
+  // If no color, draw directly.
+  if (!color) {
+    ctx.drawImage(sprite.image, px, py, w, h);
+    return;
+  }
+
+  // Draw to recoloring canvas, apply color, then draw to destination.
+  const recolor = getRecolorCanvas(sprite.width, sprite.height);
+  recolor.clearRect(0, 0, sprite.width, sprite.height);
+  recolor.drawImage(sprite.image, 0, 0);
+  applyColorTint(sprite.width, sprite.height, color);
+  drawFromRecolorCanvas(ctx, sprite.width, sprite.height, px, py, w, h);
 }
 
 /**

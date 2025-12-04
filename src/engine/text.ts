@@ -4,34 +4,11 @@
  */
 
 import { RenderContext } from "./canvas";
-
-/** Temporary canvas for text colorization. */
-let tempCanvas: OffscreenCanvas | null = null;
-let tempCtx: OffscreenCanvasRenderingContext2D | null = null;
-
-/**
- * Get or create the temporary canvas for colorization.
- * Resizes if needed to fit the text.
- */
-function getTempCanvas(
-  width: number,
-  height: number
-): OffscreenCanvasRenderingContext2D {
-  if (!tempCanvas || !tempCtx) {
-    tempCanvas = new OffscreenCanvas(width, height);
-    tempCtx = tempCanvas.getContext("2d")!;
-    tempCtx.imageSmoothingEnabled = false;
-  }
-
-  // Resize if needed.
-  if (tempCanvas.width < width || tempCanvas.height < height) {
-    tempCanvas.width = Math.max(tempCanvas.width, width);
-    tempCanvas.height = Math.max(tempCanvas.height, height);
-    tempCtx.imageSmoothingEnabled = false;
-  }
-
-  return tempCtx;
-}
+import {
+  getRecolorCanvas,
+  applyColorTint,
+  drawFromRecolorCanvas,
+} from "./sprites";
 
 /**
  * A loaded bitmap font.
@@ -145,32 +122,28 @@ export function drawText(
     return;
   }
 
-  // Calculate text dimensions at base scale (for temp canvas).
+  // Calculate text dimensions at base scale (for recoloring canvas).
   const baseWidth = measureText(font, text, 1);
   const baseHeight = charHeight;
 
-  // Get temporary canvas for colorization.
-  const temp = getTempCanvas(baseWidth, baseHeight);
+  // Get recoloring canvas for colorization.
+  const recolor = getRecolorCanvas(baseWidth, baseHeight);
 
   // Clear the area we'll use.
-  temp.clearRect(0, 0, baseWidth, baseHeight);
+  recolor.clearRect(0, 0, baseWidth, baseHeight);
 
-  // Draw text to temp canvas at origin (no scale - we scale when drawing to main).
-  drawTextDirect(temp, font, text, 0, 0, 1);
+  // Draw text to recoloring canvas at origin.
+  // No scale, we only scale when drawing to main.
+  drawTextDirect(recolor, font, text, 0, 0, 1);
 
-  // Apply color using source-in composite (keeps alpha, replaces color).
-  temp.globalCompositeOperation = "source-in";
-  temp.fillStyle = color;
-  temp.fillRect(0, 0, baseWidth, baseHeight);
-  temp.globalCompositeOperation = "source-over";
+  // Apply color tint.
+  applyColorTint(baseWidth, baseHeight, color);
 
   // Draw colorized text to main context with scaling.
   const destWidth = Math.floor(baseWidth * scale);
   const destHeight = Math.floor(baseHeight * scale);
-  ctx.drawImage(
-    tempCanvas!,
-    0,
-    0,
+  drawFromRecolorCanvas(
+    ctx,
     baseWidth,
     baseHeight,
     Math.floor(x),
