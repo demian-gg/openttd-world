@@ -10,6 +10,7 @@ import { Vignette } from "./components/vignette";
 import { WorldGrid } from "./components/world-grid";
 import { WorldMap } from "./components/world-map";
 import { Logo } from "./components/logo";
+import { Information } from "./components/information";
 
 /**
  * Initialize and start the application.
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
   registerComponent(new WorldMap({ layer: 0 }));
   registerComponent(new Vignette({ layer: 1 }));
   registerComponent(new Logo({ layer: 2 }));
+  registerComponent(new Information({ layer: 2, x: 110, y: 40 }));
 
   // Configure layer shadows.
   setLayerShadow(2, "rgba(0, 0, 0, 0.5)", 0, 2, 3);
