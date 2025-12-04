@@ -13,6 +13,11 @@ import {
   loadResolutionStepper,
   renderResolutionStepper,
 } from "./elements/resolution-stepper";
+import {
+  loadSaveButton,
+  renderSaveButton,
+  getSaveButtonSize,
+} from "./elements/save-button";
 
 /** Breakpoint for mobile devices. */
 const MOBILE_BREAKPOINT = 640;
@@ -43,7 +48,12 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
 
   async load(): Promise<void> {
     // Load all overlay elements in parallel.
-    await Promise.all([loadLogo(), loadCountryName(), loadResolutionStepper()]);
+    await Promise.all([
+      loadLogo(),
+      loadCountryName(),
+      loadResolutionStepper(),
+      loadSaveButton(),
+    ]);
   }
 
   /**
@@ -63,8 +73,10 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
   }
 
   render(ctx: RenderContext): void {
+    const { resolution } = getEngineState();
     const margin = this.getMargin();
     const logoSize = getLogoSize();
+    const saveButtonSize = getSaveButtonSize();
 
     // Logo position (top-left corner with margin).
     const logoX = margin;
@@ -80,5 +92,10 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     const resolutionX = countryNameX + 8;
     const resolutionY = countryNameY + 30;
     renderResolutionStepper(ctx, resolutionX, resolutionY);
+
+    // Save button position (top-right corner with margin).
+    const saveButtonX = resolution.width - margin - saveButtonSize.width;
+    const saveButtonY = margin + 6;
+    renderSaveButton(ctx, saveButtonX, saveButtonY);
   }
 }

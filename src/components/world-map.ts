@@ -59,7 +59,7 @@ export interface WorldMapProps {
 
 /** Default props. */
 const defaultProps = {
-  x: -150,
+  x: -100,
   y: 800,
   zoom: 3,
 };
