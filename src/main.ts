@@ -7,7 +7,6 @@ import { registerComponent, loadComponents } from "./engine/components";
 import { setLayerShadow } from "./engine/layers";
 
 import { Vignette } from "./components/vignette";
-import { WorldGrid } from "./components/world-grid";
 import { WorldMap } from "./components/world-map";
 import { Logo } from "./components/logo";
 import { Information } from "./components/information";
@@ -36,7 +35,7 @@ async function main(): Promise<void> {
   registerComponent(new Parameters({ layer: 2, x: 116, y: 70 }));
 
   // Configure layer shadows.
-  setLayerShadow(2, "rgba(0, 0, 0, 0.5)", 0, 2, 3);
+  setLayerShadow(2, "rgba(0, 0, 0, 0.65)", 0, 2, 3);
 
   // Load all previously registered components.
   await loadComponents();

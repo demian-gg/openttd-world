@@ -19,7 +19,7 @@ export interface VignetteProps {
 /** Default props. */
 const defaultProps = {
   color: "#000000",
-  opacity: 0.3,
+  opacity: 0.4,
 };
 
 /**
@@ -41,7 +41,7 @@ export class Vignette extends Component<VignetteProps & ComponentProps> {
 
     // Use diagonal distance to corners so gradient reaches all corners.
     const cornerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-    const innerRadius = cornerRadius * 0.5;
+    const innerRadius = cornerRadius * 0.6;
 
     ctx.save();
     ctx.globalAlpha = opacity;
@@ -60,8 +60,10 @@ export class Vignette extends Component<VignetteProps & ComponentProps> {
     gradient.addColorStop(0, "transparent");
     gradient.addColorStop(1, color);
 
+    // Fill a large area to ensure vignette covers entire viewport
+    // regardless of camera transforms.
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(-width, -height, width * 3, height * 3);
 
     ctx.restore();
   }
