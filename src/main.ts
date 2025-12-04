@@ -8,9 +8,7 @@ import { setLayerShadow } from "./engine/layers";
 
 import { Vignette } from "./components/vignette";
 import { WorldMap } from "./components/world-map";
-import { Logo } from "./components/logo";
-import { Information } from "./components/information";
-import { Parameters } from "./components/parameters";
+import { Overlay } from "./components/overlay/overlay";
 
 /**
  * Initialize and start the application.
@@ -27,12 +25,9 @@ async function main(): Promise<void> {
   });
 
   // Register components.
-  // registerComponent(new WorldGrid({ layer: -1, tracksLayer: 0 }));
   registerComponent(new WorldMap({ layer: 0 }));
   registerComponent(new Vignette({ layer: 1 }));
-  registerComponent(new Logo({ layer: 2 }));
-  registerComponent(new Information({ layer: 2, x: 110, y: 40 }));
-  registerComponent(new Parameters({ layer: 2, x: 116, y: 70 }));
+  registerComponent(new Overlay({ layer: 2 }));
 
   // Configure layer shadows.
   setLayerShadow(2, "rgba(0, 0, 0, 0.65)", 0, 2, 3);
