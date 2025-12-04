@@ -18,6 +18,11 @@ import {
   renderSaveButton,
   getSaveButtonSize,
 } from "./elements/save-button";
+import {
+  loadZoomSlider,
+  renderZoomSlider,
+  getZoomSliderSize,
+} from "./elements/zoom-slider";
 
 /** Breakpoint for mobile devices. */
 const MOBILE_BREAKPOINT = 640;
@@ -53,6 +58,7 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
       loadCountryName(),
       loadResolutionStepper(),
       loadSaveButton(),
+      loadZoomSlider(),
     ]);
   }
 
@@ -77,6 +83,7 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     const margin = this.getMargin();
     const logoSize = getLogoSize();
     const saveButtonSize = getSaveButtonSize();
+    const zoomSliderSize = getZoomSliderSize();
 
     // Logo position (top-left corner with margin).
     const logoX = margin;
@@ -97,5 +104,10 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     const saveButtonX = resolution.width - margin - saveButtonSize.width;
     const saveButtonY = margin + 6;
     renderSaveButton(ctx, saveButtonX, saveButtonY);
+
+    // Zoom slider position (bottom-right corner with margin).
+    const zoomSliderX = resolution.width - margin - zoomSliderSize.width;
+    const zoomSliderY = resolution.height - margin - zoomSliderSize.height;
+    renderZoomSlider(ctx, zoomSliderX, zoomSliderY);
   }
 }
