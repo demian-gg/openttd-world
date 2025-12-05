@@ -2,8 +2,7 @@
  * Application entry point.
  */
 
-import { setupEngine, startEngine } from "./engine/engine";
-import { setLayerShadow } from "./engine/layers";
+import { startEngine } from "./engine/engine";
 
 import { registerOverlayStore } from "./stores/overlay";
 import { registerWorldMapStore } from "./stores/world-map";
@@ -19,8 +18,8 @@ async function main(): Promise<void> {
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
 
-  // Setup the engine with stores and components.
-  await setupEngine({
+  // Start the engine.
+  await startEngine({
     canvas,
     backgroundColor: "#2a5f96",
     stores: [registerOverlayStore, registerWorldMapStore],
@@ -29,13 +28,16 @@ async function main(): Promise<void> {
       [registerVignette, { layer: 1 }],
       [registerOverlay, { layer: 2 }],
     ],
+    layerShadows: [
+      {
+        layer: 2,
+        color: "rgba(0, 0, 0, 0.65)",
+        blur: 0,
+        offsetX: 3,
+        offsetY: 3,
+      },
+    ],
   });
-
-  // Configure layer shadows.
-  setLayerShadow(2, "rgba(0, 0, 0, 0.65)", 0, 2, 3);
-
-  // Start the engine.
-  startEngine();
 }
 
 main();

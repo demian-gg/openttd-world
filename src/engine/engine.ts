@@ -18,6 +18,7 @@ import {
   EngineStartedEvent,
   EngineStoppedEvent,
 } from "./events";
+import { setLayerShadow } from "./layers";
 
 // Import modules for side-effect registration.
 import "./layers";
@@ -32,6 +33,20 @@ export {
   EngineStartedEvent,
   EngineStoppedEvent,
 };
+
+/** Layer shadow configuration. */
+export interface LayerShadowConfig {
+  /** Layer to apply shadow to. */
+  layer: number;
+  /** Shadow color. */
+  color: string;
+  /** Shadow blur radius. */
+  blur?: number;
+  /** Shadow X offset. */
+  offsetX?: number;
+  /** Shadow Y offset. */
+  offsetY?: number;
+}
 
 /**
  * Configuration passed to the engine setup function.
@@ -54,6 +69,9 @@ export interface EngineConfig {
 
   /** Component registrations as [register, props] tuples. */
   components?: Array<[(props: ComponentProps) => void, ComponentProps]>;
+
+  /** Layer shadow configurations. */
+  layerShadows?: LayerShadowConfig[];
 }
 
 /**
@@ -81,13 +99,13 @@ let state: EngineState | null = null;
 let running = false;
 
 /**
- * Setup the engine with the provided configuration.
- * Sets up the canvas, computes resolution, and stores engine state.
+ * Start the engine with the provided configuration.
+ * Sets up the canvas, loads components, and begins the render loop.
  *
  * @param config - The engine configuration.
  * @returns The initialized engine state.
  */
-export async function setupEngine(config: EngineConfig): Promise<EngineState> {
+export async function startEngine(config: EngineConfig): Promise<EngineState> {
   // Initialize canvas.
   const canvasContext: CanvasContext = initializeCanvas({
     canvas: config.canvas,
@@ -115,6 +133,21 @@ export async function setupEngine(config: EngineConfig): Promise<EngineState> {
   config.components?.forEach(([register, props]) => register(props));
   await loadComponents();
 
+  // Apply layer shadows.
+  config.layerShadows?.forEach((shadow) => {
+    setLayerShadow(
+      shadow.layer,
+      shadow.color,
+      shadow.blur ?? 0,
+      shadow.offsetX ?? 0,
+      shadow.offsetY ?? 0
+    );
+  });
+
+  // Start the engine.
+  running = true;
+  engineEvents.emit(new EngineStartedEvent());
+
   return state;
 }
 
@@ -139,16 +172,6 @@ export function getEngineState(): EngineState {
  */
 export function isEngineRunning(): boolean {
   return running;
-}
-
-/**
- * Start the engine.
- * Emits EngineStartedEvent for listeners like the compositor.
- */
-export function startEngine(): void {
-  if (running) return;
-  running = true;
-  engineEvents.emit(new EngineStartedEvent());
 }
 
 /**
