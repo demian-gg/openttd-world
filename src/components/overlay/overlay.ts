@@ -21,6 +21,8 @@ import {
   loadButtons,
   renderButton,
   renderModeToggle,
+  registerButtonPointerArea,
+  registerModeTogglePointerArea,
   getButtonSize,
 } from "./elements/buttons";
 import {
@@ -43,6 +45,42 @@ const defaultProps = {
   margin: 32,
   mobileMargin: 16,
 };
+
+/**
+ * Calculate button positions based on current viewport.
+ */
+function getButtonPositions(props: OverlayProps): {
+  modeToggleX: number;
+  modeToggleY: number;
+  saveButtonX: number;
+  saveButtonY: number;
+} {
+  const { resolution } = getEngineState();
+  const margin = props.margin ?? defaultProps.margin;
+  const mobileMargin = props.mobileMargin ?? defaultProps.mobileMargin;
+  const currentMargin = getResponsiveValue({
+    default: margin,
+    small: mobileMargin,
+  });
+  const buttonSize = getButtonSize();
+  const buttonSpacing = 8;
+  const isMobile = isSmall();
+
+  const totalButtonsWidth = buttonSize.width * 2 + buttonSpacing;
+  const buttonsStartX = isMobile
+    ? (resolution.width - totalButtonsWidth) / 2
+    : resolution.width - currentMargin - totalButtonsWidth;
+  const buttonsY = isMobile
+    ? resolution.height - currentMargin - buttonSize.height
+    : currentMargin + 6;
+
+  return {
+    modeToggleX: buttonsStartX,
+    modeToggleY: buttonsY,
+    saveButtonX: buttonsStartX + buttonSize.width + buttonSpacing,
+    saveButtonY: buttonsY,
+  };
+}
 
 /**
  * Overlay component definition.
@@ -69,6 +107,20 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
       ]);
     },
 
+    update(props) {
+      // Register button pointer areas every frame.
+      const { layer } = props;
+      const pos = getButtonPositions(props);
+
+      registerModeTogglePointerArea(pos.modeToggleX, pos.modeToggleY, layer);
+      registerButtonPointerArea(
+        "save",
+        pos.saveButtonX,
+        pos.saveButtonY,
+        layer
+      );
+    },
+
     render(ctx: RenderContext, props) {
       const { resolution } = getEngineState();
       const margin = props.margin ?? defaultProps.margin;
@@ -78,7 +130,6 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
         small: mobileMargin,
       });
       const logoSize = getLogoSize();
-      const buttonSize = getButtonSize();
       const zoomSliderSize = getZoomSliderSize();
       const isMobile = isSmall();
 
@@ -97,25 +148,10 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
       const resolutionY = countryNameY + 30;
       renderResolutionStepper(ctx, resolutionX, resolutionY);
 
-      // Button spacing.
-      const buttonSpacing = 8;
-
-      // Buttons position (top-right on desktop, bottom-center on mobile).
-      // Two buttons rendered horizontally: mode toggle | save
-      const totalButtonsWidth = buttonSize.width * 2 + buttonSpacing;
-      const buttonsStartX = isMobile
-        ? (resolution.width - totalButtonsWidth) / 2
-        : resolution.width - currentMargin - totalButtonsWidth;
-      const buttonsY = isMobile
-        ? resolution.height - currentMargin - buttonSize.height
-        : currentMargin + 6;
-
-      // Mode toggle button (first).
-      renderModeToggle(ctx, buttonsStartX, buttonsY);
-
-      // Save button (second).
-      const saveButtonX = buttonsStartX + buttonSize.width + buttonSpacing;
-      renderButton(ctx, "save", "idle", saveButtonX, buttonsY);
+      // Render buttons at calculated positions.
+      const pos = getButtonPositions(props);
+      renderModeToggle(ctx, pos.modeToggleX, pos.modeToggleY);
+      renderButton(ctx, "save", pos.saveButtonX, pos.saveButtonY);
 
       // Zoom slider position (bottom-right corner, desktop only).
       if (!isMobile) {

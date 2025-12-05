@@ -32,7 +32,13 @@ export interface PointerArea {
   /** Layer for z-ordering (higher = on top). */
   layer: number;
 
-  /** Callback when this area is clicked (not fired if dragged). */
+  /** Callback when pointer is pressed down on this area. */
+  onPress?: (x: number, y: number) => void;
+
+  /** Callback when pointer is released (fires even if moved off area). */
+  onRelease?: (x: number, y: number) => void;
+
+  /** Callback when this area is clicked (pressed and released without drag). */
   onClick?: (x: number, y: number) => void;
 
   /** Callback when drag starts on this area. */
@@ -116,6 +122,9 @@ let dragState: {
   isDragging: boolean;
 } | null = null;
 
+/** Area that received the press event (for onRelease). */
+let pressedArea: PointerArea | null = null;
+
 /**
  * Handle mouse down event on the canvas.
  */
@@ -123,16 +132,22 @@ function handlePointerDown(event: MouseEvent): void {
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
   const hitArea = findTopHitArea(x, y);
 
-  if (hitArea && hitArea.onDrag) {
+  if (hitArea) {
+    // Fire onPress callback.
+    hitArea.onPress?.(x, y);
+    pressedArea = hitArea;
+
     // Only track drag state if the area supports dragging.
-    dragState = {
-      area: hitArea,
-      startX: x,
-      startY: y,
-      lastX: x,
-      lastY: y,
-      isDragging: false,
-    };
+    if (hitArea.onDrag) {
+      dragState = {
+        area: hitArea,
+        startX: x,
+        startY: y,
+        lastX: x,
+        lastY: y,
+        isDragging: false,
+      };
+    }
   }
 }
 
@@ -183,6 +198,12 @@ function handlePointerMove(event: MouseEvent): void {
  */
 function handlePointerUp(event: MouseEvent): void {
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
+
+  // Fire onRelease for the area that was pressed.
+  if (pressedArea) {
+    pressedArea.onRelease?.(x, y);
+    pressedArea = null;
+  }
 
   if (dragState) {
     if (dragState.isDragging) {
@@ -266,15 +287,22 @@ function handleTouchStart(event: TouchEvent): void {
     const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
     const hitArea = findTopHitArea(x, y);
 
-    if (hitArea && hitArea.onDrag) {
-      dragState = {
-        area: hitArea,
-        startX: x,
-        startY: y,
-        lastX: x,
-        lastY: y,
-        isDragging: false,
-      };
+    if (hitArea) {
+      // Fire onPress callback.
+      hitArea.onPress?.(x, y);
+      pressedArea = hitArea;
+
+      // Only track drag state if the area supports dragging.
+      if (hitArea.onDrag) {
+        dragState = {
+          area: hitArea,
+          startX: x,
+          startY: y,
+          lastX: x,
+          lastY: y,
+          isDragging: false,
+        };
+      }
     }
   } else if (event.touches.length === 2) {
     // Two fingers down - start pinch-to-zoom gesture.
@@ -370,12 +398,18 @@ function handleTouchMove(event: TouchEvent): void {
  */
 function handleTouchEnd(event: TouchEvent): void {
   if (event.touches.length === 0) {
+    // Get the position of the finger that was lifted.
+    const touch = event.changedTouches[0];
+    const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
+
+    // Fire onRelease for the area that was pressed.
+    if (pressedArea) {
+      pressedArea.onRelease?.(x, y);
+      pressedArea = null;
+    }
+
     // All fingers lifted - gesture complete.
     if (dragState) {
-      // Get the position of the finger that was lifted.
-      const touch = event.changedTouches[0];
-      const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
-
       if (dragState.isDragging) {
         // Was dragging - fire drag end.
         dragState.area.onDragEnd?.(x, y);
@@ -439,6 +473,7 @@ function handleEngineStopped(): void {
 
   canvas.style.cursor = "default";
   dragState = null;
+  pressedArea = null;
   pinchState = null;
 
   active = false;
