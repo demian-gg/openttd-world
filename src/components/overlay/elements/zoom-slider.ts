@@ -1,23 +1,51 @@
 /**
  * Zoom slider overlay element.
- * Renders a zoom slider control.
+ * Renders a zoom slider control with a movable knob.
  */
 
 import {
   loadSprite,
-  drawSprite,
+  drawAtlasSprite,
   Sprite,
   RenderContext,
 } from "../../../engine/sprites";
 
-/** Slider sprite instance. */
-let sprite: Sprite | null = null;
+/** Slider sprite atlas instance. */
+let atlas: Sprite | null = null;
+
+/** Current zoom level (0 = min, 1 = max). */
+let zoomLevel = 0.5;
+
+/** Slider dimensions. */
+const SLIDER_WIDTH = 26;
+const SLIDER_HEIGHT = 222;
+
+/** Knob dimensions. */
+const KNOB_SIZE = 26;
 
 /**
- * Load the zoom slider sprite.
+ * Load the zoom slider sprite atlas.
  */
 export async function loadZoomSlider(): Promise<void> {
-  sprite = await loadSprite("/sprites/zoom-slider.png");
+  atlas = await loadSprite("/sprites/zoom-slider.png");
+}
+
+/**
+ * Get the current zoom level.
+ *
+ * @returns Zoom level from 0 (min) to 1 (max).
+ */
+export function getZoomLevel(): number {
+  return zoomLevel;
+}
+
+/**
+ * Set the zoom level.
+ *
+ * @param level - Zoom level from 0 (min) to 1 (max).
+ */
+export function setZoomLevel(level: number): void {
+  zoomLevel = Math.max(0, Math.min(1, level));
 }
 
 /**
@@ -30,8 +58,8 @@ export function getZoomSliderSize(scale = 1): {
   height: number;
 } {
   return {
-    width: (sprite?.width ?? 0) * scale,
-    height: (sprite?.height ?? 0) * scale,
+    width: SLIDER_WIDTH * scale,
+    height: SLIDER_HEIGHT * scale,
   };
 }
 
@@ -49,6 +77,30 @@ export function renderZoomSlider(
   y: number,
   scale = 1
 ): void {
-  if (!sprite) return;
-  drawSprite(ctx, sprite, x, y, scale);
+  if (!atlas) return;
+
+  // Draw the slider track.
+  drawAtlasSprite(
+    ctx,
+    atlas,
+    { x: 0, y: 0, width: SLIDER_WIDTH, height: SLIDER_HEIGHT },
+    x,
+    y,
+    scale
+  );
+
+  // Calculate knob position based on zoom level.
+  // zoomLevel 0 = bottom, zoomLevel 1 = top.
+  const trackHeight = (SLIDER_HEIGHT - KNOB_SIZE) * scale;
+  const knobY = y + trackHeight * (1 - zoomLevel);
+
+  // Draw the knob.
+  drawAtlasSprite(
+    ctx,
+    atlas,
+    { x: SLIDER_WIDTH, y: 0, width: KNOB_SIZE, height: KNOB_SIZE },
+    x,
+    knobY,
+    scale
+  );
 }
