@@ -144,7 +144,7 @@ export const Buttons = defineElement<ButtonsProps>("buttons", {
   render(ctx: RenderContext, props) {
     if (!atlas) return;
     const scale = props.scale ?? 1.5;
-    const spacing = props.spacing ?? 8;
+    const spacing = props.spacing ?? 10;
     const buttonSize = TILE_SIZE * scale;
 
     // Render mode toggle button.
