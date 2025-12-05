@@ -45,11 +45,12 @@ const buttonStates: Record<ButtonType, "idle" | "clicked"> = {
   "select-mode": "idle",
 };
 
-/** Get the current mode toggle button type. */
+/** Get the button type to show for mode toggle (shows what clicking will do). */
 function getModeToggleType(): ButtonType {
+  // Show the opposite mode - clicking will switch to it.
   return getOverlayStore().getInteractionMode() === "pan"
-    ? "pan-mode"
-    : "select-mode";
+    ? "select-mode"
+    : "pan-mode";
 }
 
 /** Register a button's pointer area. */

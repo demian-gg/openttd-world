@@ -22,6 +22,7 @@ import {
   setLayerSize,
 } from "../engine/layers";
 import { getWorldMapStore } from "../stores/world-map";
+import { getOverlayStore } from "../stores/overlay";
 
 /** Props for the world map component. */
 export interface WorldMapProps extends ComponentProps {}
@@ -64,17 +65,33 @@ export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
       // Update layer position.
       setLayerPosition(layer, store.getOffsetX(), store.getOffsetY());
 
-      // Register the entire viewport as a draggable/scrollable area.
-      registerPointerArea({
-        x: 0,
-        y: 0,
-        width: resolution.width,
-        height: resolution.height,
-        layer,
-        cursor: "move",
-        onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-        onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
-      });
+      // Get current interaction mode.
+      const mode = getOverlayStore().getInteractionMode();
+
+      // Register pointer area based on interaction mode.
+      if (mode === "pan") {
+        // Pan mode: draggable/scrollable area.
+        registerPointerArea({
+          x: 0,
+          y: 0,
+          width: resolution.width,
+          height: resolution.height,
+          layer,
+          cursor: "move",
+          onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
+          onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+        });
+      } else {
+        // Select mode: normal cursor, scroll only.
+        registerPointerArea({
+          x: 0,
+          y: 0,
+          width: resolution.width,
+          height: resolution.height,
+          layer,
+          onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+        });
+      }
     },
 
     render(ctx: RenderContext) {
