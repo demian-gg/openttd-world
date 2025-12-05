@@ -6,6 +6,7 @@
 import { Component, ComponentProps } from "../../engine/components";
 import { RenderContext } from "../../engine/sprites";
 import { getEngineState } from "../../engine/engine";
+import { isSmall, getResponsiveValue } from "../../engine/utils";
 
 import { loadLogo, renderLogo, getLogoSize } from "./elements/logo";
 import { loadCountryName, renderCountryName } from "./elements/country-name";
@@ -23,9 +24,6 @@ import {
   renderZoomSlider,
   getZoomSliderSize,
 } from "./elements/zoom-slider";
-
-/** Breakpoint for mobile devices. */
-const MOBILE_BREAKPOINT = 640;
 
 /** Props for the overlay component. */
 export interface OverlayProps {
@@ -62,32 +60,21 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     ]);
   }
 
-  /**
-   * Get a responsive value based on screen width.
-   */
-  private getResponsive<T>(defaultVal: T, mobileVal: T): T {
-    const { resolution } = getEngineState();
-    return resolution.width <= MOBILE_BREAKPOINT ? mobileVal : defaultVal;
-  }
-
-  /**
-   * Get the current margin based on screen size.
-   */
-  private getMargin(): number {
-    const { margin, mobileMargin } = this.props as Required<OverlayProps>;
-    return this.getResponsive(margin, mobileMargin);
-  }
-
   render(ctx: RenderContext): void {
     const { resolution } = getEngineState();
-    const margin = this.getMargin();
+    const { margin, mobileMargin } = this.props as Required<OverlayProps>;
+    const currentMargin = getResponsiveValue({
+      default: margin,
+      small: mobileMargin,
+    });
     const logoSize = getLogoSize();
     const saveButtonSize = getSaveButtonSize();
     const zoomSliderSize = getZoomSliderSize();
+    const isMobile = isSmall();
 
     // Logo position (top-left corner with margin).
-    const logoX = margin;
-    const logoY = margin;
+    const logoX = currentMargin;
+    const logoY = currentMargin;
     renderLogo(ctx, logoX, logoY);
 
     // Country name position (to the right of logo, vertically centered).
@@ -100,14 +87,23 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     const resolutionY = countryNameY + 30;
     renderResolutionStepper(ctx, resolutionX, resolutionY);
 
-    // Save button position (top-right corner with margin).
-    const saveButtonX = resolution.width - margin - saveButtonSize.width;
-    const saveButtonY = margin + 6;
+    // Save button position.
+    // Desktop: top-right corner. Mobile: bottom-center.
+    const saveButtonX = isMobile
+      ? (resolution.width - saveButtonSize.width) / 2
+      : resolution.width - currentMargin - saveButtonSize.width;
+    const saveButtonY = isMobile
+      ? resolution.height - currentMargin - saveButtonSize.height
+      : currentMargin + 6;
     renderSaveButton(ctx, saveButtonX, saveButtonY);
 
-    // Zoom slider position (bottom-right corner with margin).
-    const zoomSliderX = resolution.width - margin - zoomSliderSize.width;
-    const zoomSliderY = resolution.height - margin - zoomSliderSize.height;
-    renderZoomSlider(ctx, zoomSliderX, zoomSliderY);
+    // Zoom slider position (bottom-right corner, desktop only).
+    if (!isMobile) {
+      const zoomSliderX =
+        resolution.width - currentMargin - zoomSliderSize.width;
+      const zoomSliderY =
+        resolution.height - currentMargin - zoomSliderSize.height;
+      renderZoomSlider(ctx, zoomSliderX, zoomSliderY);
+    }
   }
 }

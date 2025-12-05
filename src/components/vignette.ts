@@ -6,20 +6,17 @@
 import { Component, ComponentProps } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
+import { getResponsiveValue } from "../engine/utils";
 
 /** Props for the vignette component. */
 export interface VignetteProps {
   /** Vignette color. */
   color?: string;
-
-  /** Maximum opacity at the edges. */
-  opacity?: number;
 }
 
 /** Default props. */
 const defaultProps = {
   color: "#000000",
-  opacity: 0.35,
 };
 
 /**
@@ -33,7 +30,8 @@ export class Vignette extends Component<VignetteProps & ComponentProps> {
 
   render(ctx: RenderContext): void {
     const { resolution } = getEngineState();
-    const { color, opacity } = this.props as Required<VignetteProps>;
+    const { color } = this.props as Required<VignetteProps>;
+    const opacity = getResponsiveValue({ default: 0.35, small: 0.2 });
 
     const { width, height } = resolution;
     const centerX = width / 2;

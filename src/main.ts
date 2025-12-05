@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   document.body.appendChild(canvas);
 
   // Setup the engine.
-  setupEngine({ canvas });
+  setupEngine({ canvas, backgroundColor: "#2a5f96" });
 
   // Register components.
   registerComponent(new WorldMap({ layer: 0 }));
