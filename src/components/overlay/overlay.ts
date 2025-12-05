@@ -15,10 +15,11 @@ import {
   renderResolutionStepper,
 } from "./elements/resolution-stepper";
 import {
-  loadSaveButton,
-  renderSaveButton,
-  getSaveButtonSize,
-} from "./elements/save-button";
+  loadButtons,
+  renderButton,
+  renderModeToggle,
+  getButtonSize,
+} from "./elements/buttons";
 import {
   loadZoomSlider,
   renderZoomSlider,
@@ -55,7 +56,7 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
       loadLogo(),
       loadCountryName(),
       loadResolutionStepper(),
-      loadSaveButton(),
+      loadButtons(),
       loadZoomSlider(),
     ]);
   }
@@ -68,7 +69,7 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
       small: mobileMargin,
     });
     const logoSize = getLogoSize();
-    const saveButtonSize = getSaveButtonSize();
+    const buttonSize = getButtonSize();
     const zoomSliderSize = getZoomSliderSize();
     const isMobile = isSmall();
 
@@ -87,15 +88,25 @@ export class Overlay extends Component<OverlayProps & ComponentProps> {
     const resolutionY = countryNameY + 30;
     renderResolutionStepper(ctx, resolutionX, resolutionY);
 
-    // Save button position.
-    // Desktop: top-right corner. Mobile: bottom-center.
-    const saveButtonX = isMobile
-      ? (resolution.width - saveButtonSize.width) / 2
-      : resolution.width - currentMargin - saveButtonSize.width;
-    const saveButtonY = isMobile
-      ? resolution.height - currentMargin - saveButtonSize.height
+    // Button spacing.
+    const buttonSpacing = 8;
+
+    // Buttons position (top-right on desktop, bottom-center on mobile).
+    // Two buttons rendered horizontally: mode toggle | save
+    const totalButtonsWidth = buttonSize.width * 2 + buttonSpacing;
+    const buttonsStartX = isMobile
+      ? (resolution.width - totalButtonsWidth) / 2
+      : resolution.width - currentMargin - totalButtonsWidth;
+    const buttonsY = isMobile
+      ? resolution.height - currentMargin - buttonSize.height
       : currentMargin + 6;
-    renderSaveButton(ctx, saveButtonX, saveButtonY);
+
+    // Mode toggle button (first).
+    renderModeToggle(ctx, buttonsStartX, buttonsY);
+
+    // Save button (second).
+    const saveButtonX = buttonsStartX + buttonSize.width + buttonSpacing;
+    renderButton(ctx, "save", "idle", saveButtonX, buttonsY);
 
     // Zoom slider position (bottom-right corner, desktop only).
     if (!isMobile) {
