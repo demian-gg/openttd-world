@@ -2,12 +2,12 @@
  * Component system for registering and managing renderable entities.
  *
  * Components are defined using `defineComponent()` which provides a consistent
- * pattern matching the store system. Each component can use `useState()` for
+ * pattern matching the store system. Each component can use `createState()` for
  * local state management.
  *
  * @example
  * ```typescript
- * const sprite = useState<Sprite | null>(null);
+ * const sprite = createState<Sprite | null>(null);
  *
  * export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
  *   "world-map",
@@ -31,7 +31,7 @@ export interface ComponentProps {
   layer: number;
 }
 
-/** State container returned by useState. */
+/** State container returned by createState. */
 export interface State<T> {
   /** Get the current value. */
   get: () => T;
@@ -41,18 +41,18 @@ export interface State<T> {
 
 /**
  * Create a local state container for components.
- * Similar to React's useState but simpler - just get/set.
+ * A simple get/set container for component-local state.
  *
  * @param initial - Initial value.
  * @returns State container with get() and set().
  *
  * @example
  * ```typescript
- * const count = useState(0);
+ * const count = createState(0);
  * count.set(count.get() + 1);
  * ```
  */
-export function useState<T>(initial: T): State<T> {
+export function createState<T>(initial: T): State<T> {
   let value = initial;
   return {
     get: () => value,
@@ -107,7 +107,7 @@ const instances: ComponentInstance<ComponentProps>[] = [];
  *
  * @example
  * ```typescript
- * const sprite = useState<Sprite | null>(null);
+ * const sprite = createState<Sprite | null>(null);
  *
  * export const { register: registerVignette } = defineComponent<VignetteProps>(
  *   "vignette",

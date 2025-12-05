@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * const sprite = useState<Sprite | null>(null);
+ * const sprite = createState<Sprite | null>(null);
  *
  * export const Logo = defineElement<LogoProps>("logo", {
  *   async load() {

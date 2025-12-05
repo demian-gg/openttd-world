@@ -12,7 +12,7 @@ import {
 import {
   defineComponent,
   ComponentProps,
-  useState,
+  createState,
 } from "../engine/components";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
@@ -27,7 +27,7 @@ import { getWorldMapStore } from "../stores/world-map";
 export interface WorldMapProps extends ComponentProps {}
 
 /** Component state. */
-const sprite = useState<Sprite | null>(null);
+const sprite = createState<Sprite | null>(null);
 
 /**
  * World map component definition.

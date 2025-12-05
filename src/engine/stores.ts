@@ -13,7 +13,7 @@
  * provideStore(ThemeStore, { dark: true });
  *
  * // Consume the value (in any descendant component).
- * const theme = useStore(ThemeStore);
+ * const theme = getStore(ThemeStore);
  *
  * // Subscribe to changes.
  * subscribeStore(ThemeStore, (state) => {
@@ -100,11 +100,11 @@ export function provideStore<T>(store: Store<T>, value: T): void {
  *
  * @example
  * ```typescript
- * const user = useStore(UserStore);
+ * const user = getStore(UserStore);
  * console.log(user.name); // "Alice"
  * ```
  */
-export function useStore<T>(store: Store<T>): T {
+export function getStore<T>(store: Store<T>): T {
   const value = storeValues.get(store.id) as T | undefined;
 
   if (value !== undefined) {
@@ -117,7 +117,7 @@ export function useStore<T>(store: Store<T>): T {
 
   throw new Error(
     "Store not provided and no default value defined. " +
-      "Ensure provideStore() is called before useStore()."
+      "Ensure provideStore() is called before getStore()."
   );
 }
 
@@ -256,7 +256,7 @@ export function defineStore<T>(
   return {
     store,
     register: () => provideStore(store, initializer()),
-    get: () => useStore(store),
+    get: () => getStore(store),
   };
 }
 
