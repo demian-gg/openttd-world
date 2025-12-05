@@ -3,13 +3,13 @@
  * Renders a dark vignette effect around the edges of the screen.
  */
 
-import { Component, ComponentProps } from "../engine/components";
+import { defineComponent, ComponentProps } from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
 import { getResponsiveValue } from "../engine/utils";
 
 /** Props for the vignette component. */
-export interface VignetteProps {
+export interface VignetteProps extends ComponentProps {
   /** Vignette color. */
   color?: string;
 }
@@ -20,56 +20,55 @@ const defaultProps = {
 };
 
 /**
- * Vignette component.
+ * Vignette component definition.
  * Renders a radial gradient vignette effect.
  */
-export class Vignette extends Component<VignetteProps & ComponentProps> {
-  constructor(props: VignetteProps & ComponentProps) {
-    super({ ...defaultProps, ...props });
+export const { register: registerVignette } = defineComponent<VignetteProps>(
+  "vignette",
+  {
+    render(ctx: RenderContext, props) {
+      const { resolution } = getEngineState();
+      const color = props.color ?? defaultProps.color;
+      const opacity = getResponsiveValue({ default: 0.35, small: 0.2 });
+      const { width, height } = resolution;
+
+      // Calculate center point.
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Use diagonal distance to ensure gradient reaches all four corners.
+      const cornerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
+
+      // Start fade at 60% to keep center clear while darkening edges.
+      const innerRadius = cornerRadius * 0.6;
+
+      // Save context state.
+      ctx.save();
+      ctx.globalAlpha = opacity;
+
+      // Squash vertically to turn circular gradient into an oval.
+      ctx.translate(centerX, centerY);
+      ctx.scale(1, 0.75);
+      ctx.translate(-centerX, -centerY);
+
+      // Create gradient between two concentric circles.
+      const gradient = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        innerRadius,
+        centerX,
+        centerY,
+        cornerRadius
+      );
+      gradient.addColorStop(0, "transparent");
+      gradient.addColorStop(1, color);
+
+      // Fill oversized rect to cover edge cases from transforms.
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-width, -height, width * 3, height * 3);
+
+      // Restore context state.
+      ctx.restore();
+    },
   }
-
-  render(ctx: RenderContext): void {
-    const { resolution } = getEngineState();
-    const { color } = this.props as Required<VignetteProps>;
-    const opacity = getResponsiveValue({ default: 0.35, small: 0.2 });
-
-    const { width, height } = resolution;
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // Use diagonal distance to corners so gradient reaches all corners.
-    const cornerRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-    const innerRadius = cornerRadius * 0.6;
-
-    ctx.save();
-    ctx.globalAlpha = opacity;
-
-    // Scale to create an oval-shaped vignette.
-    // Scale by moving origin to center, scaling, then moving back.
-    // This ensures the vignette remains centered after scaling.
-    ctx.translate(centerX, centerY);
-    ctx.scale(1, 0.75);
-    ctx.translate(-centerX, -centerY);
-
-    // Create radial gradient from center to corners.
-    const gradient = ctx.createRadialGradient(
-      centerX,
-      centerY,
-      innerRadius,
-      centerX,
-      centerY,
-      cornerRadius
-    );
-
-    // Transparent in the center, solid at edges.
-    gradient.addColorStop(0, "transparent");
-    gradient.addColorStop(1, color);
-
-    // Fill a large area to ensure vignette covers entire viewport
-    // regardless of camera transforms.
-    ctx.fillStyle = gradient;
-    ctx.fillRect(-width, -height, width * 3, height * 3);
-
-    ctx.restore();
-  }
-}
+);

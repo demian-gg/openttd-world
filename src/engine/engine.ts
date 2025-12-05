@@ -9,6 +9,7 @@ import {
   CanvasResolution,
   CanvasResolutionConfig,
 } from "./canvas";
+import { loadComponents, ComponentProps } from "./components";
 import {
   canvasEvents,
   CanvasResizedEvent,
@@ -22,6 +23,7 @@ import {
 import "./layers";
 import "./compositor";
 import "./pointer";
+import "./stores";
 
 // Re-export events for convenience.
 export {
@@ -32,7 +34,7 @@ export {
 };
 
 /**
- * Configuration passed to the engine init function.
+ * Configuration passed to the engine setup function.
  * Defines the canvas target and optional settings.
  */
 export interface EngineConfig {
@@ -46,6 +48,12 @@ export interface EngineConfig {
 
   /** Optional background color. Defaults to "#000". */
   backgroundColor?: string;
+
+  /** Store initializers to run on engine setup. */
+  stores?: Array<() => void>;
+
+  /** Component registrations as [register, props] tuples. */
+  components?: Array<[(props: ComponentProps) => void, ComponentProps]>;
 }
 
 /**
@@ -79,7 +87,7 @@ let running = false;
  * @param config - The engine configuration.
  * @returns The initialized engine state.
  */
-export function setupEngine(config: EngineConfig): EngineState {
+export async function setupEngine(config: EngineConfig): Promise<EngineState> {
   // Initialize canvas.
   const canvasContext: CanvasContext = initializeCanvas({
     canvas: config.canvas,
@@ -101,7 +109,11 @@ export function setupEngine(config: EngineConfig): EngineState {
   });
 
   // Emit setup event so modules can self-register.
-  engineEvents.emit(new EngineSetupEvent(canvasContext.resolution));
+  engineEvents.emit(new EngineSetupEvent(config, canvasContext.resolution));
+
+  // Register and load components.
+  config.components?.forEach(([register, props]) => register(props));
+  await loadComponents();
 
   return state;
 }

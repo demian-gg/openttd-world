@@ -9,6 +9,7 @@ import {
   Sprite,
   RenderContext,
 } from "../../../engine/sprites";
+import { getOverlayStore } from "../../../stores/overlay";
 
 /** Button types available in the atlas. */
 export type ButtonType = "save" | "pan-mode" | "select-mode";
@@ -16,14 +17,8 @@ export type ButtonType = "save" | "pan-mode" | "select-mode";
 /** Button states. */
 export type ButtonState = "idle" | "clicked";
 
-/** Interaction modes. */
-export type InteractionMode = "pan" | "select";
-
 /** Sprite atlas instance. */
 let atlas: Sprite | null = null;
-
-/** Current interaction mode. */
-let currentMode: InteractionMode = "pan";
 
 /** Size of each button tile in the atlas. */
 const TILE_SIZE = 32;
@@ -46,29 +41,6 @@ const STATE_COLUMNS: Record<ButtonState, number> = {
  */
 export async function loadButtons(): Promise<void> {
   atlas = await loadSprite("/sprites/buttons.png");
-}
-
-/**
- * Get the current interaction mode.
- */
-export function getInteractionMode(): InteractionMode {
-  return currentMode;
-}
-
-/**
- * Set the interaction mode.
- *
- * @param mode - The mode to set.
- */
-export function setInteractionMode(mode: InteractionMode): void {
-  currentMode = mode;
-}
-
-/**
- * Toggle between pan and select modes.
- */
-export function toggleInteractionMode(): void {
-  currentMode = currentMode === "pan" ? "select" : "pan";
 }
 
 /**
@@ -136,6 +108,8 @@ export function renderModeToggle(
   y: number,
   scale = 1.5
 ): void {
-  const type: ButtonType = currentMode === "pan" ? "pan-mode" : "select-mode";
+  const interactionMode = getOverlayStore().getInteractionMode();
+  const type: ButtonType =
+    interactionMode === "pan" ? "pan-mode" : "select-mode";
   renderButton(ctx, type, "idle", x, y, scale);
 }

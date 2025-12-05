@@ -12,7 +12,7 @@ import {
 } from "./events";
 import { handleCanvasResize } from "./canvas";
 import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
-import { getComponents } from "./components";
+import { getComponents, updateComponents } from "./components";
 import { clearPointerAreas } from "./pointer";
 
 /**
@@ -28,16 +28,16 @@ function compositeFrame(): void {
   // Group components by layer.
   const byLayer = Map.groupBy(
     components,
-    (c) => (c.props?.layer as number) ?? DEFAULT_LAYER
+    (c) => c.props.layer ?? DEFAULT_LAYER
   );
 
-  // Ensure layers exist and update all components.
-  for (const [layerId, group] of byLayer) {
+  // Ensure layers exist.
+  for (const layerId of byLayer.keys()) {
     getLayer(layerId);
-    for (const component of group) {
-      component.update?.();
-    }
   }
+
+  // Update all components.
+  updateComponents();
 
   // Get layers after they've been created/updated.
   const layers = getLayers();
@@ -88,6 +88,7 @@ function compositeFrame(): void {
     const destX = Math.round((ctx.canvas.width - destWidth) / 2) + layer.x;
     const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
+    // Draw layer to main context.
     ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
 
     // Clear moved flag.

@@ -1,5 +1,26 @@
 /**
  * Component system for registering and managing renderable entities.
+ *
+ * Components are defined using `defineComponent()` which provides a consistent
+ * pattern matching the store system. Each component can use `useState()` for
+ * local state management.
+ *
+ * @example
+ * ```typescript
+ * const sprite = useState<Sprite | null>(null);
+ *
+ * export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
+ *   "world-map",
+ *   {
+ *     async load() {
+ *       sprite.set(await loadSprite("/sprites/world-map.png"));
+ *     },
+ *     render(ctx, props) {
+ *       if (sprite.get()) drawSprite(ctx, sprite.get()!, 0, 0);
+ *     },
+ *   }
+ * );
+ * ```
  */
 
 import type { RenderContext } from "./canvas";
@@ -10,47 +31,116 @@ export interface ComponentProps {
   layer: number;
 }
 
-/**
- * Base class for loadable, renderable components.
- * Components are the building blocks of the game — sprites, UI elements, etc.
- */
-export abstract class Component<P extends ComponentProps = ComponentProps> {
-  /** Configurable properties. */
-  props: P;
+/** State container returned by useState. */
+export interface State<T> {
+  /** Get the current value. */
+  get: () => T;
+  /** Set a new value. */
+  set: (value: T) => void;
+}
 
-  constructor(props: P) {
-    this.props = props;
-  }
+/**
+ * Create a local state container for components.
+ * Similar to React's useState but simpler - just get/set.
+ *
+ * @param initial - Initial value.
+ * @returns State container with get() and set().
+ *
+ * @example
+ * ```typescript
+ * const count = useState(0);
+ * count.set(count.get() + 1);
+ * ```
+ */
+export function useState<T>(initial: T): State<T> {
+  let value = initial;
+  return {
+    get: () => value,
+    set: (v: T) => {
+      value = v;
+    },
+  };
+}
+
+/** Component lifecycle definition. */
+export interface ComponentLifecycle<P extends ComponentProps> {
+  /** Optional init function called once when component is registered. */
+  init?: (props: P) => void;
 
   /** Optional async load function called before first render. */
-  load?(): Promise<void>;
+  load?: () => Promise<void>;
 
-  /** Optional update function called each frame (for input handling, etc). */
-  update?(): void;
+  /** Optional update function called each frame. */
+  update?: (props: P) => void;
 
   /** Render function called when layer is dirty. */
-  abstract render(ctx: RenderContext): void;
+  render: (ctx: RenderContext, props: P) => void;
 }
 
-/** Registered components. */
-const components: Component[] = [];
+/** Internal component instance. */
+interface ComponentInstance<P extends ComponentProps> {
+  /** Component name for debugging. */
+  name: string;
 
-/**
- * Register a component for rendering.
- *
- * @param component - The component to register.
- */
-export function registerComponent(component: Component): void {
-  components.push(component);
+  /** Component props. */
+  props: P;
+
+  /** Lifecycle hooks. */
+  lifecycle: ComponentLifecycle<P>;
 }
 
+/** Component definition returned by defineComponent. */
+export interface ComponentDefinition<P extends ComponentProps> {
+  /** Create and register a component instance. */
+  register: (props: P) => void;
+}
+
+/** Registered component instances. */
+const instances: ComponentInstance<ComponentProps>[] = [];
+
 /**
- * Register multiple components for rendering.
+ * Define a new component with a consistent structure.
  *
- * @param newComponents - Array of components to register.
+ * @param name - Name of the component (for debugging).
+ * @param lifecycle - Object with optional load, update, and required render.
+ * @returns Component definition with register function.
+ *
+ * @example
+ * ```typescript
+ * const sprite = useState<Sprite | null>(null);
+ *
+ * export const { register: registerVignette } = defineComponent<VignetteProps>(
+ *   "vignette",
+ *   {
+ *     async load() {
+ *       sprite.set(await loadSprite("/sprites/vignette.png"));
+ *     },
+ *     render(ctx, props) {
+ *       // Draw using props.layer, props.color, etc.
+ *     },
+ *   }
+ * );
+ *
+ * // In main.ts:
+ * registerVignette({ layer: 1, color: "#000" });
+ * ```
  */
-export function registerComponents(newComponents: Component[]): void {
-  components.push(...newComponents);
+export function defineComponent<P extends ComponentProps>(
+  name: string,
+  lifecycle: ComponentLifecycle<P>
+): ComponentDefinition<P> {
+  return {
+    register: (props: P) => {
+      // Call init if defined.
+      lifecycle.init?.(props);
+
+      instances.push({
+        name,
+        props,
+        lifecycle: lifecycle as ComponentLifecycle<ComponentProps>,
+      });
+    },
+  };
 }
 
 /**
@@ -59,14 +149,38 @@ export function registerComponents(newComponents: Component[]): void {
  * @returns Promise that resolves when all components are loaded.
  */
 export async function loadComponents(): Promise<void> {
-  await Promise.all(components.map((c) => c.load?.()));
+  await Promise.all(instances.map((c) => c.lifecycle.load?.()));
 }
 
 /**
- * Get all registered components.
- *
- * @returns Array of registered components.
+ * Update all registered components that have an update function.
  */
-export function getComponents(): Component[] {
-  return components;
+export function updateComponents(): void {
+  for (const instance of instances) {
+    instance.lifecycle.update?.(instance.props);
+  }
+}
+
+/**
+ * Get all registered component instances for rendering.
+ *
+ * @returns Array of objects with props and render function.
+ */
+export function getComponents(): Array<{
+  props: ComponentProps;
+  render: (ctx: RenderContext) => void;
+}> {
+  return instances.map((instance) => ({
+    props: instance.props,
+    render: (ctx: RenderContext) =>
+      instance.lifecycle.render(ctx, instance.props),
+  }));
+}
+
+/**
+ * Clear all registered components.
+ * Useful for cleanup between scenes or tests.
+ */
+export function clearComponents(): void {
+  instances.length = 0;
 }

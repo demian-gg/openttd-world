@@ -9,12 +9,10 @@ import {
   Sprite,
   RenderContext,
 } from "../../../engine/sprites";
+import { getWorldMapStore } from "../../../stores/world-map";
 
 /** Slider sprite atlas instance. */
 let atlas: Sprite | null = null;
-
-/** Current zoom level (0 = min, 1 = max). */
-let zoomLevel = 0.5;
 
 /** Slider dimensions. */
 const SLIDER_WIDTH = 26;
@@ -22,6 +20,9 @@ const SLIDER_HEIGHT = 222;
 
 /** Knob dimensions. */
 const KNOB_SIZE = 26;
+
+/** Padding at top and bottom of track to limit knob range. */
+const TRACK_PADDING = 32;
 
 /**
  * Load the zoom slider sprite atlas.
@@ -31,21 +32,21 @@ export async function loadZoomSlider(): Promise<void> {
 }
 
 /**
- * Get the current zoom level.
+ * Get the current zoom level as a normalized value (0-1).
  *
  * @returns Zoom level from 0 (min) to 1 (max).
  */
 export function getZoomLevel(): number {
-  return zoomLevel;
+  return getWorldMapStore().getZoomNormalized();
 }
 
 /**
- * Set the zoom level.
+ * Set the zoom level from a normalized value (0-1).
  *
  * @param level - Zoom level from 0 (min) to 1 (max).
  */
 export function setZoomLevel(level: number): void {
-  zoomLevel = Math.max(0, Math.min(1, level));
+  getWorldMapStore().setZoomNormalized(level);
 }
 
 /**
@@ -89,10 +90,15 @@ export function renderZoomSlider(
     scale
   );
 
+  // Get zoom level from context.
+  const zoomLevel = getZoomLevel();
+
   // Calculate knob position based on zoom level.
   // zoomLevel 0 = bottom, zoomLevel 1 = top.
-  const trackHeight = (SLIDER_HEIGHT - KNOB_SIZE) * scale;
-  const knobY = y + trackHeight * (1 - zoomLevel);
+  // Apply padding to limit the knob travel range.
+  const paddingScaled = TRACK_PADDING * scale;
+  const trackHeight = (SLIDER_HEIGHT - KNOB_SIZE) * scale - paddingScaled * 2;
+  const knobY = y + paddingScaled + trackHeight * (1 - zoomLevel);
 
   // Draw the knob.
   drawAtlasSprite(

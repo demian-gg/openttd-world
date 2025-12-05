@@ -4,6 +4,7 @@
  */
 
 import type { CanvasResolution } from "./canvas";
+import type { EngineConfig } from "./engine";
 
 /** Event class constructor type with static `type` property. */
 type EventClass<T extends Event> = {
@@ -46,7 +47,10 @@ export class CanvasResizedEvent extends Event {
 /** Event fired when engine setup completes. Modules should self-register. */
 export class EngineSetupEvent extends Event {
   static readonly type = "engineSetup";
-  constructor(public readonly resolution: CanvasResolution) {
+  constructor(
+    public readonly config: EngineConfig,
+    public readonly resolution: CanvasResolution
+  ) {
     super(EngineSetupEvent.type);
   }
 }
