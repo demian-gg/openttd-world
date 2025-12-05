@@ -58,7 +58,8 @@ function registerButton(
   x: number,
   y: number,
   layer: number,
-  scale: number
+  scale: number,
+  onClick?: () => void
 ): void {
   const size = TILE_SIZE * scale;
   registerPointerArea({
@@ -74,6 +75,7 @@ function registerButton(
     onRelease: () => {
       buttonStates[type] = "idle";
       dirtyLayer(layer);
+      onClick?.();
     },
   });
 }
@@ -117,9 +119,17 @@ export const Buttons = defineElement<ButtonsProps>("buttons", {
     const scale = props.scale ?? 1.5;
     const spacing = props.spacing ?? 8;
     const buttonSize = TILE_SIZE * scale;
+    const store = getOverlayStore();
 
     // Register mode toggle button.
-    registerButton(getModeToggleType(), props.x, props.y, props.layer, scale);
+    registerButton(
+      getModeToggleType(),
+      props.x,
+      props.y,
+      props.layer,
+      scale,
+      () => store.toggleInteractionMode()
+    );
 
     // Register save button.
     registerButton(
