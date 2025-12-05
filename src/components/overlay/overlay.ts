@@ -10,26 +10,13 @@ import { subscribeStore } from "../../engine/stores";
 import { dirtyLayer } from "../../engine/layers";
 import { isSmall, getResponsiveValue } from "../../engine/utils";
 import { WorldMapStore } from "../../stores/world-map";
+import { loadElements } from "../../engine/elements";
 
-import { loadLogo, renderLogo, getLogoSize } from "./elements/logo";
-import { loadCountryName, renderCountryName } from "./elements/country-name";
-import {
-  loadResolutionStepper,
-  renderResolutionStepper,
-} from "./elements/resolution-stepper";
-import {
-  loadButtons,
-  renderButton,
-  renderModeToggle,
-  registerButtonPointerArea,
-  registerModeTogglePointerArea,
-  getButtonSize,
-} from "./elements/buttons";
-import {
-  loadZoomSlider,
-  renderZoomSlider,
-  getZoomSliderSize,
-} from "./elements/zoom-slider";
+import { Logo } from "./elements/logo";
+import { CountryName } from "./elements/country-name";
+import { ResolutionStepper } from "./elements/resolution-stepper";
+import { Buttons } from "./elements/buttons";
+import { ZoomSlider } from "./elements/zoom-slider";
 
 /** Props for the overlay component. */
 export interface OverlayProps extends ComponentProps {
@@ -50,10 +37,8 @@ const defaultProps = {
  * Calculate button positions based on current viewport.
  */
 function getButtonPositions(props: OverlayProps): {
-  modeToggleX: number;
-  modeToggleY: number;
-  saveButtonX: number;
-  saveButtonY: number;
+  x: number;
+  y: number;
 } {
   const { resolution } = getEngineState();
   const margin = props.margin ?? defaultProps.margin;
@@ -62,24 +47,17 @@ function getButtonPositions(props: OverlayProps): {
     default: margin,
     small: mobileMargin,
   });
-  const buttonSize = getButtonSize();
-  const buttonSpacing = 8;
+  const buttonSize = Buttons.getSize();
   const isMobile = isSmall();
 
-  const totalButtonsWidth = buttonSize.width * 2 + buttonSpacing;
-  const buttonsStartX = isMobile
-    ? (resolution.width - totalButtonsWidth) / 2
-    : resolution.width - currentMargin - totalButtonsWidth;
-  const buttonsY = isMobile
+  const x = isMobile
+    ? (resolution.width - buttonSize.width) / 2
+    : resolution.width - currentMargin - buttonSize.width;
+  const y = isMobile
     ? resolution.height - currentMargin - buttonSize.height
     : currentMargin + 6;
 
-  return {
-    modeToggleX: buttonsStartX,
-    modeToggleY: buttonsY,
-    saveButtonX: buttonsStartX + buttonSize.width + buttonSpacing,
-    saveButtonY: buttonsY,
-  };
+  return { x, y };
 }
 
 /**
@@ -98,27 +76,20 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
 
     async load() {
       // Load all overlay elements in parallel.
-      await Promise.all([
-        loadLogo(),
-        loadCountryName(),
-        loadResolutionStepper(),
-        loadButtons(),
-        loadZoomSlider(),
+      await loadElements([
+        Logo,
+        CountryName,
+        ResolutionStepper,
+        Buttons,
+        ZoomSlider,
       ]);
     },
 
     update(props) {
-      // Register button pointer areas every frame.
+      // Update button pointer areas.
       const { layer } = props;
       const pos = getButtonPositions(props);
-
-      registerModeTogglePointerArea(pos.modeToggleX, pos.modeToggleY, layer);
-      registerButtonPointerArea(
-        "save",
-        pos.saveButtonX,
-        pos.saveButtonY,
-        layer
-      );
+      Buttons.update({ x: pos.x, y: pos.y, layer });
     },
 
     render(ctx: RenderContext, props) {
@@ -129,29 +100,28 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
         default: margin,
         small: mobileMargin,
       });
-      const logoSize = getLogoSize();
-      const zoomSliderSize = getZoomSliderSize();
+      const logoSize = Logo.getSize();
+      const zoomSliderSize = ZoomSlider.getSize();
       const isMobile = isSmall();
 
       // Logo position (top-left corner with margin).
       const logoX = currentMargin;
       const logoY = currentMargin;
-      renderLogo(ctx, logoX, logoY);
+      Logo.render(ctx, { x: logoX, y: logoY });
 
       // Country name position (to the right of logo, vertically centered).
       const countryNameX = logoX + logoSize.width + 14;
       const countryNameY = logoY + 8;
-      renderCountryName(ctx, countryNameX, countryNameY);
+      CountryName.render(ctx, { x: countryNameX, y: countryNameY });
 
       // Resolution stepper position (below country name).
       const resolutionX = countryNameX + 8;
       const resolutionY = countryNameY + 30;
-      renderResolutionStepper(ctx, resolutionX, resolutionY);
+      ResolutionStepper.render(ctx, { x: resolutionX, y: resolutionY });
 
       // Render buttons at calculated positions.
       const pos = getButtonPositions(props);
-      renderModeToggle(ctx, pos.modeToggleX, pos.modeToggleY);
-      renderButton(ctx, "save", pos.saveButtonX, pos.saveButtonY);
+      Buttons.render(ctx, { x: pos.x, y: pos.y, layer: props.layer });
 
       // Zoom slider position (bottom-right corner, desktop only).
       if (!isMobile) {
@@ -159,7 +129,7 @@ export const { register: registerOverlay } = defineComponent<OverlayProps>(
           resolution.width - currentMargin - zoomSliderSize.width;
         const zoomSliderY =
           resolution.height - currentMargin - zoomSliderSize.height;
-        renderZoomSlider(ctx, zoomSliderX, zoomSliderY);
+        ZoomSlider.render(ctx, { x: zoomSliderX, y: zoomSliderY });
       }
     },
   }

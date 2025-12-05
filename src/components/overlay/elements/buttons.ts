@@ -1,6 +1,5 @@
 /**
  * Buttons overlay element.
- * Renders interactive buttons from a sprite atlas.
  */
 
 import {
@@ -9,6 +8,7 @@ import {
   Sprite,
   RenderContext,
 } from "../../../engine/sprites";
+import { defineElement } from "../../../engine/elements";
 import { registerPointerArea } from "../../../engine/pointer";
 import { dirtyLayer } from "../../../engine/layers";
 import { getOverlayStore } from "../../../stores/overlay";
@@ -16,8 +16,14 @@ import { getOverlayStore } from "../../../stores/overlay";
 /** Button types available in the atlas. */
 export type ButtonType = "save" | "pan-mode" | "select-mode";
 
-/** Button states. */
-type ButtonState = "idle" | "clicked";
+/** Props for the buttons element. */
+export interface ButtonsProps {
+  x: number;
+  y: number;
+  layer: number;
+  scale?: number;
+  spacing?: number;
+}
 
 /** Size of each button tile in the atlas. */
 const TILE_SIZE = 32;
@@ -33,51 +39,33 @@ const BUTTON_ROWS: Record<ButtonType, number> = {
 let atlas: Sprite | null = null;
 
 /** Current state of each button. */
-const buttonStates: Record<ButtonType, ButtonState> = {
+const buttonStates: Record<ButtonType, "idle" | "clicked"> = {
   save: "idle",
   "pan-mode": "idle",
   "select-mode": "idle",
 };
 
-/**
- * Load the buttons sprite atlas.
- */
-export async function loadButtons(): Promise<void> {
-  atlas = await loadSprite("/sprites/buttons.png");
-}
-
-/**
- * Get button dimensions.
- */
-export function getButtonSize(scale = 1.5): { width: number; height: number } {
-  return { width: TILE_SIZE * scale, height: TILE_SIZE * scale };
-}
-
-/**
- * Get the current button type for mode toggle based on interaction mode.
- */
+/** Get the current mode toggle button type. */
 function getModeToggleType(): ButtonType {
   return getOverlayStore().getInteractionMode() === "pan"
     ? "pan-mode"
     : "select-mode";
 }
 
-/**
- * Register a button's pointer area for press/release detection.
- */
-export function registerButtonPointerArea(
+/** Register a button's pointer area. */
+function registerButton(
   type: ButtonType,
   x: number,
   y: number,
   layer: number,
-  scale = 1.5
+  scale: number
 ): void {
-  const { width, height } = getButtonSize(scale);
+  const size = TILE_SIZE * scale;
   registerPointerArea({
     x,
     y,
-    width,
-    height,
+    width: size,
+    height: size,
     layer,
     onPress: () => {
       buttonStates[type] = "clicked";
@@ -90,30 +78,15 @@ export function registerButtonPointerArea(
   });
 }
 
-/**
- * Register the mode toggle button's pointer area.
- */
-export function registerModeTogglePointerArea(
-  x: number,
-  y: number,
-  layer: number,
-  scale = 1.5
-): void {
-  registerButtonPointerArea(getModeToggleType(), x, y, layer, scale);
-}
-
-/**
- * Render a button at a position.
- */
-export function renderButton(
+/** Render a single button. */
+function renderSingleButton(
   ctx: RenderContext,
   type: ButtonType,
   x: number,
   y: number,
-  scale = 1.5
+  scale: number
 ): void {
   if (!atlas) return;
-
   const row = BUTTON_ROWS[type];
   const col = buttonStates[type] === "idle" ? 0 : 1;
 
@@ -133,13 +106,56 @@ export function renderButton(
 }
 
 /**
- * Render the mode toggle button based on current interaction mode.
+ * Buttons element definition.
  */
-export function renderModeToggle(
-  ctx: RenderContext,
-  x: number,
-  y: number,
-  scale = 1.5
-): void {
-  renderButton(ctx, getModeToggleType(), x, y, scale);
-}
+export const Buttons = defineElement<ButtonsProps>("buttons", {
+  async load() {
+    atlas = await loadSprite("/sprites/buttons.png");
+  },
+
+  update(props) {
+    const scale = props.scale ?? 1.5;
+    const spacing = props.spacing ?? 8;
+    const buttonSize = TILE_SIZE * scale;
+
+    // Register mode toggle button.
+    registerButton(getModeToggleType(), props.x, props.y, props.layer, scale);
+
+    // Register save button.
+    registerButton(
+      "save",
+      props.x + buttonSize + spacing,
+      props.y,
+      props.layer,
+      scale
+    );
+  },
+
+  render(ctx: RenderContext, props) {
+    if (!atlas) return;
+    const scale = props.scale ?? 1.5;
+    const spacing = props.spacing ?? 8;
+    const buttonSize = TILE_SIZE * scale;
+
+    // Render mode toggle button.
+    renderSingleButton(ctx, getModeToggleType(), props.x, props.y, scale);
+
+    // Render save button.
+    renderSingleButton(
+      ctx,
+      "save",
+      props.x + buttonSize + spacing,
+      props.y,
+      scale
+    );
+  },
+
+  getSize() {
+    const scale = 1.5;
+    const spacing = 8;
+    return {
+      width: TILE_SIZE * scale * 2 + spacing,
+      height: TILE_SIZE * scale,
+    };
+  },
+});
