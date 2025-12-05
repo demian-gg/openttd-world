@@ -71,6 +71,7 @@ export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
         width: resolution.width,
         height: resolution.height,
         layer,
+        cursor: "move",
         onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
         onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
       });

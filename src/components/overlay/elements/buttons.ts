@@ -68,6 +68,7 @@ function registerButton(
     width: size,
     height: size,
     layer,
+    cursor: "pointer",
     onPress: () => {
       buttonStates[type] = "clicked";
       dirtyLayer(layer);

@@ -32,6 +32,12 @@ export interface PointerArea {
   /** Layer for z-ordering (higher = on top). */
   layer: number;
 
+  /** Cursor to show when hovering over this area. */
+  cursor?: string;
+
+  /** Cursor to show while dragging this area. */
+  cursorDragging?: string;
+
   /** Callback when pointer is pressed down on this area. */
   onPress?: (x: number, y: number) => void;
 
@@ -181,16 +187,16 @@ function handlePointerMove(event: MouseEvent): void {
       dragState.lastY = y;
     }
 
-    // Show grabbing cursor while dragging.
-    canvas.style.cursor = dragState.isDragging ? "grabbing" : "pointer";
+    // Show dragging cursor or fall back to hover cursor.
+    canvas.style.cursor = dragState.isDragging
+      ? dragState.area.cursorDragging ?? dragState.area.cursor ?? "default"
+      : dragState.area.cursor ?? "default";
     return;
   }
 
   // Update cursor based on hover.
-  const isOverPointerArea = pointerAreas.some((area) =>
-    isPointInArea(x, y, area)
-  );
-  canvas.style.cursor = isOverPointerArea ? "pointer" : "default";
+  const hitArea = findTopHitArea(x, y);
+  canvas.style.cursor = hitArea?.cursor ?? "default";
 }
 
 /**
