@@ -18,35 +18,25 @@ import { ResolutionStepper } from "./elements/resolution-stepper";
 import { Buttons } from "./elements/buttons";
 import { ZoomSlider } from "./elements/zoom-slider";
 
-/** Props for the overlay component. */
-export interface OverlayProps extends ComponentProps {
-  /** Base margin from screen edges. */
-  margin?: number;
+/** Margin from screen edges. */
+const MARGIN = 32;
 
-  /** Margin on mobile devices. */
-  mobileMargin?: number;
+/** Margin on mobile devices. */
+const MOBILE_MARGIN = 16;
+
+/**
+ * Get current margin based on viewport.
+ */
+function getMargin(): number {
+  return getResponsiveValue({ default: MARGIN, small: MOBILE_MARGIN });
 }
-
-/** Default props. */
-const defaultProps = {
-  margin: 32,
-  mobileMargin: 16,
-};
 
 /**
  * Calculate button positions based on current viewport.
  */
-function getButtonPositions(props: OverlayProps): {
-  x: number;
-  y: number;
-} {
+function getButtonPositions(): { x: number; y: number } {
   const { resolution } = getEngineState();
-  const margin = props.margin ?? defaultProps.margin;
-  const mobileMargin = props.mobileMargin ?? defaultProps.mobileMargin;
-  const currentMargin = getResponsiveValue({
-    default: margin,
-    small: mobileMargin,
-  });
+  const currentMargin = getMargin();
   const buttonSize = Buttons.getSize();
   const isMobile = isSmall();
 
@@ -64,7 +54,7 @@ function getButtonPositions(props: OverlayProps): {
  * Overlay component definition.
  * Renders UI elements positioned relative to the logo.
  */
-export const { init: initOverlayComponent } = defineComponent<OverlayProps>({
+export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
   init(props) {
     // Subscribe to world map store changes to update zoom slider.
     subscribeStore(WorldMapStore, () => {
@@ -86,18 +76,13 @@ export const { init: initOverlayComponent } = defineComponent<OverlayProps>({
   update(props) {
     // Update button pointer areas.
     const { layer } = props;
-    const pos = getButtonPositions(props);
+    const pos = getButtonPositions();
     Buttons.update({ x: pos.x, y: pos.y, layer });
   },
 
   render(ctx: RenderContext, props) {
     const { resolution } = getEngineState();
-    const margin = props.margin ?? defaultProps.margin;
-    const mobileMargin = props.mobileMargin ?? defaultProps.mobileMargin;
-    const currentMargin = getResponsiveValue({
-      default: margin,
-      small: mobileMargin,
-    });
+    const currentMargin = getMargin();
     const logoSize = Logo.getSize();
     const zoomSliderSize = ZoomSlider.getSize();
     const isMobile = isSmall();
@@ -118,7 +103,7 @@ export const { init: initOverlayComponent } = defineComponent<OverlayProps>({
     ResolutionStepper.render(ctx, { x: resolutionX, y: resolutionY });
 
     // Render buttons at calculated positions.
-    const pos = getButtonPositions(props);
+    const pos = getButtonPositions();
     Buttons.render(ctx, { x: pos.x, y: pos.y, layer: props.layer });
 
     // Zoom slider position (bottom-right corner, desktop only).

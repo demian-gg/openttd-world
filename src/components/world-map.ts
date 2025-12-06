@@ -24,16 +24,13 @@ import {
 import { getWorldMapStore } from "../stores/world-map";
 import { getOverlayStore } from "../stores/overlay";
 
-/** Props for the world map component. */
-export interface WorldMapProps extends ComponentProps {}
-
 /** Component state. */
 const sprite = createState<Sprite | null>(null);
 
 /**
  * World map component definition.
  */
-export const { init: initWorldMapComponent } = defineComponent<WorldMapProps>({
+export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
   async load() {
     const loadedSprite = await loadSprite("/sprites/world-map.png");
     sprite.set(loadedSprite);

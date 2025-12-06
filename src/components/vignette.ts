@@ -8,25 +8,13 @@ import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
 import { getResponsiveValue } from "../engine/utils";
 
-/** Props for the vignette component. */
-export interface VignetteProps extends ComponentProps {
-  /** Vignette color. */
-  color?: string;
-}
-
-/** Default props. */
-const defaultProps = {
-  color: "#000000",
-};
-
 /**
  * Vignette component definition.
  * Renders a radial gradient vignette effect.
  */
-export const { init: initVignetteComponent } = defineComponent<VignetteProps>({
-  render(ctx: RenderContext, props) {
+export const { init: initVignetteComponent } = defineComponent<ComponentProps>({
+  render(ctx: RenderContext) {
     const { resolution } = getEngineState();
-    const color = props.color ?? defaultProps.color;
     const opacity = getResponsiveValue({ default: 0.35, small: 0.2 });
     const { width, height } = resolution;
 
@@ -59,7 +47,7 @@ export const { init: initVignetteComponent } = defineComponent<VignetteProps>({
       cornerRadius
     );
     gradient.addColorStop(0, "transparent");
-    gradient.addColorStop(1, color);
+    gradient.addColorStop(1, "#000000");
 
     // Fill oversized rect to cover edge cases from transforms.
     ctx.fillStyle = gradient;
