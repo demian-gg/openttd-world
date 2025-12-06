@@ -114,9 +114,9 @@ function updateMinZoom(): void {
  */
 export const {
   store: WorldMapStore,
-  register: registerWorldMapStore,
+  init: initWorldMapStore,
   get: getWorldMapStore,
-}: StoreDefinition<WorldMapStoreState> = defineStore("world-map", () => ({
+}: StoreDefinition<WorldMapStoreState> = defineStore(() => ({
   getZoom() {
     return zoom;
   },

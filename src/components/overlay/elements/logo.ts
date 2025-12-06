@@ -23,7 +23,7 @@ let sprite: Sprite | null = null;
 /**
  * Logo element definition.
  */
-export const Logo = defineElement<LogoProps>("logo", {
+export const Logo = defineElement<LogoProps>({
   async load() {
     sprite = await loadSprite("/sprites/logo.png");
   },

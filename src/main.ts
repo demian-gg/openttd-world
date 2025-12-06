@@ -4,13 +4,14 @@
 
 import { startEngine } from "./engine/engine";
 import { component } from "./engine/components";
+import { store } from "./engine/stores";
 
-import { registerOverlayStore } from "./stores/overlay";
-import { registerWorldMapStore } from "./stores/world-map";
+import { initOverlayStore } from "./stores/overlay";
+import { initWorldMapStore } from "./stores/world-map";
 
-import { registerVignette } from "./components/vignette";
-import { registerWorldMap } from "./components/world-map";
-import { registerOverlay } from "./components/overlay/overlay";
+import { initVignetteComponent } from "./components/vignette";
+import { initWorldMapComponent } from "./components/world-map";
+import { initOverlayComponent } from "./components/overlay/overlay";
 
 /**
  * Initialize and start the application.
@@ -23,13 +24,13 @@ async function main(): Promise<void> {
   // Start the engine.
   await startEngine({
     canvas,
-    backgroundColor: "#2a5f96",
-    stores: [registerOverlayStore, registerWorldMapStore],
+    stores: [store(initOverlayStore), store(initWorldMapStore)],
     components: [
-      component(registerWorldMap, { layer: 0 }),
-      component(registerVignette, { layer: 1 }),
-      component(registerOverlay, { layer: 2 }),
+      component(initWorldMapComponent, { layer: 0 }),
+      component(initVignetteComponent, { layer: 1 }),
+      component(initOverlayComponent, { layer: 2 }),
     ],
+    backgroundColor: "#2a5f96",
     layerShadows: [
       {
         layer: 2,

@@ -28,9 +28,9 @@ let interactionMode: InteractionMode = "pan";
  */
 export const {
   store: OverlayStore,
-  register: registerOverlayStore,
+  init: initOverlayStore,
   get: getOverlayStore,
-}: StoreDefinition<OverlayStoreState> = defineStore("overlay", () => ({
+}: StoreDefinition<OverlayStoreState> = defineStore(() => ({
   getInteractionMode() {
     return interactionMode;
   },

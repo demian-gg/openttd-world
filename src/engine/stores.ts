@@ -218,8 +218,8 @@ export interface StoreDefinition<T> {
   /** The store instance. */
   store: Store<T>;
 
-  /** Register the store. Must be called before use. */
-  register: () => void;
+  /** Initialize the store. Must be called before use. */
+  init: () => void;
 
   /** Get the store state. */
   get: () => T;
@@ -229,7 +229,6 @@ export interface StoreDefinition<T> {
  * Define a new store with a consistent structure.
  * Returns the store, init function, and getter bundled together.
  *
- * @param name - Name of the store (for debugging).
  * @param initializer - Function that creates the initial state.
  * @returns Store definition with store, init, and get.
  *
@@ -241,23 +240,46 @@ export interface StoreDefinition<T> {
  *   store: CounterStore,
  *   init: initCounterStore,
  *   get: getCounterStore,
- * } = defineStore("counter", () => ({
+ * } = defineStore(() => ({
  *   get count() { return count; },
  *   increment() { count++; },
  * }));
  * ```
  */
-export function defineStore<T>(
-  name: string,
-  initializer: () => T
-): StoreDefinition<T> {
+export function defineStore<T>(initializer: () => T): StoreDefinition<T> {
   const store = createStore<T>();
 
   return {
     store,
-    register: () => provideStore(store, initializer()),
+    init: () => provideStore(store, initializer()),
     get: () => getStore(store),
   };
+}
+
+/** A store registration for engine configuration. */
+export type StoreRegistration = () => void;
+
+/**
+ * Create a store registration for engine configuration.
+ *
+ * Stores are initialized with the engine at startup.
+ * This wrapper provides consistency with the component() helper.
+ *
+ * @param init - The store's init function from defineStore().
+ * @returns A registration for the engine's stores array.
+ *
+ * @example
+ * ```typescript
+ * await startEngine({
+ *   stores: [
+ *     store(initOverlayStore),
+ *     store(initWorldMapStore),
+ *   ],
+ * });
+ * ```
+ */
+export function store(init: () => void): StoreRegistration {
+  return init;
 }
 
 // Initialize stores when engine starts.

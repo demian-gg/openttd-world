@@ -35,7 +35,7 @@ export function setCountryName(name: string): void {
 /**
  * Country name element definition.
  */
-export const CountryName = defineElement<CountryNameProps>("country-name", {
+export const CountryName = defineElement<CountryNameProps>({
   async load() {
     font = await loadFont("/sprites/font.png", 16, 16, 16, 32, -7);
   },

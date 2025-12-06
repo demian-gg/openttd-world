@@ -9,17 +9,14 @@
  * ```typescript
  * const sprite = createState<Sprite | null>(null);
  *
- * export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
- *   "world-map",
- *   {
- *     async load() {
- *       sprite.set(await loadSprite("/sprites/world-map.png"));
- *     },
- *     render(ctx, props) {
- *       if (sprite.get()) drawSprite(ctx, sprite.get()!, 0, 0);
- *     },
- *   }
- * );
+ * export const { init: initWorldMap } = defineComponent<WorldMapProps>({
+ *   async load() {
+ *     sprite.set(await loadSprite("/sprites/world-map.png"));
+ *   },
+ *   render(ctx, props) {
+ *     if (sprite.get()) drawSprite(ctx, sprite.get()!, 0, 0);
+ *   },
+ * });
  * ```
  */
 
@@ -79,9 +76,6 @@ export interface ComponentLifecycle<P extends ComponentProps> {
 
 /** Internal component instance. */
 interface ComponentInstance<P extends ComponentProps> {
-  /** Component name for debugging. */
-  name: string;
-
   /** Component props. */
   props: P;
 
@@ -91,8 +85,8 @@ interface ComponentInstance<P extends ComponentProps> {
 
 /** Component definition returned by defineComponent. */
 export interface ComponentDefinition<P extends ComponentProps> {
-  /** Create and register a component instance. */
-  register: (props: P) => void;
+  /** Initialize and register a component instance. */
+  init: (props: P) => void;
 }
 
 /** Registered component instances. */
@@ -101,7 +95,6 @@ const instances: ComponentInstance<ComponentProps>[] = [];
 /**
  * Define a new component with a consistent structure.
  *
- * @param name - Name of the component (for debugging).
  * @param lifecycle - Object with optional load, update, and required render.
  * @returns Component definition with register function.
  *
@@ -109,33 +102,28 @@ const instances: ComponentInstance<ComponentProps>[] = [];
  * ```typescript
  * const sprite = createState<Sprite | null>(null);
  *
- * export const { register: registerVignette } = defineComponent<VignetteProps>(
- *   "vignette",
- *   {
- *     async load() {
- *       sprite.set(await loadSprite("/sprites/vignette.png"));
- *     },
- *     render(ctx, props) {
- *       // Draw using props.layer, props.color, etc.
- *     },
- *   }
- * );
+ * export const { init: initVignette } = defineComponent<VignetteProps>({
+ *   async load() {
+ *     sprite.set(await loadSprite("/sprites/vignette.png"));
+ *   },
+ *   render(ctx, props) {
+ *     // Draw using props.layer, props.color, etc.
+ *   },
+ * });
  *
  * // In main.ts:
- * component(registerVignette, { layer: 1, color: "#000" });
+ * component(initVignette, { layer: 1, color: "#000" });
  * ```
  */
 export function defineComponent<P extends ComponentProps>(
-  name: string,
   lifecycle: ComponentLifecycle<P>
 ): ComponentDefinition<P> {
   return {
-    register: (props: P) => {
+    init: (props: P) => {
       // Call init if defined.
       lifecycle.init?.(props);
 
       instances.push({
-        name,
         props,
         lifecycle: lifecycle as ComponentLifecycle<ComponentProps>,
       });
@@ -200,7 +188,7 @@ export type ComponentRegistration<P extends ComponentProps = any> = [
  * The register function and props are paired so TypeScript can validate
  * that the props match what the component expects.
  *
- * @param register - The component's register function from defineComponent().
+ * @param init - The component's init function from defineComponent().
  * @param props - Props to pass to the component, must include `layer`.
  * @returns A registration tuple for the engine's components array.
  *
@@ -208,15 +196,15 @@ export type ComponentRegistration<P extends ComponentProps = any> = [
  * ```typescript
  * await startEngine({
  *   components: [
- *     component(registerWorldMap, { layer: 0 }),
- *     component(registerOverlay, { layer: 2, margin: 24 }),
+ *     component(initWorldMap, { layer: 0 }),
+ *     component(initOverlay, { layer: 2, margin: 24 }),
  *   ],
  * });
  * ```
  */
 export function component<P extends ComponentProps>(
-  register: (props: P) => void,
+  init: (props: P) => void,
   props: P
 ): ComponentRegistration<P> {
-  return [register, props];
+  return [init, props];
 }

@@ -33,71 +33,68 @@ const sprite = createState<Sprite | null>(null);
 /**
  * World map component definition.
  */
-export const { register: registerWorldMap } = defineComponent<WorldMapProps>(
-  "world-map",
-  {
-    async load() {
-      const loadedSprite = await loadSprite("/sprites/world-map.png");
-      sprite.set(loadedSprite);
+export const { init: initWorldMapComponent } = defineComponent<WorldMapProps>({
+  async load() {
+    const loadedSprite = await loadSprite("/sprites/world-map.png");
+    sprite.set(loadedSprite);
 
-      // Set sprite dimensions in store.
-      const store = getWorldMapStore();
-      store.setSpriteSize(loadedSprite.width, loadedSprite.height);
-    },
+    // Set sprite dimensions in store.
+    const store = getWorldMapStore();
+    store.setSpriteSize(loadedSprite.width, loadedSprite.height);
+  },
 
-    update(props) {
-      const currentSprite = sprite.get();
-      if (!currentSprite) return;
+  update(props) {
+    const currentSprite = sprite.get();
+    if (!currentSprite) return;
 
-      const { resolution } = getEngineState();
-      const { layer } = props;
-      const store = getWorldMapStore();
+    const { resolution } = getEngineState();
+    const { layer } = props;
+    const store = getWorldMapStore();
 
-      // Update viewport dimensions in store.
-      store.updateViewport(resolution.width, resolution.height);
+    // Update viewport dimensions in store.
+    store.updateViewport(resolution.width, resolution.height);
 
-      // Set layer size to sprite's natural size (not zoomed).
-      setLayerSize(layer, currentSprite.width, currentSprite.height);
+    // Set layer size to sprite's natural size (not zoomed).
+    setLayerSize(layer, currentSprite.width, currentSprite.height);
 
-      // Let the compositor handle zoom via layer scale.
-      setLayerScale(layer, store.getZoom());
+    // Let the compositor handle zoom via layer scale.
+    setLayerScale(layer, store.getZoom());
 
-      // Update layer position.
-      setLayerPosition(layer, store.getOffsetX(), store.getOffsetY());
+    // Update layer position.
+    setLayerPosition(layer, store.getOffsetX(), store.getOffsetY());
 
-      // Get current interaction mode.
-      const mode = getOverlayStore().getInteractionMode();
+    // Get current interaction mode.
+    const mode = getOverlayStore().getInteractionMode();
 
-      // Register pointer area based on interaction mode.
-      if (mode === "pan") {
-        // Pan mode: draggable/scrollable area.
-        registerPointerArea({
-          x: 0,
-          y: 0,
-          width: resolution.width,
-          height: resolution.height,
-          layer,
-          cursor: "move",
-          onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-          onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
-        });
-      } else {
-        // Select mode: normal cursor, scroll only.
-        registerPointerArea({
-          x: 0,
-          y: 0,
-          width: resolution.width,
-          height: resolution.height,
-          layer,
-          onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
-        });
-      }
-    },
+    // Register pointer area based on interaction mode.
+    if (mode === "pan") {
+      // Pan mode: draggable/scrollable area.
+      registerPointerArea({
+        x: 0,
+        y: 0,
+        width: resolution.width,
+        height: resolution.height,
+        layer,
+        cursor: "move",
+        onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
+        onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+      });
+    } else {
+      // Select mode: normal cursor, scroll only.
+      registerPointerArea({
+        x: 0,
+        y: 0,
+        width: resolution.width,
+        height: resolution.height,
+        layer,
+        onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+      });
+    }
+  },
 
-    render(ctx: RenderContext) {
-      const currentSprite = sprite.get();
-      if (!currentSprite) return;
-      drawSprite(ctx, currentSprite, 0, 0);
-    },
-  }
-);
+  render(ctx: RenderContext) {
+    const currentSprite = sprite.get();
+    if (!currentSprite) return;
+    drawSprite(ctx, currentSprite, 0, 0);
+  },
+});

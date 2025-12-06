@@ -50,9 +50,6 @@ export interface ElementLifecycle<P> {
 
 /** Element definition returned by defineElement. */
 export interface Element<P> {
-  /** Element name for debugging. */
-  name: string;
-
   /** Optional async load function. */
   load?: () => Promise<void>;
 
@@ -69,16 +66,11 @@ export interface Element<P> {
 /**
  * Define a new element with a consistent structure.
  *
- * @param name - Name of the element (for debugging).
  * @param lifecycle - Object with optional load, update, getSize and required render.
  * @returns Element definition.
  */
-export function defineElement<P>(
-  name: string,
-  lifecycle: ElementLifecycle<P>
-): Element<P> {
+export function defineElement<P>(lifecycle: ElementLifecycle<P>): Element<P> {
   return {
-    name,
     load: lifecycle.load,
     update: (props: P) => lifecycle.update?.(props),
     render: (ctx: RenderContext, props: P) => lifecycle.render(ctx, props),

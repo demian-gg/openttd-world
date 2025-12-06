@@ -30,7 +30,7 @@ const TRACK_PADDING = 32;
 /**
  * Zoom slider element definition.
  */
-export const ZoomSlider = defineElement<ZoomSliderProps>("zoom-slider", {
+export const ZoomSlider = defineElement<ZoomSliderProps>({
   async load() {
     atlas = await loadSprite("/sprites/zoom-slider.png");
   },
