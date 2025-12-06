@@ -9,7 +9,7 @@ import {
   CanvasResolution,
   CanvasResolutionConfig,
 } from "./canvas";
-import { loadComponents, ComponentProps } from "./components";
+import { loadComponents, ComponentRegistration } from "./components";
 import {
   canvasEvents,
   CanvasResizedEvent,
@@ -68,7 +68,7 @@ export interface EngineConfig {
   stores?: Array<() => void>;
 
   /** Component registrations as [register, props] tuples. */
-  components?: Array<[(props: ComponentProps) => void, ComponentProps]>;
+  components?: ComponentRegistration[];
 
   /** Layer shadow configurations. */
   layerShadows?: LayerShadowConfig[];

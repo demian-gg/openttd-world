@@ -122,7 +122,7 @@ const instances: ComponentInstance<ComponentProps>[] = [];
  * );
  *
  * // In main.ts:
- * registerVignette({ layer: 1, color: "#000" });
+ * component(registerVignette, { layer: 1, color: "#000" });
  * ```
  */
 export function defineComponent<P extends ComponentProps>(
@@ -183,4 +183,40 @@ export function getComponents(): Array<{
  */
 export function clearComponents(): void {
   instances.length = 0;
+}
+
+/** A component registration tuple for engine configuration. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ComponentRegistration<P extends ComponentProps = any> = [
+  (props: P) => void,
+  P
+];
+
+/**
+ * Create a type-safe component registration for engine configuration.
+ *
+ * Components are registered with the engine at startup. Each component
+ * specifies a layer for render ordering (lower layers render first).
+ * The register function and props are paired so TypeScript can validate
+ * that the props match what the component expects.
+ *
+ * @param register - The component's register function from defineComponent().
+ * @param props - Props to pass to the component, must include `layer`.
+ * @returns A registration tuple for the engine's components array.
+ *
+ * @example
+ * ```typescript
+ * await startEngine({
+ *   components: [
+ *     component(registerWorldMap, { layer: 0 }),
+ *     component(registerOverlay, { layer: 2, margin: 24 }),
+ *   ],
+ * });
+ * ```
+ */
+export function component<P extends ComponentProps>(
+  register: (props: P) => void,
+  props: P
+): ComponentRegistration<P> {
+  return [register, props];
 }

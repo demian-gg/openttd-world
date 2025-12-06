@@ -3,6 +3,7 @@
  */
 
 import { startEngine } from "./engine/engine";
+import { component } from "./engine/components";
 
 import { registerOverlayStore } from "./stores/overlay";
 import { registerWorldMapStore } from "./stores/world-map";
@@ -24,9 +25,9 @@ async function main(): Promise<void> {
     backgroundColor: "#2a5f96",
     stores: [registerOverlayStore, registerWorldMapStore],
     components: [
-      [registerWorldMap, { layer: 0 }],
-      [registerVignette, { layer: 1 }],
-      [registerOverlay, { layer: 2 }],
+      component(registerWorldMap, { layer: 0 }),
+      component(registerVignette, { layer: 1 }),
+      component(registerOverlay, { layer: 2 }),
     ],
     layerShadows: [
       {
