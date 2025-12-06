@@ -46,7 +46,7 @@ async function main(): Promise<void> {
       },
       {
         layer: 2,
-        color: "rgba(0, 0, 0, 0.25)",
+        color: "rgba(0, 0, 0, 0.35)",
         blur: 12,
         offsetX: 3,
         offsetY: 3,
