@@ -30,8 +30,8 @@ async function main(): Promise<void> {
       component(initVignetteComponent, { layer: 1 }),
       component(initOverlayComponent, { layer: 2 }),
     ],
-    backgroundColor: "#2a5f96",
-    layerShadows: [
+    background: "#2a5f96",
+    shadows: [
       {
         layer: 2,
         color: "rgba(0, 0, 0, 0.65)",

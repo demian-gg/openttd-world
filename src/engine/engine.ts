@@ -62,7 +62,7 @@ export interface EngineConfig {
   resolution?: CanvasResolutionConfig;
 
   /** Optional background color. Defaults to "#000". */
-  backgroundColor?: string;
+  background?: string;
 
   /** Store initializers to run on engine setup. */
   stores?: Array<() => void>;
@@ -71,7 +71,7 @@ export interface EngineConfig {
   components?: ComponentRegistration[];
 
   /** Layer shadow configurations. */
-  layerShadows?: LayerShadowConfig[];
+  shadows?: LayerShadowConfig[];
 }
 
 /**
@@ -117,7 +117,7 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
     canvas: canvasContext.canvas,
     ctx: canvasContext.ctx,
     resolution: canvasContext.resolution,
-    backgroundColor: config.backgroundColor ?? "#000",
+    backgroundColor: config.background ?? "#000",
   };
 
   // Subscribe to canvas resize events to update engine state.
@@ -134,7 +134,7 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
   await loadComponents();
 
   // Apply layer shadows.
-  config.layerShadows?.forEach((shadow) => {
+  config.shadows?.forEach((shadow) => {
     setLayerShadow(
       shadow.layer,
       shadow.color,
