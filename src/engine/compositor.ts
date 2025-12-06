@@ -69,33 +69,36 @@ function compositeFrame(): void {
     // Skip invisible layers.
     if (layer.opacity <= 0) continue;
 
-    // Save context state so we can restore later.
-    ctx.save();
-    ctx.globalAlpha = layer.opacity;
-    ctx.globalCompositeOperation = layer.blendMode;
-
-    // Apply shadow if set.
-    if (layer.shadowColor) {
-      ctx.shadowColor = layer.shadowColor;
-      ctx.shadowBlur = layer.shadowBlur;
-      ctx.shadowOffsetX = layer.shadowOffsetX;
-      ctx.shadowOffsetY = layer.shadowOffsetY;
-    }
-
     // Calculate destination position (centered with offset).
     const destWidth = Math.round(layer.canvas.width * layer.scale);
     const destHeight = Math.round(layer.canvas.height * layer.scale);
     const destX = Math.round((ctx.canvas.width - destWidth) / 2) + layer.x;
     const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
-    // Draw layer to main context.
-    ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
+    // Draw once per shadow (each draw includes the layer content).
+    for (const shadow of layer.shadows) {
+      ctx.save();
+      ctx.globalAlpha = layer.opacity;
+      ctx.globalCompositeOperation = layer.blendMode;
+      ctx.shadowColor = shadow.color;
+      ctx.shadowBlur = shadow.blur;
+      ctx.shadowOffsetX = shadow.offsetX;
+      ctx.shadowOffsetY = shadow.offsetY;
+      ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
+      ctx.restore();
+    }
+
+    // Draw final layer (no shadow) if no shadows, or shadows already drew it.
+    if (layer.shadows.length === 0) {
+      ctx.save();
+      ctx.globalAlpha = layer.opacity;
+      ctx.globalCompositeOperation = layer.blendMode;
+      ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
+      ctx.restore();
+    }
 
     // Clear moved flag.
     layer.moved = false;
-
-    // Restore context state.
-    ctx.restore();
   }
 }
 

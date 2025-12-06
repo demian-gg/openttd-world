@@ -31,13 +31,18 @@ async function main(): Promise<void> {
       component(initOverlayComponent, { layer: 2 }),
     ],
     background: "#2a5f96",
-    shadows: [
+    layerShadows: [
       {
         layer: 2,
-        color: "rgba(0, 0, 0, 0.65)",
+        color: "rgba(0, 0, 0, 0.5)",
         blur: 0,
         offsetX: 3,
         offsetY: 3,
+      },
+      {
+        layer: 2,
+        color: "rgba(0, 0, 0, 0.5)",
+        blur: 16,
       },
     ],
   });

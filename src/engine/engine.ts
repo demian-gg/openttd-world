@@ -18,7 +18,7 @@ import {
   EngineStartedEvent,
   EngineStoppedEvent,
 } from "./events";
-import { setLayerShadow } from "./layers";
+import { addLayerShadow } from "./layers";
 
 // Import modules for side-effect registration.
 import "./layers";
@@ -71,7 +71,7 @@ export interface EngineConfig {
   components?: ComponentRegistration[];
 
   /** Layer shadow configurations. */
-  shadows?: LayerShadowConfig[];
+  layerShadows?: LayerShadowConfig[];
 }
 
 /**
@@ -134,8 +134,8 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
   await loadComponents();
 
   // Apply layer shadows.
-  config.shadows?.forEach((shadow) => {
-    setLayerShadow(
+  config.layerShadows?.forEach((shadow) => {
+    addLayerShadow(
       shadow.layer,
       shadow.color,
       shadow.blur ?? 0,

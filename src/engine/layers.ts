@@ -15,6 +15,18 @@ import {
 /** Default layer for components that don't specify one. */
 export const DEFAULT_LAYER = 0;
 
+/** Shadow configuration for a layer. */
+export interface LayerShadow {
+  /** Shadow color. */
+  color: string;
+  /** Shadow blur radius. */
+  blur: number;
+  /** Shadow X offset. */
+  offsetX: number;
+  /** Shadow Y offset. */
+  offsetY: number;
+}
+
 /**
  * Represents a render layer.
  * Each layer has its own canvas that gets composited onto the main canvas.
@@ -50,17 +62,8 @@ export interface Layer {
   /** Y offset from center (0 = centered). */
   y: number;
 
-  /** Shadow color (null = no shadow). */
-  shadowColor: string | null;
-
-  /** Shadow blur radius. */
-  shadowBlur: number;
-
-  /** Shadow X offset. */
-  shadowOffsetX: number;
-
-  /** Shadow Y offset. */
-  shadowOffsetY: number;
+  /** Array of shadows to apply (rendered in order). */
+  shadows: LayerShadow[];
 }
 
 /** Map of layer id to layer instance. */
@@ -107,10 +110,7 @@ function createLayer(id: number): Layer {
     scale: 1,
     x: 0,
     y: 0,
-    shadowColor: null,
-    shadowBlur: 0,
-    shadowOffsetX: 0,
-    shadowOffsetY: 0,
+    shadows: [],
   };
 
   // Store in map.
@@ -243,26 +243,36 @@ export function setLayerSize(id: number, width: number, height: number): void {
 }
 
 /**
- * Set layer shadow.
+ * Add a shadow to a layer.
+ * Multiple shadows can be added and will be rendered in order.
  *
  * @param id - The layer z-index.
- * @param color - Shadow color (null to disable).
+ * @param color - Shadow color.
  * @param blur - Shadow blur radius.
  * @param offsetX - Shadow X offset.
  * @param offsetY - Shadow Y offset.
  */
-export function setLayerShadow(
+export function addLayerShadow(
   id: number,
-  color: string | null,
+  color: string,
   blur = 0,
   offsetX = 0,
   offsetY = 0
 ): void {
   const layer = getLayer(id);
-  layer.shadowColor = color;
-  layer.shadowBlur = blur;
-  layer.shadowOffsetX = offsetX;
-  layer.shadowOffsetY = offsetY;
+  layer.shadows.push({ color, blur, offsetX, offsetY });
+}
+
+/**
+ * Clear all shadows from a layer.
+ *
+ * @param id - The layer z-index.
+ */
+export function clearLayerShadows(id: number): void {
+  const layer = layers.get(id);
+  if (layer) {
+    layer.shadows = [];
+  }
 }
 
 // Self-register on engine setup.
