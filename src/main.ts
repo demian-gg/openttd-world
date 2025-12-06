@@ -8,6 +8,7 @@ import { store } from "./engine/stores";
 
 import { initOverlayStore } from "./stores/overlay";
 import { initWorldMapStore } from "./stores/world-map";
+import { initResolutionStore } from "./stores/resolution";
 
 import { initVignetteComponent } from "./components/vignette";
 import { initWorldMapComponent } from "./components/world-map";
@@ -25,12 +26,11 @@ async function main(): Promise<void> {
   await startEngine({
     canvas,
     stores: [
-      // @prettier-ignore
       store(initOverlayStore),
       store(initWorldMapStore),
+      store(initResolutionStore),
     ],
     components: [
-      // @prettier-ignore
       component(initWorldMapComponent, { layer: 0 }),
       component(initVignetteComponent, { layer: 1 }),
       component(initOverlayComponent, { layer: 2 }),

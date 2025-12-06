@@ -10,6 +10,7 @@ import { subscribeStore } from "../../engine/stores";
 import { dirtyLayer } from "../../engine/layers";
 import { isSmall, getResponsiveValue } from "../../engine/utils";
 import { WorldMapStore } from "../../stores/world-map";
+import { ResolutionStore } from "../../stores/resolution";
 import { loadElements } from "../../engine/elements";
 
 import { Logo } from "./elements/logo";
@@ -60,6 +61,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     subscribeStore(WorldMapStore, () => {
       dirtyLayer(props.layer);
     });
+
+    // Subscribe to resolution store changes to update stepper.
+    subscribeStore(ResolutionStore, () => {
+      dirtyLayer(props.layer);
+    });
   },
 
   async load() {
@@ -74,8 +80,22 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
   },
 
   update(props) {
-    // Update button pointer areas.
     const { layer } = props;
+    const currentMargin = getMargin();
+    const logoSize = Logo.getSize();
+
+    // Calculate resolution stepper position.
+    const logoX = currentMargin;
+    const logoY = currentMargin;
+    const countryNameX = logoX + logoSize.width + 14;
+    const countryNameY = logoY + 8;
+    const resolutionX = countryNameX + 8;
+    const resolutionY = countryNameY + 30;
+
+    // Update resolution stepper pointer areas.
+    ResolutionStepper.update({ x: resolutionX, y: resolutionY, layer });
+
+    // Update button pointer areas.
     const pos = getButtonPositions();
     Buttons.update({ x: pos.x, y: pos.y, layer });
   },
@@ -100,7 +120,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     // Resolution stepper position (below country name).
     const resolutionX = countryNameX + 8;
     const resolutionY = countryNameY + 30;
-    ResolutionStepper.render(ctx, { x: resolutionX, y: resolutionY });
+    ResolutionStepper.render(ctx, {
+      x: resolutionX,
+      y: resolutionY,
+      layer: props.layer,
+    });
 
     // Render buttons at calculated positions.
     const pos = getButtonPositions();

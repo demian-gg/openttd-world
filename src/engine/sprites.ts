@@ -240,6 +240,7 @@ export function drawSprite(
  * @param x - X position in game pixels.
  * @param y - Y position in game pixels.
  * @param scale - Optional scale factor (default 1).
+ * @param color - Optional color tint to apply.
  */
 export function drawAtlasSprite(
   ctx: RenderContext,
@@ -247,7 +248,8 @@ export function drawAtlasSprite(
   region: SpriteRegion,
   x: number,
   y: number,
-  scale = 1
+  scale = 1,
+  color?: string
 ): void {
   // Round position and size to integers for crisp pixels.
   const px = Math.round(x);
@@ -255,18 +257,38 @@ export function drawAtlasSprite(
   const w = Math.round(region.width * scale);
   const h = Math.round(region.height * scale);
 
-  // Draw specified region at position, scaled.
-  ctx.drawImage(
+  // If no color, draw directly.
+  if (!color) {
+    ctx.drawImage(
+      sprite.image,
+      region.x,
+      region.y,
+      region.width,
+      region.height,
+      px,
+      py,
+      w,
+      h
+    );
+    return;
+  }
+
+  // Draw to recoloring canvas, apply color, then draw to destination.
+  const recolor = getRecolorCanvas(region.width, region.height);
+  recolor.clearRect(0, 0, region.width, region.height);
+  recolor.drawImage(
     sprite.image,
     region.x,
     region.y,
     region.width,
     region.height,
-    px,
-    py,
-    w,
-    h
+    0,
+    0,
+    region.width,
+    region.height
   );
+  applyColorTint(region.width, region.height, color);
+  drawFromRecolorCanvas(ctx, region.width, region.height, px, py, w, h);
 }
 
 /**
