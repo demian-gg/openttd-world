@@ -21,12 +21,11 @@ export interface ButtonsProps {
   x: number;
   y: number;
   layer: number;
-  scale?: number;
   spacing?: number;
 }
 
 /** Size of each button tile in the atlas. */
-const TILE_SIZE = 32;
+const TILE_SIZE = 48;
 
 /** Atlas layout: maps button type to row index (0-based). */
 const BUTTON_ROWS: Record<ButtonType, number> = {
@@ -59,15 +58,13 @@ function registerButton(
   x: number,
   y: number,
   layer: number,
-  scale: number,
   onClick?: () => void
 ): void {
-  const size = TILE_SIZE * scale;
   registerPointerArea({
     x,
     y,
-    width: size,
-    height: size,
+    width: TILE_SIZE,
+    height: TILE_SIZE,
     layer,
     cursor: "pointer",
     onPress: () => {
@@ -87,8 +84,7 @@ function renderSingleButton(
   ctx: RenderContext,
   type: ButtonType,
   x: number,
-  y: number,
-  scale: number
+  y: number
 ): void {
   if (!atlas) return;
   const row = BUTTON_ROWS[type];
@@ -104,8 +100,7 @@ function renderSingleButton(
       height: TILE_SIZE,
     },
     x,
-    y,
-    scale
+    y
   );
 }
 
@@ -118,56 +113,34 @@ export const Buttons = defineElement<ButtonsProps>("buttons", {
   },
 
   update(props) {
-    const scale = props.scale ?? 1.5;
     const spacing = props.spacing ?? 8;
-    const buttonSize = TILE_SIZE * scale;
     const store = getOverlayStore();
 
     // Register mode toggle button.
-    registerButton(
-      getModeToggleType(),
-      props.x,
-      props.y,
-      props.layer,
-      scale,
-      () => store.toggleInteractionMode()
+    registerButton(getModeToggleType(), props.x, props.y, props.layer, () =>
+      store.toggleInteractionMode()
     );
 
     // Register save button.
-    registerButton(
-      "save",
-      props.x + buttonSize + spacing,
-      props.y,
-      props.layer,
-      scale
-    );
+    registerButton("save", props.x + TILE_SIZE + spacing, props.y, props.layer);
   },
 
   render(ctx: RenderContext, props) {
     if (!atlas) return;
-    const scale = props.scale ?? 1.5;
     const spacing = props.spacing ?? 10;
-    const buttonSize = TILE_SIZE * scale;
 
     // Render mode toggle button.
-    renderSingleButton(ctx, getModeToggleType(), props.x, props.y, scale);
+    renderSingleButton(ctx, getModeToggleType(), props.x, props.y);
 
     // Render save button.
-    renderSingleButton(
-      ctx,
-      "save",
-      props.x + buttonSize + spacing,
-      props.y,
-      scale
-    );
+    renderSingleButton(ctx, "save", props.x + TILE_SIZE + spacing, props.y);
   },
 
   getSize() {
-    const scale = 1.5;
     const spacing = 8;
     return {
-      width: TILE_SIZE * scale * 2 + spacing,
-      height: TILE_SIZE * scale,
+      width: TILE_SIZE * 2 + spacing,
+      height: TILE_SIZE,
     };
   },
 });
