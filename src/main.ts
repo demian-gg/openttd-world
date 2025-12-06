@@ -7,6 +7,7 @@ import { component } from "./engine/components";
 
 import { registerOverlayStore } from "./stores/overlay";
 import { registerWorldMapStore } from "./stores/world-map";
+
 import { registerVignette } from "./components/vignette";
 import { registerWorldMap } from "./components/world-map";
 import { registerOverlay } from "./components/overlay/overlay";
