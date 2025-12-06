@@ -24,13 +24,18 @@ async function main(): Promise<void> {
   // Start the engine.
   await startEngine({
     canvas,
-    stores: [store(initOverlayStore), store(initWorldMapStore)],
+    stores: [
+      // @prettier-ignore
+      store(initOverlayStore),
+      store(initWorldMapStore),
+    ],
     components: [
+      // @prettier-ignore
       component(initWorldMapComponent, { layer: 0 }),
       component(initVignetteComponent, { layer: 1 }),
       component(initOverlayComponent, { layer: 2 }),
     ],
-    background: "#2a5f96",
+    backgroundColor: "#2a5f96",
     layerShadows: [
       {
         layer: 2,

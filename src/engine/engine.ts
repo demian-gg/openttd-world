@@ -62,7 +62,7 @@ export interface EngineConfig {
   resolution?: CanvasResolutionConfig;
 
   /** Optional background color. Defaults to "#000". */
-  background?: string;
+  backgroundColor?: string;
 
   /** Store initializers to run on engine setup. */
   stores?: Array<() => void>;
@@ -117,7 +117,7 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
     canvas: canvasContext.canvas,
     ctx: canvasContext.ctx,
     resolution: canvasContext.resolution,
-    backgroundColor: config.background ?? "#000",
+    backgroundColor: config.backgroundColor ?? "#000",
   };
 
   // Subscribe to canvas resize events to update engine state.
