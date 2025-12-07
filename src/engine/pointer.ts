@@ -135,6 +135,9 @@ let pressedArea: PointerArea | null = null;
  * Handle mouse down event on the canvas.
  */
 function handlePointerDown(event: MouseEvent): void {
+  // Only handle left clicks.
+  if (event.button !== 0) return;
+
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
   const hitArea = findTopHitArea(x, y);
 
@@ -203,6 +206,9 @@ function handlePointerMove(event: MouseEvent): void {
  * Handle mouse up event on the canvas.
  */
 function handlePointerUp(event: MouseEvent): void {
+  // Only handle left clicks.
+  if (event.button !== 0) return;
+
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
 
   // Fire onRelease for the area that was pressed.
