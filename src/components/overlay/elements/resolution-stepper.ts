@@ -58,30 +58,16 @@ export const ResolutionStepper = defineElement<ResolutionStepperProps>({
     const textWidth = measureText(font, resolution);
     const stepperX = textX + textWidth - 4;
 
-    // Register upper half of stepper (step up).
+    // Register stepper as single clickable area (cycles through resolutions).
     registerPointerArea({
       x: stepperX,
       y: props.y,
       width: TILE_SIZE,
-      height: TILE_SIZE / 2,
+      height: TILE_SIZE,
       layer: props.layer,
       cursor: "pointer",
       onClick: () => {
         store.stepUp();
-        dirtyLayer(props.layer);
-      },
-    });
-
-    // Register lower half of stepper (step down).
-    registerPointerArea({
-      x: stepperX,
-      y: props.y + TILE_SIZE / 2,
-      width: TILE_SIZE,
-      height: TILE_SIZE / 2,
-      layer: props.layer,
-      cursor: "pointer",
-      onClick: () => {
-        store.stepDown();
         dirtyLayer(props.layer);
       },
     });
