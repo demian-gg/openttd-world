@@ -74,16 +74,7 @@ export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
         layer,
         cursor: "move",
         onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-        onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
-      });
-    } else {
-      // Select mode: normal cursor, scroll only.
-      registerPointerArea({
-        x: 0,
-        y: 0,
-        width: resolution.width,
-        height: resolution.height,
-        layer,
+        onMiddleDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
         onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
       });
     }

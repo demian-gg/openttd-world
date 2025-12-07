@@ -101,6 +101,7 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
         height: resolution.height,
         layer,
         cursor: "crosshair",
+        cursorMiddleDragging: "move",
 
         onDragStart: (x, y) => {
           const world = screenToWorld(
@@ -124,6 +125,11 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
 
         onDragEnd: () => {
           selectionStore.endSelection();
+        },
+
+        // Middle mouse button for panning in select mode.
+        onMiddleDrag: (_x, _y, dx, dy) => {
+          worldMapStore.pan(dx, dy);
         },
 
         // Allow scroll to zoom even in select mode.

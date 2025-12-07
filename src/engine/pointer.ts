@@ -38,6 +38,9 @@ export interface PointerArea {
   /** Cursor to show while dragging this area. */
   cursorDragging?: string;
 
+  /** Cursor to show while middle-mouse dragging. */
+  cursorMiddleDragging?: string;
+
   /** Callback when pointer is pressed down on this area. */
   onPress?: (x: number, y: number) => void;
 
@@ -55,6 +58,9 @@ export interface PointerArea {
 
   /** Callback when drag ends. */
   onDragEnd?: (x: number, y: number) => void;
+
+  /** Callback while middle-mouse dragging (for panning in any mode). */
+  onMiddleDrag?: (x: number, y: number, deltaX: number, deltaY: number) => void;
 
   /** Callback when scrolling over this area. */
   onScroll?: (x: number, y: number, deltaY: number) => void;
@@ -131,14 +137,36 @@ let dragState: {
 /** Area that received the press event (for onRelease). */
 let pressedArea: PointerArea | null = null;
 
+/** Middle mouse button drag state (separate from left-click drag). */
+let middleDragState: {
+  area: PointerArea;
+  lastX: number;
+  lastY: number;
+} | null = null;
+
 /**
  * Handle mouse down event on the canvas.
  */
 function handlePointerDown(event: MouseEvent): void {
-  // Only handle left clicks.
+  const { x, y } = displayToGameCoords(event.clientX, event.clientY);
+
+  // Handle middle mouse button for panning.
+  if (event.button === 1) {
+    event.preventDefault(); // Prevent autoscroll behavior.
+    const hitArea = findTopHitArea(x, y);
+    if (hitArea?.onMiddleDrag) {
+      middleDragState = {
+        area: hitArea,
+        lastX: x,
+        lastY: y,
+      };
+    }
+    return;
+  }
+
+  // Only handle left clicks for regular interactions.
   if (event.button !== 0) return;
 
-  const { x, y } = displayToGameCoords(event.clientX, event.clientY);
   const hitArea = findTopHitArea(x, y);
 
   if (hitArea) {
@@ -166,6 +194,20 @@ function handlePointerDown(event: MouseEvent): void {
 function handlePointerMove(event: MouseEvent): void {
   const { canvas } = getCanvasContext();
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
+
+  // Handle middle mouse drag in progress.
+  if (middleDragState) {
+    const deltaX = x - middleDragState.lastX;
+    const deltaY = y - middleDragState.lastY;
+    middleDragState.area.onMiddleDrag?.(x, y, deltaX, deltaY);
+    middleDragState.lastX = x;
+    middleDragState.lastY = y;
+    canvas.style.cursor =
+      middleDragState.area.cursorMiddleDragging ??
+      middleDragState.area.cursor ??
+      "move";
+    return;
+  }
 
   // Handle drag in progress.
   if (dragState) {
@@ -206,7 +248,13 @@ function handlePointerMove(event: MouseEvent): void {
  * Handle mouse up event on the canvas.
  */
 function handlePointerUp(event: MouseEvent): void {
-  // Only handle left clicks.
+  // Handle middle mouse button release.
+  if (event.button === 1) {
+    middleDragState = null;
+    return;
+  }
+
+  // Only handle left clicks for regular interactions.
   if (event.button !== 0) return;
 
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
@@ -499,6 +547,7 @@ function handleEngineStopped(): void {
   dragState = null;
   pressedArea = null;
   pinchState = null;
+  middleDragState = null;
 
   active = false;
 }
