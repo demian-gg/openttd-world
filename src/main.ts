@@ -9,9 +9,11 @@ import { store } from "./engine/stores";
 import { initOverlayStore } from "./stores/overlay";
 import { initWorldMapStore } from "./stores/world-map";
 import { initResolutionStore } from "./stores/resolution";
+import { initSelectionStore } from "./stores/selection";
 
 import { initVignetteComponent } from "./components/vignette";
 import { initWorldMapComponent } from "./components/world-map";
+import { initSelectionComponent } from "./components/selection";
 import { initOverlayComponent } from "./components/overlay/overlay";
 
 /**
@@ -29,23 +31,25 @@ async function main(): Promise<void> {
       store(initOverlayStore),
       store(initWorldMapStore),
       store(initResolutionStore),
+      store(initSelectionStore),
     ],
     components: [
       component(initWorldMapComponent, { layer: 0 }),
-      component(initVignetteComponent, { layer: 1 }),
-      component(initOverlayComponent, { layer: 2 }),
+      component(initSelectionComponent, { layer: 1 }),
+      component(initVignetteComponent, { layer: 2 }),
+      component(initOverlayComponent, { layer: 3 }),
     ],
     backgroundColor: "#2a5f96",
     layerShadows: [
       {
-        layer: 2,
+        layer: 3,
         color: "rgba(0, 0, 0, 0.5)",
         blur: 0,
         offsetX: 3,
         offsetY: 3,
       },
       {
-        layer: 2,
+        layer: 3,
         color: "rgba(0, 0, 0, 0.35)",
         blur: 12,
         offsetX: 3,

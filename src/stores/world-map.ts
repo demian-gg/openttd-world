@@ -63,6 +63,9 @@ export interface WorldMapStoreState {
 
   /** Set the sprite dimensions for offset clamping. */
   setSpriteSize: (width: number, height: number) => void;
+
+  /** Get the sprite dimensions. */
+  getSpriteSize: () => { width: number; height: number };
 }
 
 /** Internal state. */
@@ -168,5 +171,8 @@ export const {
     spriteHeight = height;
     updateMinZoom();
     notifyStore(WorldMapStore);
+  },
+  getSpriteSize() {
+    return { width: spriteWidth, height: spriteHeight };
   },
 }));
