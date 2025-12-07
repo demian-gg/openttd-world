@@ -74,6 +74,8 @@ function registerButton(
     onRelease: () => {
       buttonStates[type] = "idle";
       dirtyLayer(layer);
+    },
+    onClick: () => {
       onClick?.();
     },
   });

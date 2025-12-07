@@ -409,12 +409,21 @@ function handleTouchMove(event: TouchEvent): void {
  * Ends drag or pinch gesture, fires click on tap.
  */
 function handleTouchEnd(event: TouchEvent): void {
+  // Prevent browser from generating synthetic mouse events after touch.
+  event.preventDefault();
+
   if (event.touches.length === 0) {
     // Get the position of the finger that was lifted.
     const touch = event.changedTouches[0];
     const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
 
-    // Fire onRelease for the area that was pressed.
+    // Store reference before clearing pressedArea.
+    // Non-draggable areas (like buttons) don't set dragState, so we need
+    // this saved reference to fire their onClick callback below.
+    const releasedArea = pressedArea;
+
+    // Fire onRelease for the area that was pressed, then clear for next
+    // interaction.
     if (pressedArea) {
       pressedArea.onRelease?.(x, y);
       pressedArea = null;
@@ -430,6 +439,9 @@ function handleTouchEnd(event: TouchEvent): void {
         dragState.area.onClick?.(x, y);
       }
       dragState = null;
+    } else if (releasedArea) {
+      // Non-draggable area was tapped - fire onClick.
+      releasedArea.onClick?.(x, y);
     }
     pinchState = null;
   } else if (event.touches.length === 1) {
