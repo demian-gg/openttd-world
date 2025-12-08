@@ -12,6 +12,8 @@ import { isSmall, getResponsiveValue } from "../../engine/utils";
 import { WorldMapStore } from "../../stores/world-map";
 import { ResolutionStore } from "../../stores/resolution";
 import { ZoneStore } from "../../stores/zone";
+import { OverlayStore } from "../../stores/overlay";
+import { SelectionStore } from "../../stores/selection";
 import { loadElements } from "../../engine/elements";
 
 import { Logo } from "./elements/logo";
@@ -19,6 +21,7 @@ import { ZoneName } from "./elements/zone-name";
 import { ResolutionStepper } from "./elements/resolution-stepper";
 import { Buttons } from "./elements/buttons";
 import { ZoomSlider } from "./elements/zoom-slider";
+import { SelectionHint } from "./elements/selection-hint";
 
 /** Margin from screen edges. */
 const MARGIN = 32;
@@ -72,6 +75,16 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     subscribeStore(ZoneStore, () => {
       dirtyLayer(props.layer);
     });
+
+    // Subscribe to overlay store changes to update hint visibility.
+    subscribeStore(OverlayStore, () => {
+      dirtyLayer(props.layer);
+    });
+
+    // Subscribe to selection store changes to update hint visibility.
+    subscribeStore(SelectionStore, () => {
+      dirtyLayer(props.layer);
+    });
   },
 
   async load() {
@@ -82,6 +95,7 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
       ResolutionStepper,
       Buttons,
       ZoomSlider,
+      SelectionHint,
     ]);
   },
 
@@ -144,5 +158,8 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
         resolution.height - currentMargin - zoomSliderSize.height;
       ZoomSlider.render(ctx, { x: zoomSliderX, y: zoomSliderY });
     }
+
+    // Selection hint (centered at bottom, visible in select mode with no selection).
+    SelectionHint.render(ctx, {});
   },
 });
