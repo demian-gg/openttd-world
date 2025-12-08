@@ -25,7 +25,7 @@ let sprite: Sprite | null = null;
  */
 export const Logo = defineElement<LogoProps>({
   async load() {
-    sprite = await loadSprite("/sprites/logo.png");
+    sprite = await loadSprite("/sprites/logo@64px.png");
   },
 
   render(ctx: RenderContext, props) {
