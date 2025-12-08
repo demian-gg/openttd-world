@@ -32,7 +32,7 @@ let font: BitmapFont | null = null;
  */
 export const ZoneName = defineElement<ZoneNameProps>({
   async load() {
-    font = await loadFont("/sprites/font.png", 16, 16, 16, 32, -7);
+    font = await loadFont("/sprites/font@16px.png", 16, 16, 16, 32, -7);
     // Load zone map data.
     await getZoneStore().load();
   },

@@ -14,7 +14,6 @@ import {
   setLayerScale,
   setLayerSize,
 } from "../engine/layers";
-import { BitmapFont, loadFont, drawText, measureText } from "../engine/text";
 import { getOverlayStore, OverlayStore } from "../stores/overlay";
 import { getSelectionStore, SelectionStore } from "../stores/selection";
 import { getWorldMapStore, WorldMapStore } from "../stores/world-map";
@@ -34,9 +33,6 @@ const EARTH_CIRCUMFERENCE_KM = 40075;
 
 /** Maximum selection area in km². */
 const MAX_AREA_KM_SQ = 10_000_000;
-
-/** Font for area text. */
-let areaFont: BitmapFont | null = null;
 
 /** Selection bounds type. */
 type SelectionBounds = {
@@ -201,23 +197,12 @@ function renderSelectionCutout(
 }
 
 /**
- * Calculate selection area in square kilometers.
+ * Calculate the maximum selection size in pixels for a given sprite width.
  */
-function calculateAreaKm(bounds: SelectionBounds, spriteWidth: number): number {
-  const { startX, startY, endX, endY } = bounds;
-
-  // Calculate size in pixels (1:1 ratio enforced).
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const sizePixels = Math.max(Math.abs(dx), Math.abs(dy));
-
-  // Convert pixels to km.
-  // spriteWidth pixels = Earth's circumference (360° longitude).
+function getMaxSizePixels(spriteWidth: number): number {
   const kmPerPixel = EARTH_CIRCUMFERENCE_KM / spriteWidth;
-  const sizeKm = sizePixels * kmPerPixel;
-
-  // Area = side^2.
-  return sizeKm * sizeKm;
+  const maxSideKm = Math.sqrt(MAX_AREA_KM_SQ);
+  return maxSideKm / kmPerPixel;
 }
 
 /**
@@ -231,63 +216,6 @@ function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
   const maxSizePixels = getMaxSizePixels(spriteWidth);
   // Use small tolerance for floating point comparison.
   return sizePixels >= maxSizePixels - 0.5;
-}
-
-/**
- * Calculate the maximum selection size in pixels for a given sprite width.
- */
-function getMaxSizePixels(spriteWidth: number): number {
-  const kmPerPixel = EARTH_CIRCUMFERENCE_KM / spriteWidth;
-  const maxSideKm = Math.sqrt(MAX_AREA_KM_SQ);
-  return maxSideKm / kmPerPixel;
-}
-
-/**
- * Format area for display.
- */
-function formatArea(areaKmSq: number): string {
-  if (areaKmSq >= 1_000_000) {
-    return `${(areaKmSq / 1_000_000).toFixed(1)}M km sq.`;
-  }
-  if (areaKmSq >= 1_000) {
-    return `${(areaKmSq / 1_000).toFixed(1)}K km sq.`;
-  }
-  return `${Math.round(areaKmSq)} km sq.`;
-}
-
-/**
- * Render area text below the selection.
- */
-function renderAreaText(
-  ctx: RenderContext,
-  bounds: SelectionBounds,
-  spriteWidth: number
-): void {
-  if (!areaFont) return;
-
-  const { blX, blY, brX } = calculateSkewedCorners(bounds);
-  const areaKmSq = calculateAreaKm(bounds, spriteWidth);
-  const text = formatArea(areaKmSq);
-
-  // Position text centered below the bottom edge.
-  const textScale = 0.5;
-  const textWidth = measureText(areaFont, text, textScale);
-  const bottomCenterX = (blX + brX) / 2;
-  const textX = bottomCenterX - textWidth / 2;
-  const textY = blY + 4; // 4px padding below selection.
-
-  // Draw shadow.
-  drawText(
-    ctx,
-    areaFont,
-    text,
-    textX + 1,
-    textY + 1,
-    textScale,
-    "rgba(0, 0, 0, 0.5)"
-  );
-  // Draw text.
-  drawText(ctx, areaFont, text, textX, textY, textScale, "white");
 }
 
 /**
@@ -324,10 +252,6 @@ function screenToWorld(
  */
 export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
   {
-    async load() {
-      areaFont = await loadFont("/sprites/font.png", 16, 16, 16, 32, -7);
-    },
-
     init(props) {
       // Subscribe to relevant stores to redraw when needed.
       subscribeStore(OverlayStore, () => {
@@ -498,7 +422,6 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
       // If we have a selection, cut it out and draw border.
       if (bounds) {
         renderSelectionCutout(ctx, bounds, borderColor);
-        renderAreaText(ctx, bounds, spriteWidth);
       }
 
       ctx.restore();

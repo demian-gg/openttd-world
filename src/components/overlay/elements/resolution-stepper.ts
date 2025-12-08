@@ -42,8 +42,8 @@ const TILE_SIZE = 18;
 export const ResolutionStepper = defineElement<ResolutionStepperProps>({
   async load() {
     [atlas, font] = await Promise.all([
-      loadSprite("/sprites/resolution-stepper.png"),
-      loadFont("/sprites/font.png", 16, 16, 16, 32, -7),
+      loadSprite("/sprites/resolution-stepper@18px.png"),
+      loadFont("/sprites/font@16px.png", 16, 16, 16, 32, -7),
     ]);
   },
 

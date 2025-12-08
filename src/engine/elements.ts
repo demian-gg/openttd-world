@@ -10,7 +10,7 @@
  *
  * export const Logo = defineElement<LogoProps>("logo", {
  *   async load() {
- *     sprite.set(await loadSprite("/sprites/logo.png"));
+ *     sprite.set(await loadSprite("/sprites/logo@64px.png"));
  *   },
  *   render(ctx, props) {
  *     drawSprite(ctx, sprite.get()!, props.x, props.y);

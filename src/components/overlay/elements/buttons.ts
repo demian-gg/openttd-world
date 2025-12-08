@@ -124,7 +124,7 @@ function renderSingleButton(
  */
 export const Buttons = defineElement<ButtonsProps>({
   async load() {
-    atlas = await loadSprite("/sprites/buttons.png");
+    atlas = await loadSprite("/sprites/buttons@48px.png");
   },
 
   update(props) {
