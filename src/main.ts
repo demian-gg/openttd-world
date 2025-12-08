@@ -52,7 +52,7 @@ async function main(): Promise<void> {
       },
       {
         layer: 3,
-        color: "rgba(0, 0, 0, 0.35)",
+        color: "rgba(0, 0, 0, 0.5)",
         blur: 12,
         offsetX: 3,
         offsetY: 3,
