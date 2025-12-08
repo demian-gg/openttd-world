@@ -55,6 +55,9 @@ export interface WorldMapStoreState {
   /** Pan the map by a delta. */
   pan: (dx: number, dy: number) => void;
 
+  /** Center the map on a world position (in sprite pixels). */
+  centerOnWorld: (worldX: number, worldY: number) => void;
+
   /** Zoom at a specific screen point. */
   zoomAtPoint: (x: number, y: number, deltaY: number) => void;
 
@@ -77,6 +80,22 @@ let spriteWidth = 0;
 let spriteHeight = 0;
 let viewportWidth = 0;
 let viewportHeight = 0;
+
+/** Animation state. */
+let animationId: number | null = null;
+let animationStartTime = 0;
+let animationStartX = 0;
+let animationStartY = 0;
+let animationTargetX = 0;
+let animationTargetY = 0;
+let animationStartZoom = 0;
+let animationTargetZoom = 0;
+const ANIMATION_DURATION_MS = 400;
+
+/** Ease-out cubic function for smooth deceleration. */
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
 
 /** Clamp offset values to keep the map covering the viewport. */
 function clampOffset(): void {
@@ -143,6 +162,59 @@ export const {
     offsetY += dy;
     clampOffset();
     notifyStore(WorldMapStore);
+  },
+  centerOnWorld(worldX: number, worldY: number) {
+    // Cancel any existing animation.
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+
+    // Target zoom is max zoom.
+    const targetZoom = MAX_ZOOM;
+
+    // Calculate target offset at the target zoom level.
+    // At target zoom, we want the world position centered on screen.
+    // spriteLeft = viewportWidth/2 + targetOffsetX - (spriteWidth * targetZoom) / 2
+    // worldScreenX = spriteLeft + worldX * targetZoom = viewportWidth/2 (centered)
+    // Solving: targetOffsetX = (spriteWidth * targetZoom) / 2 - worldX * targetZoom
+    //                        = targetZoom * (spriteWidth / 2 - worldX)
+    const targetOffsetX = targetZoom * (spriteWidth / 2 - worldX);
+    const targetOffsetY = targetZoom * (spriteHeight / 2 - worldY);
+
+    // Set up animation.
+    animationStartTime = performance.now();
+    animationStartX = offsetX;
+    animationStartY = offsetY;
+    animationTargetX = targetOffsetX;
+    animationTargetY = targetOffsetY;
+    animationStartZoom = zoom;
+    animationTargetZoom = targetZoom;
+
+    // Animation loop.
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - animationStartTime;
+      const progress = Math.min(elapsed / ANIMATION_DURATION_MS, 1);
+      const easedProgress = easeOutCubic(progress);
+
+      zoom =
+        animationStartZoom +
+        (animationTargetZoom - animationStartZoom) * easedProgress;
+      offsetX =
+        animationStartX + (animationTargetX - animationStartX) * easedProgress;
+      offsetY =
+        animationStartY + (animationTargetY - animationStartY) * easedProgress;
+      clampOffset();
+      notifyStore(WorldMapStore);
+
+      if (progress < 1) {
+        animationId = requestAnimationFrame(animate);
+      } else {
+        animationId = null;
+      }
+    };
+
+    animationId = requestAnimationFrame(animate);
   },
   zoomAtPoint(x: number, y: number, deltaY: number) {
     // Apply zoom: scroll up = zoom in, scroll down = zoom out.

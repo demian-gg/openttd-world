@@ -414,6 +414,27 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
 
         onDragEnd: () => {
           selectionStore.endSelection();
+
+          // Center the map on the selection.
+          const bounds = selectionStore.getBounds();
+          if (bounds) {
+            const { startX, startY, endX, endY } = bounds;
+
+            // Calculate adjusted end position (same logic as rendering).
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const size = Math.max(Math.abs(dx), Math.abs(dy));
+            const dirX = dx >= 0 ? 1 : -1;
+            const dirY = dy >= 0 ? 1 : -1;
+            const adjustedEndX = startX + size * dirX;
+            const adjustedEndY = startY + size * dirY;
+
+            // Find center of selection in world coordinates.
+            const centerX = (startX + adjustedEndX) / 2;
+            const centerY = (startY + adjustedEndY) / 2;
+
+            worldMapStore.centerOnWorld(centerX, centerY);
+          }
         },
 
         // Middle mouse button for panning in select mode.
