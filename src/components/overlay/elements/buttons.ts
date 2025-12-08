@@ -12,9 +12,14 @@ import { defineElement } from "../../../engine/elements";
 import { registerPointerArea } from "../../../engine/pointer";
 import { dirtyLayer } from "../../../engine/layers";
 import { getOverlayStore } from "../../../stores/overlay";
+import { getSelectionStore } from "../../../stores/selection";
 
 /** Button types available in the atlas. */
-export type ButtonType = "save" | "pan-mode" | "select-mode";
+export type ButtonType =
+  | "save-disallowed"
+  | "save-allowed"
+  | "pan-mode"
+  | "select-mode";
 
 /** Props for the buttons element. */
 export interface ButtonsProps {
@@ -29,9 +34,10 @@ const TILE_SIZE = 48;
 
 /** Atlas layout: maps button type to row index (0-based). */
 const BUTTON_ROWS: Record<ButtonType, number> = {
-  save: 0,
-  "pan-mode": 1,
-  "select-mode": 2,
+  "save-disallowed": 0,
+  "save-allowed": 1,
+  "pan-mode": 2,
+  "select-mode": 3,
 };
 
 /** Sprite atlas instance. */
@@ -39,7 +45,8 @@ let atlas: Sprite | null = null;
 
 /** Current state of each button. */
 const buttonStates: Record<ButtonType, "idle" | "clicked"> = {
-  save: "idle",
+  "save-disallowed": "idle",
+  "save-allowed": "idle",
   "pan-mode": "idle",
   "select-mode": "idle",
 };
@@ -50,6 +57,12 @@ function getModeToggleType(): ButtonType {
   return getOverlayStore().getInteractionMode() === "pan"
     ? "pan-mode"
     : "select-mode";
+}
+
+/** Get the save button type based on selection state. */
+function getSaveButtonType(): ButtonType {
+  const bounds = getSelectionStore().getBounds();
+  return bounds !== null ? "save-allowed" : "save-disallowed";
 }
 
 /** Register a button's pointer area. */
@@ -124,7 +137,12 @@ export const Buttons = defineElement<ButtonsProps>({
     );
 
     // Register save button.
-    registerButton("save", props.x + TILE_SIZE + spacing, props.y, props.layer);
+    registerButton(
+      getSaveButtonType(),
+      props.x + TILE_SIZE + spacing,
+      props.y,
+      props.layer
+    );
   },
 
   render(ctx: RenderContext, props) {
@@ -135,7 +153,12 @@ export const Buttons = defineElement<ButtonsProps>({
     renderSingleButton(ctx, getModeToggleType(), props.x, props.y);
 
     // Render save button.
-    renderSingleButton(ctx, "save", props.x + TILE_SIZE + spacing, props.y);
+    renderSingleButton(
+      ctx,
+      getSaveButtonType(),
+      props.x + TILE_SIZE + spacing,
+      props.y
+    );
   },
 
   getSize() {
