@@ -12,6 +12,7 @@ import {
 } from "../../../engine/text";
 import { defineElement } from "../../../engine/elements";
 import { getEngineState } from "../../../engine/engine";
+import { isSmall } from "../../../engine/utils";
 import { getOverlayStore } from "../../../stores/overlay";
 import { getSelectionStore } from "../../../stores/selection";
 
@@ -48,7 +49,8 @@ export const SelectionHint = defineElement<SelectionHintProps>({
     if (!font || !shouldShow()) return;
 
     const { resolution } = getEngineState();
-    const scale = props.scale ?? 1.5;
+    const isMobile = isSmall();
+    const scale = props.scale ?? (isMobile ? 1.25 : 1.5);
     const color = props.color ?? "rgba(255, 255, 255, 0.7)";
 
     // Calculate centered position at bottom of screen.
