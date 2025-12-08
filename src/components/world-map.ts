@@ -23,6 +23,7 @@ import {
 } from "../engine/layers";
 import { getWorldMapStore } from "../stores/world-map";
 import { getOverlayStore } from "../stores/overlay";
+import { getZoneStore } from "../stores/zone";
 
 /** Component state. */
 const sprite = createState<Sprite | null>(null);
@@ -76,6 +77,14 @@ export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
         onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
         onMiddleDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
         onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+        onHover: (x, y) => {
+          getZoneStore().updateFromScreenPosition(
+            x,
+            y,
+            resolution.width,
+            resolution.height
+          );
+        },
       });
     }
   },

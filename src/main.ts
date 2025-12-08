@@ -10,6 +10,7 @@ import { initOverlayStore } from "./stores/overlay";
 import { initWorldMapStore } from "./stores/world-map";
 import { initResolutionStore } from "./stores/resolution";
 import { initSelectionStore } from "./stores/selection";
+import { initZoneStore } from "./stores/zone";
 
 import { initVignetteComponent } from "./components/vignette";
 import { initWorldMapComponent } from "./components/world-map";
@@ -32,6 +33,7 @@ async function main(): Promise<void> {
       store(initWorldMapStore),
       store(initResolutionStore),
       store(initSelectionStore),
+      store(initZoneStore),
     ],
     components: [
       component(initWorldMapComponent, { layer: 0 }),

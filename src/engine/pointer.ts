@@ -62,6 +62,9 @@ export interface PointerArea {
   /** Callback while middle-mouse dragging (for panning in any mode). */
   onMiddleDrag?: (x: number, y: number, deltaX: number, deltaY: number) => void;
 
+  /** Callback when pointer moves over this area (fires on every move). */
+  onHover?: (x: number, y: number) => void;
+
   /** Callback when scrolling over this area. */
   onScroll?: (x: number, y: number, deltaY: number) => void;
 }
@@ -242,6 +245,9 @@ function handlePointerMove(event: MouseEvent): void {
   // Update cursor based on hover.
   const hitArea = findTopHitArea(x, y);
   canvas.style.cursor = hitArea?.cursor ?? "default";
+
+  // Fire hover callback.
+  hitArea?.onHover?.(x, y);
 }
 
 /**

@@ -14,15 +14,281 @@ import {
   setLayerScale,
   setLayerSize,
 } from "../engine/layers";
+import { BitmapFont, loadFont, drawText, measureText } from "../engine/text";
 import { getOverlayStore, OverlayStore } from "../stores/overlay";
 import { getSelectionStore, SelectionStore } from "../stores/selection";
 import { getWorldMapStore, WorldMapStore } from "../stores/world-map";
+import { getZoneStore } from "../stores/zone";
 
 /** Skew angle in degrees for isometric-style selection. */
 const SKEW_ANGLE = -30;
 
 /** Overlay opacity when in select mode. */
 const OVERLAY_OPACITY = 0.5;
+
+/** Selection line opacity in pan mode. */
+const PAN_MODE_SELECTION_OPACITY = 0.25;
+
+/** Earth's circumference at the equator in km. */
+const EARTH_CIRCUMFERENCE_KM = 40075;
+
+/** Maximum selection area in km². */
+const MAX_AREA_KM_SQ = 10_000_000;
+
+/** Font for area text. */
+let areaFont: BitmapFont | null = null;
+
+/** Selection bounds type. */
+type SelectionBounds = {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+};
+
+/**
+ * Draw a dashed line using filled pixels (no anti-aliasing).
+ * Uses Bresenham's line algorithm for pixel-perfect diagonal lines.
+ */
+function drawDashedLine(
+  ctx: RenderContext,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  color: string
+): void {
+  const DASH_LENGTH = 4;
+  const GAP_LENGTH = 4;
+
+  ctx.fillStyle = color;
+
+  let x = Math.round(x1);
+  let y = Math.round(y1);
+  const endX = Math.round(x2);
+  const endY = Math.round(y2);
+
+  const dx = Math.abs(endX - x);
+  const dy = Math.abs(endY - y);
+  const sx = x < endX ? 1 : -1;
+  const sy = y < endY ? 1 : -1;
+  let err = dx - dy;
+
+  let pixelCount = 0;
+  const dashCycle = DASH_LENGTH + GAP_LENGTH;
+
+  while (true) {
+    if (pixelCount % dashCycle < DASH_LENGTH) {
+      ctx.fillRect(x, y, 1, 1);
+    }
+    pixelCount++;
+
+    if (x === endX && y === endY) break;
+
+    const e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      x += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      y += sy;
+    }
+  }
+}
+
+/**
+ * Calculate skewed corner positions for a selection.
+ */
+function calculateSkewedCorners(bounds: SelectionBounds): {
+  tlX: number;
+  tlY: number;
+  trX: number;
+  trY: number;
+  brX: number;
+  brY: number;
+  blX: number;
+  blY: number;
+} {
+  const { startX, startY, endX, endY } = bounds;
+
+  // Calculate size (enforce 1:1 ratio).
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const size = Math.max(Math.abs(dx), Math.abs(dy));
+
+  // Determine direction.
+  const dirX = dx >= 0 ? 1 : -1;
+  const dirY = dy >= 0 ? 1 : -1;
+
+  // Calculate selection rectangle dimensions.
+  const selX = startX;
+  const selY = startY;
+  const selWidth = size * dirX;
+  const selHeight = size * dirY;
+
+  // Calculate skew factor.
+  const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
+
+  // Calculate skewed corner positions.
+  return {
+    tlX: selX,
+    tlY: selY,
+    trX: selX + selWidth,
+    trY: selY,
+    brX: selX + selWidth + selHeight * skewFactor,
+    brY: selY + selHeight,
+    blX: selX + selHeight * skewFactor,
+    blY: selY + selHeight,
+  };
+}
+
+/**
+ * Render just the selection border.
+ */
+function renderSelectionBorder(
+  ctx: RenderContext,
+  bounds: SelectionBounds,
+  borderColor: string = "white"
+): void {
+  const { tlX, tlY, trX, trY, brX, brY, blX, blY } =
+    calculateSkewedCorners(bounds);
+
+  // Draw all four edges with shadow and white line.
+  const edges: [number, number, number, number][] = [
+    [tlX, tlY, trX, trY],
+    [trX, trY, brX, brY],
+    [brX, brY, blX, blY],
+    [blX, blY, tlX, tlY],
+  ];
+
+  // Draw shadows first.
+  for (const [x1, y1, x2, y2] of edges) {
+    drawDashedLine(ctx, x1 + 1, y1 + 1, x2 + 1, y2 + 1, "rgba(0, 0, 0, 0.5)");
+  }
+
+  // Draw borders.
+  for (const [x1, y1, x2, y2] of edges) {
+    drawDashedLine(ctx, x1, y1, x2, y2, borderColor);
+  }
+}
+
+/**
+ * Render selection with cutout effect (used in select mode).
+ */
+function renderSelectionCutout(
+  ctx: RenderContext,
+  bounds: SelectionBounds,
+  borderColor: string = "white"
+): void {
+  const { tlX, tlY, trX, trY, brX, brY, blX, blY } =
+    calculateSkewedCorners(bounds);
+
+  // Cut out selection from overlay.
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.moveTo(tlX, tlY);
+  ctx.lineTo(trX, trY);
+  ctx.lineTo(brX, brY);
+  ctx.lineTo(blX, blY);
+  ctx.closePath();
+  ctx.fill();
+
+  // Draw the border.
+  ctx.globalCompositeOperation = "source-over";
+  renderSelectionBorder(ctx, bounds, borderColor);
+}
+
+/**
+ * Calculate selection area in square kilometers.
+ */
+function calculateAreaKm(bounds: SelectionBounds, spriteWidth: number): number {
+  const { startX, startY, endX, endY } = bounds;
+
+  // Calculate size in pixels (1:1 ratio enforced).
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const sizePixels = Math.max(Math.abs(dx), Math.abs(dy));
+
+  // Convert pixels to km.
+  // spriteWidth pixels = Earth's circumference (360° longitude).
+  const kmPerPixel = EARTH_CIRCUMFERENCE_KM / spriteWidth;
+  const sizeKm = sizePixels * kmPerPixel;
+
+  // Area = side^2.
+  return sizeKm * sizeKm;
+}
+
+/**
+ * Check if selection is at the maximum size limit.
+ */
+function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
+  const { startX, startY, endX, endY } = bounds;
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const sizePixels = Math.max(Math.abs(dx), Math.abs(dy));
+  const maxSizePixels = getMaxSizePixels(spriteWidth);
+  // Use small tolerance for floating point comparison.
+  return sizePixels >= maxSizePixels - 0.5;
+}
+
+/**
+ * Calculate the maximum selection size in pixels for a given sprite width.
+ */
+function getMaxSizePixels(spriteWidth: number): number {
+  const kmPerPixel = EARTH_CIRCUMFERENCE_KM / spriteWidth;
+  const maxSideKm = Math.sqrt(MAX_AREA_KM_SQ);
+  return maxSideKm / kmPerPixel;
+}
+
+/**
+ * Format area for display.
+ */
+function formatArea(areaKmSq: number): string {
+  if (areaKmSq >= 1_000_000) {
+    return `${(areaKmSq / 1_000_000).toFixed(1)}M km sq.`;
+  }
+  if (areaKmSq >= 1_000) {
+    return `${(areaKmSq / 1_000).toFixed(1)}K km sq.`;
+  }
+  return `${Math.round(areaKmSq)} km sq.`;
+}
+
+/**
+ * Render area text below the selection.
+ */
+function renderAreaText(
+  ctx: RenderContext,
+  bounds: SelectionBounds,
+  spriteWidth: number
+): void {
+  if (!areaFont) return;
+
+  const { blX, blY, brX } = calculateSkewedCorners(bounds);
+  const areaKmSq = calculateAreaKm(bounds, spriteWidth);
+  const text = formatArea(areaKmSq);
+
+  // Position text centered below the bottom edge.
+  const textScale = 0.5;
+  const textWidth = measureText(areaFont, text, textScale);
+  const bottomCenterX = (blX + brX) / 2;
+  const textX = bottomCenterX - textWidth / 2;
+  const textY = blY + 4; // 4px padding below selection.
+
+  // Draw shadow.
+  drawText(
+    ctx,
+    areaFont,
+    text,
+    textX + 1,
+    textY + 1,
+    textScale,
+    "rgba(0, 0, 0, 0.5)"
+  );
+  // Draw text.
+  drawText(ctx, areaFont, text, textX, textY, textScale, "white");
+}
 
 /**
  * Convert screen coordinates to world coordinates (pixels in the sprite).
@@ -58,6 +324,10 @@ function screenToWorld(
  */
 export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
   {
+    async load() {
+      areaFont = await loadFont("/sprites/font.png", 16, 16, 16, 32, -7);
+    },
+
     init(props) {
       // Subscribe to relevant stores to redraw when needed.
       subscribeStore(OverlayStore, () => {
@@ -75,8 +345,6 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
 
     update(props) {
       const mode = getOverlayStore().getInteractionMode();
-      if (mode !== "select") return;
-
       const { resolution } = getEngineState();
       const { layer } = props;
       const selectionStore = getSelectionStore();
@@ -92,6 +360,9 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
         worldMapStore.getOffsetX(),
         worldMapStore.getOffsetY()
       );
+
+      // Only register pointer area in select mode.
+      if (mode !== "select") return;
 
       // Register full-screen pointer area for selection.
       registerPointerArea({
@@ -120,6 +391,24 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
             resolution.width,
             resolution.height
           );
+
+          // Clamp selection to max size.
+          const bounds = selectionStore.getBounds();
+          if (bounds) {
+            const maxSize = getMaxSizePixels(spriteWidth);
+            const dx = world.x - bounds.startX;
+            const dy = world.y - bounds.startY;
+            const size = Math.max(Math.abs(dx), Math.abs(dy));
+
+            if (size > maxSize) {
+              // Clamp to max size while preserving direction.
+              const dirX = dx >= 0 ? 1 : -1;
+              const dirY = dy >= 0 ? 1 : -1;
+              world.x = bounds.startX + maxSize * dirX;
+              world.y = bounds.startY + maxSize * dirY;
+            }
+          }
+
           selectionStore.updateSelection(world.x, world.y);
         },
 
@@ -136,138 +425,52 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
         onScroll: (x, y, deltaY) => {
           worldMapStore.zoomAtPoint(x, y, deltaY);
         },
+
+        // Track zone on hover.
+        onHover: (x, y) => {
+          getZoneStore().updateFromScreenPosition(
+            x,
+            y,
+            resolution.width,
+            resolution.height
+          );
+        },
       });
     },
 
     render(ctx: RenderContext) {
       const mode = getOverlayStore().getInteractionMode();
-      if (mode !== "select") return;
-
+      const bounds = getSelectionStore().getBounds();
       const { width: spriteWidth, height: spriteHeight } =
         getWorldMapStore().getSpriteSize();
-      const bounds = getSelectionStore().getBounds();
+      ctx.save();
+
+      // Determine if at max size and set border color.
+      const atLimit = bounds ? isAtMaxSize(bounds, spriteWidth) : false;
+      const borderColor = atLimit ? "rgba(255, 196, 0, 1)" : "white";
+
+      // In pan mode, only render selection if it exists (with reduced opacity).
+      if (mode === "pan") {
+        if (!bounds) return;
+        ctx.save();
+        ctx.globalAlpha = PAN_MODE_SELECTION_OPACITY;
+        renderSelectionBorder(ctx, bounds, borderColor);
+        ctx.restore();
+        return;
+      }
+
+      // In select mode, render overlay and selection.
+      if (mode !== "select") return;
 
       // Draw semi-transparent overlay (in world/sprite coordinates).
       ctx.save();
       ctx.fillStyle = `rgba(0, 0, 0, ${OVERLAY_OPACITY})`;
       ctx.fillRect(0, 0, spriteWidth, spriteHeight);
 
-      // If we have a selection, cut it out.
+      // If we have a selection, cut it out and draw border.
       if (bounds) {
-        // Bounds are already in world coordinates, no conversion needed.
-        const startX = bounds.startX;
-        const startY = bounds.startY;
-        const endX = bounds.endX;
-        const endY = bounds.endY;
-
-        // Calculate size (enforce 1:1 ratio).
-        const dx = endX - startX;
-        const dy = endY - startY;
-        const size = Math.max(Math.abs(dx), Math.abs(dy));
-
-        // Determine direction.
-        const dirX = dx >= 0 ? 1 : -1;
-        const dirY = dy >= 0 ? 1 : -1;
-
-        // Calculate selection rectangle dimensions.
-        const selX = startX;
-        const selY = startY;
-        const selWidth = size * dirX;
-        const selHeight = size * dirY;
-
-        // Calculate skew factor.
-        const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
-
-        // Calculate skewed corner positions.
-        // Skew is relative to the selection's top edge, not absolute Y.
-        const tlX = selX;
-        const tlY = selY;
-        const trX = selX + selWidth;
-        const trY = selY;
-        const brX = selX + selWidth + selHeight * skewFactor;
-        const brY = selY + selHeight;
-        const blX = selX + selHeight * skewFactor;
-        const blY = selY + selHeight;
-
-        // Cut out selection from overlay.
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.moveTo(tlX, tlY);
-        ctx.lineTo(trX, trY);
-        ctx.lineTo(brX, brY);
-        ctx.lineTo(blX, blY);
-        ctx.closePath();
-        ctx.fill();
-
-        // Helper to draw a dashed line using filled pixels (no anti-aliasing).
-        // Uses Bresenham's line algorithm for pixel-perfect diagonal lines.
-        const DASH_LENGTH = 4;
-        const GAP_LENGTH = 4;
-
-        function drawDashedLine(
-          x1: number,
-          y1: number,
-          x2: number,
-          y2: number,
-          color: string
-        ): void {
-          ctx.fillStyle = color;
-
-          // Round to integers for pixel-perfect drawing.
-          let x = Math.round(x1);
-          let y = Math.round(y1);
-          const endX = Math.round(x2);
-          const endY = Math.round(y2);
-
-          const dx = Math.abs(endX - x);
-          const dy = Math.abs(endY - y);
-          const sx = x < endX ? 1 : -1;
-          const sy = y < endY ? 1 : -1;
-          let err = dx - dy;
-
-          let pixelCount = 0;
-          const dashCycle = DASH_LENGTH + GAP_LENGTH;
-
-          while (true) {
-            // Draw pixel if in dash phase (not gap phase).
-            if (pixelCount % dashCycle < DASH_LENGTH) {
-              ctx.fillRect(x, y, 1, 1);
-            }
-            pixelCount++;
-
-            if (x === endX && y === endY) break;
-
-            const e2 = 2 * err;
-            if (e2 > -dy) {
-              err -= dy;
-              x += sx;
-            }
-            if (e2 < dx) {
-              err += dx;
-              y += sy;
-            }
-          }
-        }
-
-        // Draw all four edges with shadow and white line.
-        ctx.globalCompositeOperation = "source-over";
-        const edges: [number, number, number, number][] = [
-          [tlX, tlY, trX, trY],
-          [trX, trY, brX, brY],
-          [brX, brY, blX, blY],
-          [blX, blY, tlX, tlY],
-        ];
-
-        // Draw shadows first.
-        for (const [x1, y1, x2, y2] of edges) {
-          drawDashedLine(x1 + 1, y1 + 1, x2 + 1, y2 + 1, "rgba(0, 0, 0, 0.5)");
-        }
-
-        // Draw white borders.
-        for (const [x1, y1, x2, y2] of edges) {
-          drawDashedLine(x1, y1, x2, y2, "white");
-        }
+        renderSelectionCutout(ctx, bounds, borderColor);
+        renderAreaText(ctx, bounds, spriteWidth);
       }
 
       ctx.restore();

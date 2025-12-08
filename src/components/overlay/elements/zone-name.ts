@@ -1,5 +1,6 @@
 /**
- * Country name overlay element.
+ * Zone name overlay element.
+ * Displays the name of the currently hovered zone.
  */
 
 import { RenderContext } from "../../../engine/sprites";
@@ -10,9 +11,13 @@ import {
   measureText,
 } from "../../../engine/text";
 import { defineElement } from "../../../engine/elements";
+import { getZoneStore } from "../../../stores/zone";
 
-/** Props for the country name element. */
-export interface CountryNameProps {
+/** Default text when no zone has been hovered. */
+const DEFAULT_TEXT = "OpenTTD World";
+
+/** Props for the zone name element. */
+export interface ZoneNameProps {
   x: number;
   y: number;
   scale?: number;
@@ -22,30 +27,23 @@ export interface CountryNameProps {
 /** Font instance. */
 let font: BitmapFont | null = null;
 
-/** Current country name. */
-let countryName = "The Netherlands";
-
 /**
- * Set the country name to display.
+ * Zone name element definition.
  */
-export function setCountryName(name: string): void {
-  countryName = name;
-}
-
-/**
- * Country name element definition.
- */
-export const CountryName = defineElement<CountryNameProps>({
+export const ZoneName = defineElement<ZoneNameProps>({
   async load() {
     font = await loadFont("/sprites/font.png", 16, 16, 16, 32, -7);
+    // Load zone map data.
+    await getZoneStore().load();
   },
 
   render(ctx: RenderContext, props) {
     if (!font) return;
+    const zoneName = getZoneStore().getZoneName() || DEFAULT_TEXT;
     drawText(
       ctx,
       font,
-      countryName,
+      zoneName,
       props.x,
       props.y,
       props.scale ?? 1.5,
@@ -56,8 +54,9 @@ export const CountryName = defineElement<CountryNameProps>({
   getSize() {
     if (!font) return { width: 0, height: 0 };
     const scale = 1.5;
+    const zoneName = getZoneStore().getZoneName() || DEFAULT_TEXT;
     return {
-      width: measureText(font, countryName, scale),
+      width: measureText(font, zoneName, scale),
       height: font.charHeight * scale,
     };
   },

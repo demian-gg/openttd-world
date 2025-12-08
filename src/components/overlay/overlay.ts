@@ -1,6 +1,6 @@
 /**
  * Overlay component.
- * Manages and renders all UI overlay elements (logo, country name, resolution).
+ * Manages and renders all UI overlay elements (logo, zone name, resolution).
  */
 
 import { defineComponent, ComponentProps } from "../../engine/components";
@@ -11,10 +11,11 @@ import { dirtyLayer } from "../../engine/layers";
 import { isSmall, getResponsiveValue } from "../../engine/utils";
 import { WorldMapStore } from "../../stores/world-map";
 import { ResolutionStore } from "../../stores/resolution";
+import { ZoneStore } from "../../stores/zone";
 import { loadElements } from "../../engine/elements";
 
 import { Logo } from "./elements/logo";
-import { CountryName } from "./elements/country-name";
+import { ZoneName } from "./elements/zone-name";
 import { ResolutionStepper } from "./elements/resolution-stepper";
 import { Buttons } from "./elements/buttons";
 import { ZoomSlider } from "./elements/zoom-slider";
@@ -66,13 +67,18 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     subscribeStore(ResolutionStore, () => {
       dirtyLayer(props.layer);
     });
+
+    // Subscribe to zone store changes to update zone name.
+    subscribeStore(ZoneStore, () => {
+      dirtyLayer(props.layer);
+    });
   },
 
   async load() {
     // Load all overlay elements in parallel.
     await loadElements([
       Logo,
-      CountryName,
+      ZoneName,
       ResolutionStepper,
       Buttons,
       ZoomSlider,
@@ -87,10 +93,10 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     // Calculate resolution stepper position.
     const logoX = currentMargin;
     const logoY = currentMargin;
-    const countryNameX = logoX + logoSize.width + 14;
-    const countryNameY = logoY + 8;
-    const resolutionX = countryNameX + 8;
-    const resolutionY = countryNameY + 30;
+    const zoneNameX = logoX + logoSize.width + 14;
+    const zoneNameY = logoY + 8;
+    const resolutionX = zoneNameX + 8;
+    const resolutionY = zoneNameY + 30;
 
     // Update resolution stepper pointer areas.
     ResolutionStepper.update({ x: resolutionX, y: resolutionY, layer });
@@ -112,14 +118,14 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     const logoY = currentMargin;
     Logo.render(ctx, { x: logoX, y: logoY });
 
-    // Country name position (to the right of logo, vertically centered).
-    const countryNameX = logoX + logoSize.width + 14;
-    const countryNameY = logoY + 8;
-    CountryName.render(ctx, { x: countryNameX, y: countryNameY });
+    // Zone name position (to the right of logo, vertically centered).
+    const zoneNameX = logoX + logoSize.width + 14;
+    const zoneNameY = logoY + 8;
+    ZoneName.render(ctx, { x: zoneNameX, y: zoneNameY });
 
-    // Resolution stepper position (below country name).
-    const resolutionX = countryNameX + 8;
-    const resolutionY = countryNameY + 30;
+    // Resolution stepper position (below zone name).
+    const resolutionX = zoneNameX + 8;
+    const resolutionY = zoneNameY + 30;
     ResolutionStepper.render(ctx, {
       x: resolutionX,
       y: resolutionY,
