@@ -213,5 +213,7 @@
   "#0000d0": "Hudson Bay",
   "#000090": "Mediterranean Sea",
   "#0000a0": "North Sea",
+  "#0000e0": "Persian Gulf",
+  "#0000f0": "Red Sea",
   "#000000": "Unknown"
 }
