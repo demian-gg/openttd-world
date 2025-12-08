@@ -429,9 +429,16 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
             const adjustedEndX = startX + size * dirX;
             const adjustedEndY = startY + size * dirY;
 
-            // Find center of selection in world coordinates.
-            const centerX = (startX + adjustedEndX) / 2;
+            // Find geometric center of selection.
+            const geometricCenterX = (startX + adjustedEndX) / 2;
             const centerY = (startY + adjustedEndY) / 2;
+
+            // Account for skew: the visual center is offset horizontally.
+            // At mid-height, the skew offset is (height/2) * skewFactor.
+            const selHeight = size * dirY;
+            const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
+            const skewOffset = (selHeight / 2) * skewFactor;
+            const centerX = geometricCenterX + skewOffset;
 
             worldMapStore.centerOnWorld(centerX, centerY);
           }
