@@ -8,19 +8,19 @@ import { defineStore, StoreDefinition, notifyStore } from "../engine/stores";
 /** Available interaction modes. */
 export type InteractionMode = "pan" | "select";
 
-/** Overlay store state. */
-export interface OverlayStoreState {
-  /** Get the current interaction mode. */
+/** A type representing overlay store state. */
+export type OverlayStoreState = {
+  /** Gets the current interaction mode. */
   getInteractionMode: () => InteractionMode;
 
-  /** Set the interaction mode. */
+  /** Sets the interaction mode. */
   setInteractionMode: (mode: InteractionMode) => void;
 
-  /** Toggle between pan and select modes. */
+  /** Toggles between pan and select modes. */
   toggleInteractionMode: () => void;
-}
+};
 
-/** Internal state. */
+/** The current interaction mode. */
 let interactionMode: InteractionMode = "pan";
 
 /**

@@ -19,16 +19,50 @@ import type { RenderContext } from "./canvas";
 
 export type { RenderContext };
 
-/** Temporary recoloring canvas for sprite colorization. */
+/** A type representing a loaded sprite image ready for rendering. */
+export type Sprite = {
+  /** The loaded image element. */
+  image: HTMLImageElement;
+
+  /** The width of the sprite in pixels. */
+  width: number;
+
+  /** The height of the sprite in pixels. */
+  height: number;
+};
+
+/** A type representing a region within a sprite atlas. */
+export type SpriteRegion = {
+  /** The X offset in the atlas, in pixels. */
+  x: number;
+
+  /** The Y offset in the atlas, in pixels. */
+  y: number;
+
+  /** The width of the region in pixels. */
+  width: number;
+
+  /** The height of the region in pixels. */
+  height: number;
+};
+
+/** The cache of loaded sprites keyed by source path. */
+const spriteCache = new Map<string, Sprite>();
+
+/** The temporary recoloring canvas for sprite colorization. */
 let recolorCanvas: OffscreenCanvas | null = null;
+
+/** The temporary recoloring canvas context. */
 let recolorCtx: OffscreenCanvasRenderingContext2D | null = null;
 
 /**
- * Get or create the temporary recoloring canvas.
+ * Gets or creates the temporary recoloring canvas.
+ *
  * Resizes if needed to fit the sprite.
  *
  * @param width - Minimum width needed.
  * @param height - Minimum height needed.
+ *
  * @returns The temporary recoloring canvas context.
  */
 export function getRecolorCanvas(
@@ -52,7 +86,8 @@ export function getRecolorCanvas(
 }
 
 /**
- * Apply a color tint to a region of the temporary recoloring canvas.
+ * Applies a color tint to a region of the temporary recoloring canvas.
+ *
  * Uses source-in composite to replace color while keeping alpha.
  *
  * @param width - Width of the region.
@@ -65,6 +100,8 @@ export function applyColorTint(
   color: string
 ): void {
   if (!recolorCtx) return;
+
+  // Apply color using source-in composite mode.
   recolorCtx.globalCompositeOperation = "source-in";
   recolorCtx.fillStyle = color;
   recolorCtx.fillRect(0, 0, width, height);
@@ -72,7 +109,7 @@ export function applyColorTint(
 }
 
 /**
- * Draw from the temporary recoloring canvas to a destination context.
+ * Draws from the temporary recoloring canvas to a destination context.
  *
  * @param ctx - The destination rendering context.
  * @param srcWidth - Source width in recoloring canvas.
@@ -92,6 +129,8 @@ export function drawFromRecolorCanvas(
   destHeight: number
 ): void {
   if (!recolorCanvas) return;
+
+  // Draw the recolored content to destination.
   ctx.drawImage(
     recolorCanvas,
     0,
@@ -105,41 +144,13 @@ export function drawFromRecolorCanvas(
   );
 }
 
-/** Represents a loaded sprite image ready for rendering. */
-export interface Sprite {
-  /** The loaded image element. */
-  image: HTMLImageElement;
-
-  /** Width of the sprite in pixels. */
-  width: number;
-
-  /** Height of the sprite in pixels. */
-  height: number;
-}
-
-/** Represents a region within a sprite atlas. */
-export interface SpriteRegion {
-  /** X offset in the atlas, in pixels. */
-  x: number;
-
-  /** Y offset in the atlas, in pixels. */
-  y: number;
-
-  /** Width of the region in pixels. */
-  width: number;
-
-  /** Height of the region in pixels. */
-  height: number;
-}
-
-/** Cache of loaded sprites keyed by source path. */
-const spriteCache = new Map<string, Sprite>();
-
 /**
- * Load a sprite image from the specified source path.
+ * Loads a sprite image from the specified source path.
+ *
  * Returns cached sprite if already loaded.
  *
  * @param src - Path or URL to the sprite image file.
+ *
  * @returns Promise resolving to the loaded sprite.
  */
 export async function loadSprite(src: string): Promise<Sprite> {
@@ -181,9 +192,10 @@ export async function loadSprite(src: string): Promise<Sprite> {
 }
 
 /**
- * Load multiple sprites in parallel.
+ * Loads multiple sprites in parallel.
  *
  * @param sources - Array of paths or URLs to sprite image files.
+ *
  * @returns Promise resolving to array of loaded sprites.
  */
 export async function loadSprites(sources: string[]): Promise<Sprite[]> {
@@ -192,7 +204,8 @@ export async function loadSprites(sources: string[]): Promise<Sprite[]> {
 }
 
 /**
- * Draw a sprite to the canvas at the specified position.
+ * Draws a sprite to the canvas at the specified position.
+ *
  * Destination size is rounded to integers for crisp pixel art.
  *
  * @param ctx - The 2D rendering context (main or offscreen).
@@ -231,7 +244,8 @@ export function drawSprite(
 }
 
 /**
- * Draw a region of a sprite atlas to the canvas.
+ * Draws a region of a sprite atlas to the canvas.
+ *
  * Destination size is rounded to integers for crisp pixel art.
  *
  * @param ctx - The 2D rendering context (main or offscreen).
@@ -292,7 +306,8 @@ export function drawAtlasSprite(
 }
 
 /**
- * Clear the sprite cache, releasing all loaded images.
+ * Clears the sprite cache, releasing all loaded images.
+ *
  * Use when unloading a level or scene to free memory.
  */
 export function clearSpriteCache(): void {

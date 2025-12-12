@@ -1,5 +1,6 @@
 /**
  * World map store.
+ *
  * Provides shared state for world map zoom and position.
  */
 
@@ -11,7 +12,43 @@ import {
   BREAKPOINT_ULTRA_WIDE,
 } from "../engine/utils";
 
-/** Viewport width breakpoints mapped to minimum zoom levels. */
+/** A type representing world map store state. */
+export type WorldMapStoreState = {
+  /** Gets the current zoom level. */
+  getZoom: () => number;
+
+  /** Gets the normalized zoom level (0-1). */
+  getZoomNormalized: () => number;
+
+  /** Sets the normalized zoom level (0-1). */
+  setZoomNormalized: (level: number) => void;
+
+  /** Gets the X offset from center. */
+  getOffsetX: () => number;
+
+  /** Gets the Y offset from center. */
+  getOffsetY: () => number;
+
+  /** Pans the map by a delta. */
+  pan: (dx: number, dy: number) => void;
+
+  /** Centers the map on a world position (in sprite pixels). */
+  centerOnWorld: (worldX: number, worldY: number) => void;
+
+  /** Zooms at a specific screen point. */
+  zoomAtPoint: (x: number, y: number, deltaY: number) => void;
+
+  /** Updates viewport dimensions (recalculates min zoom). */
+  updateViewport: (width: number, height: number) => void;
+
+  /** Sets the sprite dimensions for offset clamping. */
+  setSpriteSize: (width: number, height: number) => void;
+
+  /** Gets the sprite dimensions. */
+  getSpriteSize: () => { width: number; height: number };
+};
+
+/** The viewport width breakpoints mapped to minimum zoom levels. */
 const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
   [BREAKPOINT_SMALL, 2], // Mobile
   [BREAKPOINT_TABLET, 2], // Tablet
@@ -20,11 +57,66 @@ const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
   [Infinity, 2.75], // Ultrawide
 ];
 
-/** Maximum zoom level. */
+/** The maximum zoom level. */
 const MAX_ZOOM = 4;
 
+/** The animation duration in milliseconds. */
+const ANIMATION_DURATION_MS = 400;
+
+/** The current zoom level. */
+let zoom = 3;
+
+/** The minimum zoom level. */
+let minZoom = 2;
+
+/** The current X offset from center. */
+let offsetX = -100;
+
+/** The current Y offset from center. */
+let offsetY = 800;
+
+/** The sprite width in pixels. */
+let spriteWidth = 0;
+
+/** The sprite height in pixels. */
+let spriteHeight = 0;
+
+/** The viewport width in pixels. */
+let viewportWidth = 0;
+
+/** The viewport height in pixels. */
+let viewportHeight = 0;
+
+/** The animation frame request ID. */
+let animationId: number | null = null;
+
+/** The animation start timestamp. */
+let animationStartTime = 0;
+
+/** The animation start X position. */
+let animationStartX = 0;
+
+/** The animation start Y position. */
+let animationStartY = 0;
+
+/** The animation target X position. */
+let animationTargetX = 0;
+
+/** The animation target Y position. */
+let animationTargetY = 0;
+
+/** The animation start zoom level. */
+let animationStartZoom = 0;
+
+/** The animation target zoom level. */
+let animationTargetZoom = 0;
+
 /**
- * Get minimum zoom level for a given viewport width.
+ * Gets the minimum zoom level for a given viewport width.
+ *
+ * @param width - The viewport width.
+ *
+ * @returns The minimum zoom level.
  */
 function getMinZoomForViewport(width: number): number {
   for (const [breakpoint, minZoom] of MIN_ZOOM_BREAKPOINTS) {
@@ -35,69 +127,20 @@ function getMinZoomForViewport(width: number): number {
   return MIN_ZOOM_BREAKPOINTS[MIN_ZOOM_BREAKPOINTS.length - 1][1];
 }
 
-/** World map store state. */
-export interface WorldMapStoreState {
-  /** Get the current zoom level. */
-  getZoom: () => number;
-
-  /** Get the normalized zoom level (0-1). */
-  getZoomNormalized: () => number;
-
-  /** Set the normalized zoom level (0-1). */
-  setZoomNormalized: (level: number) => void;
-
-  /** Get the X offset from center. */
-  getOffsetX: () => number;
-
-  /** Get the Y offset from center. */
-  getOffsetY: () => number;
-
-  /** Pan the map by a delta. */
-  pan: (dx: number, dy: number) => void;
-
-  /** Center the map on a world position (in sprite pixels). */
-  centerOnWorld: (worldX: number, worldY: number) => void;
-
-  /** Zoom at a specific screen point. */
-  zoomAtPoint: (x: number, y: number, deltaY: number) => void;
-
-  /** Update viewport dimensions (recalculates min zoom). */
-  updateViewport: (width: number, height: number) => void;
-
-  /** Set the sprite dimensions for offset clamping. */
-  setSpriteSize: (width: number, height: number) => void;
-
-  /** Get the sprite dimensions. */
-  getSpriteSize: () => { width: number; height: number };
-}
-
-/** Internal state. */
-let zoom = 3;
-let minZoom = 2;
-let offsetX = -100;
-let offsetY = 800;
-let spriteWidth = 0;
-let spriteHeight = 0;
-let viewportWidth = 0;
-let viewportHeight = 0;
-
-/** Animation state. */
-let animationId: number | null = null;
-let animationStartTime = 0;
-let animationStartX = 0;
-let animationStartY = 0;
-let animationTargetX = 0;
-let animationTargetY = 0;
-let animationStartZoom = 0;
-let animationTargetZoom = 0;
-const ANIMATION_DURATION_MS = 400;
-
-/** Ease-out cubic function for smooth deceleration. */
+/**
+ * Applies ease-out cubic interpolation for smooth deceleration.
+ *
+ * @param t - The interpolation parameter (0-1).
+ *
+ * @returns The eased value.
+ */
 function easeOutCubic(t: number): number {
   return 1 - Math.pow(1 - t, 3);
 }
 
-/** Clamp offset values to keep the map covering the viewport. */
+/**
+ * Clamps offset values to keep the map covering the viewport.
+ */
 function clampOffset(): void {
   if (spriteWidth === 0 || spriteHeight === 0) return;
   if (viewportWidth === 0 || viewportHeight === 0) return;
@@ -110,15 +153,19 @@ function clampOffset(): void {
   const excessWidth = Math.max(0, scaledWidth - viewportWidth) / 2;
   const excessHeight = Math.max(0, scaledHeight - viewportHeight) / 2;
 
+  // Clamp offset to keep map covering viewport.
   offsetX = Math.max(-excessWidth, Math.min(excessWidth, offsetX));
   offsetY = Math.max(-excessHeight, Math.min(excessHeight, offsetY));
 }
 
-/** Update min zoom based on viewport and sprite size. */
+/**
+ * Updates the minimum zoom based on viewport and sprite size.
+ */
 function updateMinZoom(): void {
   if (spriteWidth === 0 || spriteHeight === 0) return;
   if (viewportWidth === 0 || viewportHeight === 0) return;
 
+  // Calculate minimum zoom to cover viewport.
   minZoom = Math.max(
     getMinZoomForViewport(viewportWidth),
     viewportWidth / spriteWidth,
@@ -146,7 +193,10 @@ export const {
     return (zoom - minZoom) / (MAX_ZOOM - minZoom);
   },
   setZoomNormalized(level: number) {
+    // Clamp level to valid range.
     const clampedLevel = Math.max(0, Math.min(1, level));
+
+    // Convert normalized level to zoom value.
     zoom = minZoom + clampedLevel * (MAX_ZOOM - minZoom);
     clampOffset();
     notifyStore(WorldMapStore);
@@ -158,6 +208,7 @@ export const {
     return offsetY;
   },
   pan(dx: number, dy: number) {
+    // Apply delta to offset.
     offsetX += dx;
     offsetY += dy;
     clampOffset();
@@ -174,15 +225,10 @@ export const {
     const targetZoom = MAX_ZOOM;
 
     // Calculate target offset at the target zoom level.
-    // At target zoom, we want the world position centered on screen.
-    // spriteLeft = viewportWidth/2 + targetOffsetX - (spriteWidth * targetZoom) / 2
-    // worldScreenX = spriteLeft + worldX * targetZoom = viewportWidth/2 (centered)
-    // Solving: targetOffsetX = (spriteWidth * targetZoom) / 2 - worldX * targetZoom
-    //                        = targetZoom * (spriteWidth / 2 - worldX)
     const targetOffsetX = targetZoom * (spriteWidth / 2 - worldX);
     const targetOffsetY = targetZoom * (spriteHeight / 2 - worldY);
 
-    // Set up animation.
+    // Set up animation state.
     animationStartTime = performance.now();
     animationStartX = offsetX;
     animationStartY = offsetY;
@@ -193,10 +239,12 @@ export const {
 
     // Animation loop.
     const animate = (currentTime: number) => {
+      // Calculate animation progress.
       const elapsed = currentTime - animationStartTime;
       const progress = Math.min(elapsed / ANIMATION_DURATION_MS, 1);
       const easedProgress = easeOutCubic(progress);
 
+      // Interpolate values.
       zoom =
         animationStartZoom +
         (animationTargetZoom - animationStartZoom) * easedProgress;
@@ -207,6 +255,7 @@ export const {
       clampOffset();
       notifyStore(WorldMapStore);
 
+      // Continue or finish animation.
       if (progress < 1) {
         animationId = requestAnimationFrame(animate);
       } else {
@@ -228,17 +277,20 @@ export const {
     offsetX = cursorFromCenterX - (cursorFromCenterX - offsetX) * zoomRatio;
     offsetY = cursorFromCenterY - (cursorFromCenterY - offsetY) * zoomRatio;
 
+    // Apply new zoom and clamp.
     zoom = newZoom;
     clampOffset();
     notifyStore(WorldMapStore);
   },
   updateViewport(width: number, height: number) {
+    // Update viewport dimensions.
     viewportWidth = width;
     viewportHeight = height;
     updateMinZoom();
     clampOffset();
   },
   setSpriteSize(width: number, height: number) {
+    // Update sprite dimensions.
     spriteWidth = width;
     spriteHeight = height;
     updateMinZoom();

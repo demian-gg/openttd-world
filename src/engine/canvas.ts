@@ -8,30 +8,27 @@ import { canvasEvents, CanvasResizedEvent } from "./events";
 // Re-export events for convenience.
 export { canvasEvents, CanvasResizedEvent };
 
-/**
- * Configuration for computing canvas resolution.
- */
-export interface CanvasResolutionConfig {
-  /** Maximum internal render width in game pixels. Caps resolution to prevent
-   * excessive memory usage. */
+/** A type representing configuration for computing canvas resolution. */
+export type CanvasResolutionConfig = {
+  /** The maximum internal render width in game pixels. */
   maxWidth?: number;
 
-  /** Maximum internal render height in game pixels. Caps resolution to prevent
-   * excessive memory usage. */
+  /** The maximum internal render height in game pixels. */
   maxHeight?: number;
-}
+};
 
 /**
- * Computed canvas resolution.
+ * A type representing computed canvas resolution.
+ *
  * Canvas is always 1:1 with screen pixels for crisp rendering.
  */
-export interface CanvasResolution {
-  /** Canvas width in pixels. */
+export type CanvasResolution = {
+  /** The canvas width in pixels. */
   width: number;
 
-  /** Canvas height in pixels. */
+  /** The canvas height in pixels. */
   height: number;
-}
+};
 
 /**
  * Rendering context type (works for both main and offscreen canvas).
@@ -42,10 +39,11 @@ export type RenderContext =
   | OffscreenCanvasRenderingContext2D;
 
 /**
- * Canvas context returned by initCanvas.
+ * A type representing the canvas context returned by initCanvas.
+ *
  * Contains the canvas element, 2D context, and current resolution.
  */
-export interface CanvasContext {
+export type CanvasContext = {
   /** The HTML canvas element. */
   canvas: HTMLCanvasElement;
 
@@ -54,24 +52,26 @@ export interface CanvasContext {
 
   /** The current computed resolution. */
   resolution: CanvasResolution;
-}
+};
 
-/** Singleton canvas context, `null` until `initCanvas()` is called. */
+/** The singleton canvas context, null until initializeCanvas is called. */
 let context: CanvasContext | null = null;
 
 /**
- * Compute the canvas resolution based on window size and config.
+ * Computes the canvas resolution based on window size and config.
  *
  * @param config - Optional resolution configuration overrides.
+ *
  * @returns The computed resolution.
  */
 function computeCanvasResolution(
   config: CanvasResolutionConfig = {}
 ): CanvasResolution {
+  // Extract configuration with defaults.
   const maxWidth = config.maxWidth ?? Infinity;
   const maxHeight = config.maxHeight ?? Infinity;
 
-  // Use window dimensions, clamped to max constraints.
+  // Clamp window dimensions to max constraints.
   const width = Math.min(maxWidth, window.innerWidth);
   const height = Math.min(maxHeight, window.innerHeight);
 
@@ -79,7 +79,7 @@ function computeCanvasResolution(
 }
 
 /**
- * Apply the computed resolution to the canvas and context.
+ * Applies the computed resolution to the canvas and context.
  *
  * @param canvas - The canvas element to configure.
  * @param ctx - The 2D rendering context.
@@ -106,30 +106,29 @@ function applyCanvasResolution(
   ctx.imageSmoothingEnabled = false;
 }
 
-/**
- * Configuration for canvas initialization.
- */
-export interface CanvasConfig {
+/** A type representing configuration for canvas initialization. */
+export type CanvasConfig = {
   /** The HTML canvas element to render into. */
   canvas: HTMLCanvasElement;
 
-  /** Optional resolution configuration. */
+  /** The optional resolution configuration. */
   resolution?: CanvasResolutionConfig;
-}
+};
 
 /**
- * Initialize the canvas with the provided configuration.
+ * Initializes the canvas with the provided configuration.
+ *
  * Sets up the canvas, computes resolution, and stores canvas context.
  *
  * @param config - The canvas configuration.
+ *
  * @returns The initialized canvas context.
- * @throws Error if 2D context cannot be obtained.
  */
 export function initializeCanvas(config: CanvasConfig): CanvasContext {
   // Destructure config options.
   const { canvas, resolution: resolutionConfig } = config;
 
-  // Acquire 2D rendering context, throw if context creation fails.
+  // Acquire 2D rendering context.
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("Failed to get 2D context.");
@@ -148,33 +147,39 @@ export function initializeCanvas(config: CanvasConfig): CanvasContext {
 }
 
 /**
- * Resize the canvas to match current window dimensions.
+ * Resizes the canvas to match current window dimensions.
  *
  * @param resolutionConfig - Optional resolution config overrides.
+ *
  * @returns The new computed resolution.
- * @throws Error if canvas has not been initialized.
  */
 export function handleCanvasResize(
   resolutionConfig?: CanvasResolutionConfig
 ): CanvasResolution {
+  // Ensure canvas is initialized.
   if (!context) {
     throw new Error("Canvas not initialized.");
   }
 
+  // Compute new resolution.
   const resolution = computeCanvasResolution(resolutionConfig);
+
+  // Apply resolution to canvas.
   applyCanvasResolution(context.canvas, context.ctx, resolution);
+
+  // Update stored resolution.
   context.resolution = resolution;
 
+  // Emit resize event.
   canvasEvents.emit(new CanvasResizedEvent(resolution));
 
   return resolution;
 }
 
 /**
- * Get the current canvas context.
+ * Gets the current canvas context.
  *
  * @returns The current canvas context.
- * @throws Error if canvas has not been initialized.
  */
 export function getCanvasContext(): CanvasContext {
   // Ensure canvas is initialized.

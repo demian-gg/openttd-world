@@ -1,5 +1,6 @@
 /**
  * Zone name overlay element.
+ *
  * Displays the name of the currently hovered zone.
  */
 
@@ -13,18 +14,25 @@ import {
 import { defineElement } from "../../../engine/elements";
 import { getZoneStore } from "../../../stores/zone";
 
-/** Default text when no zone has been hovered. */
+/** A type representing props for the zone name element. */
+export type ZoneNameProps = {
+  /** The X position in pixels. */
+  x: number;
+
+  /** The Y position in pixels. */
+  y: number;
+
+  /** The optional scale factor. */
+  scale?: number;
+
+  /** The optional text color. */
+  color?: string;
+};
+
+/** The default text when no zone has been hovered. */
 const DEFAULT_TEXT = "OpenTTD World";
 
-/** Props for the zone name element. */
-export interface ZoneNameProps {
-  x: number;
-  y: number;
-  scale?: number;
-  color?: string;
-}
-
-/** Font instance. */
+/** The font instance. */
 let font: BitmapFont | null = null;
 
 /**
@@ -32,14 +40,20 @@ let font: BitmapFont | null = null;
  */
 export const ZoneName = defineElement<ZoneNameProps>({
   async load() {
+    // Load font sprite.
     font = await loadFont("/sprites/font@16px.png", 16, 16, 16, 32, -7);
+
     // Load zone map data.
     await getZoneStore().load();
   },
 
   render(ctx: RenderContext, props) {
     if (!font) return;
+
+    // Get current zone name or default.
     const zoneName = getZoneStore().getZoneName() || DEFAULT_TEXT;
+
+    // Draw the zone name text.
     drawText(
       ctx,
       font,
@@ -53,6 +67,8 @@ export const ZoneName = defineElement<ZoneNameProps>({
 
   getSize() {
     if (!font) return { width: 0, height: 0 };
+
+    // Calculate dimensions based on current zone name.
     const scale = 1.5;
     const zoneName = getZoneStore().getZoneName() || DEFAULT_TEXT;
     return {

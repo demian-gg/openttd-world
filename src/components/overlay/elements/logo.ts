@@ -10,14 +10,19 @@ import {
 } from "../../../engine/sprites";
 import { defineElement } from "../../../engine/elements";
 
-/** Props for the logo element. */
-export interface LogoProps {
+/** A type representing props for the logo element. */
+export type LogoProps = {
+  /** The X position in pixels. */
   x: number;
-  y: number;
-  scale?: number;
-}
 
-/** Logo sprite instance. */
+  /** The Y position in pixels. */
+  y: number;
+
+  /** The optional scale factor. */
+  scale?: number;
+};
+
+/** The logo sprite instance. */
 let sprite: Sprite | null = null;
 
 /**

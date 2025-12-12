@@ -15,30 +15,34 @@ import {
 /** Default layer for components that don't specify one. */
 export const DEFAULT_LAYER = 0;
 
-/** Shadow configuration for a layer. */
-export interface LayerShadow {
-  /** Shadow color. */
+/** A type representing shadow configuration for a layer. */
+export type LayerShadow = {
+  /** The shadow color. */
   color: string;
-  /** Shadow blur radius. */
+
+  /** The shadow blur radius. */
   blur: number;
-  /** Shadow X offset. */
+
+  /** The shadow X offset. */
   offsetX: number;
-  /** Shadow Y offset. */
+
+  /** The shadow Y offset. */
   offsetY: number;
-}
+};
 
 /**
- * Represents a render layer.
+ * A type representing a render layer.
+ *
  * Each layer has its own canvas that gets composited onto the main canvas.
  */
-export interface Layer {
-  /** Layer z-index for ordering. */
+export type Layer = {
+  /** The layer z-index for ordering. */
   id: number;
 
-  /** Canvas for this layer (not attached to DOM). */
+  /** The canvas for this layer (not attached to DOM). */
   canvas: OffscreenCanvas;
 
-  /** 2D rendering context for this layer. */
+  /** The 2D rendering context for this layer. */
   ctx: OffscreenCanvasRenderingContext2D;
 
   /** Whether this layer needs to be re-rendered. */
@@ -47,35 +51,36 @@ export interface Layer {
   /** Whether this layer transform changed and needs re-compositing. */
   moved: boolean;
 
-  /** Layer opacity (0-1). */
+  /** The layer opacity (0-1). */
   opacity: number;
 
-  /** Blend mode for compositing. */
+  /** The blend mode for compositing. */
   blendMode: GlobalCompositeOperation;
 
-  /** Scale factor for compositing (1 = no scaling). */
+  /** The scale factor for compositing (1 = no scaling). */
   scale: number;
 
-  /** X offset from center (0 = centered). */
+  /** The X offset from center (0 = centered). */
   x: number;
 
-  /** Y offset from center (0 = centered). */
+  /** The Y offset from center (0 = centered). */
   y: number;
 
-  /** Array of shadows to apply (rendered in order). */
+  /** The array of shadows to apply (rendered in order). */
   shadows: LayerShadow[];
-}
+};
 
-/** Map of layer id to layer instance. */
+/** The map of layer id to layer instance. */
 const layers = new Map<number, Layer>();
 
-/** Current resolution for creating new layers. */
+/** The current resolution for creating new layers. */
 let currentResolution: CanvasResolution | null = null;
 
 /**
- * Create a new layer with the given id.
+ * Creates a new layer with the given id.
  *
  * @param id - The layer z-index.
+ *
  * @returns The created layer.
  */
 function createLayer(id: number): Layer {
@@ -120,9 +125,10 @@ function createLayer(id: number): Layer {
 }
 
 /**
- * Get a layer by id, creating it if it doesn't exist.
+ * Gets a layer by id, creating it if it doesn't exist.
  *
  * @param id - The layer z-index.
+ *
  * @returns The layer instance.
  */
 export function getLayer(id: number): Layer {
@@ -131,7 +137,7 @@ export function getLayer(id: number): Layer {
 }
 
 /**
- * Mark a layer as needing re-render.
+ * Marks a layer as needing re-render.
  *
  * @param id - The layer z-index.
  */
@@ -142,9 +148,7 @@ export function dirtyLayer(id: number): void {
   }
 }
 
-/**
- * Mark all layers as dirty.
- */
+/** Marks all layers as dirty. */
 export function dirtyAllLayers(): void {
   for (const layer of layers.values()) {
     layer.dirty = true;
@@ -152,7 +156,7 @@ export function dirtyAllLayers(): void {
 }
 
 /**
- * Clear a layer's canvas.
+ * Clears a layer's canvas.
  *
  * @param id - The layer z-index.
  */
@@ -164,7 +168,7 @@ export function clearLayer(id: number): void {
 }
 
 /**
- * Set layer opacity.
+ * Sets layer opacity.
  *
  * @param id - The layer z-index.
  * @param opacity - Opacity value (0-1).
@@ -177,7 +181,7 @@ export function setLayerOpacity(id: number, opacity: number): void {
 }
 
 /**
- * Set layer blend mode.
+ * Sets layer blend mode.
  *
  * @param id - The layer z-index.
  * @param blendMode - The blend mode to use.
@@ -193,7 +197,7 @@ export function setLayerBlendMode(
 }
 
 /**
- * Set layer scale.
+ * Sets layer scale.
  *
  * @param id - The layer z-index.
  * @param scale - Scale factor (1 = no scaling).
@@ -207,7 +211,7 @@ export function setLayerScale(id: number, scale: number): void {
 }
 
 /**
- * Set layer position offset from center.
+ * Sets layer position offset from center.
  *
  * @param id - The layer z-index.
  * @param x - X offset from center (0 = centered).
@@ -223,7 +227,8 @@ export function setLayerPosition(id: number, x: number, y: number): void {
 }
 
 /**
- * Set layer canvas size.
+ * Sets layer canvas size.
+ *
  * This resizes the layer's offscreen canvas.
  *
  * @param id - The layer z-index.
@@ -243,7 +248,8 @@ export function setLayerSize(id: number, width: number, height: number): void {
 }
 
 /**
- * Add a shadow to a layer.
+ * Adds a shadow to a layer.
+ *
  * Multiple shadows can be added and will be rendered in order.
  *
  * @param id - The layer z-index.
@@ -264,7 +270,7 @@ export function addLayerShadow(
 }
 
 /**
- * Clear all shadows from a layer.
+ * Clears all shadows from a layer.
  *
  * @param id - The layer z-index.
  */
@@ -298,7 +304,7 @@ engineEvents.on(EngineSetupEvent, (e) => {
 });
 
 /**
- * Get all layers sorted by id (lowest first).
+ * Gets all layers sorted by id (lowest first).
  *
  * @returns Array of layers in z-order.
  */

@@ -18,7 +18,7 @@ import { initSelectionComponent } from "./components/selection";
 import { initOverlayComponent } from "./components/overlay/overlay";
 
 /**
- * Initialize and start the application.
+ * Initializes and starts the application.
  */
 async function main(): Promise<void> {
   // Create and attach canvas to DOM.

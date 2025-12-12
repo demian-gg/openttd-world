@@ -15,9 +15,7 @@ import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
 import { getComponents, updateComponents } from "./components";
 import { clearPointerAreas } from "./pointer";
 
-/**
- * Composites a single frame, outputting to the main canvas.
- */
+/** Composites a single frame, outputting to the main canvas. */
 function compositeFrame(): void {
   const { ctx, backgroundColor } = getEngineState();
   const components = getComponents();
@@ -102,16 +100,15 @@ function compositeFrame(): void {
   }
 }
 
-/**
- * Event handler callback for when the browser window is resized.
- */
+/** Handles browser window resize events. */
 function handleCompositorResize(): void {
   handleCanvasResize();
   compositeFrame();
 }
 
 /**
- * Handle engine started event.
+ * Handles engine started event.
+ *
  * Starts the compositor render loop.
  */
 function handleEngineStarted(): void {
@@ -126,9 +123,7 @@ function handleEngineStarted(): void {
   })();
 }
 
-/**
- * Handle engine stopped event.
- */
+/** Handles engine stopped event. */
 function handleEngineStopped(): void {
   // Remove event listeners.
   window.removeEventListener("resize", handleCompositorResize);

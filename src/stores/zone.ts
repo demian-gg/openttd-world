@@ -1,5 +1,6 @@
 /**
  * Zone store.
+ *
  * Loads zone map and provides zone detection from screen coordinates.
  * Zones include countries, territories, oceans, and seas.
  */
@@ -7,12 +8,12 @@
 import { defineStore, StoreDefinition, notifyStore } from "../engine/stores";
 import { getWorldMapStore } from "./world-map";
 
-/** Zone store state. */
-export interface ZoneStoreState {
-  /** Load the zone map image. */
+/** A type representing zone store state. */
+export type ZoneStoreState = {
+  /** Loads the zone map image. */
   load: () => Promise<void>;
 
-  /** Update the hovered zone based on screen coordinates. */
+  /** Updates the hovered zone based on screen coordinates. */
   updateFromScreenPosition: (
     screenX: number,
     screenY: number,
@@ -20,51 +21,61 @@ export interface ZoneStoreState {
     viewportHeight: number
   ) => void;
 
-  /** Get the currently hovered zone name. */
+  /** Gets the currently hovered zone name. */
   getZoneName: () => string;
 
-  /** Clear the current zone (e.g., when pointer leaves). */
+  /** Clears the current zone (e.g., when pointer leaves). */
   clearZone: () => void;
-}
+};
+
+/** The debounce delay in milliseconds. */
+const DEBOUNCE_DELAY = 50;
 
 /** The zone map image data for pixel sampling. */
 let zoneMapData: ImageData | null = null;
+
+/** The zone map width in pixels. */
 let mapWidth = 0;
+
+/** The zone map height in pixels. */
 let mapHeight = 0;
 
-/** Currently detected zone name. */
+/** The currently detected zone name. */
 let currentZoneName = "";
 
-/** Pending zone name (waiting for debounce). */
+/** The pending zone name (waiting for debounce). */
 let pendingZoneName = "";
 
-/** Debounce timer for zone name updates. */
+/** The debounce timer for zone name updates. */
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Debounce delay in milliseconds. */
-const DEBOUNCE_DELAY = 50;
-
-/** Map of numeric color codes to zone names. */
+/** The map of numeric color codes to zone names. */
 let zones: Map<number, string> | null = null;
 
 /**
- * Parse a hex color string to a number.
+ * Parses a hex color string to a number.
+ *
+ * @param hex - The hex color string (e.g., "#ff0000").
+ *
+ * @returns The numeric color value.
  */
 function parseHexColor(hex: string): number {
   return parseInt(hex.slice(1), 16);
 }
 
 /**
- * Load zone data from JSON file.
+ * Loads zone data from JSON file.
  */
 async function loadZonesData(): Promise<void> {
   if (zones) return;
 
+  // Fetch zone data.
   const response = await fetch("/data/zones.json");
   if (!response.ok) {
     throw new Error("Failed to load zones data");
   }
 
+  // Parse JSON and build lookup map.
   const data: Record<string, string> = await response.json();
   zones = new Map();
 
@@ -74,7 +85,11 @@ async function loadZonesData(): Promise<void> {
 }
 
 /**
- * Get zone name from color code.
+ * Gets zone name from color code.
+ *
+ * @param code - The numeric color code.
+ *
+ * @returns The zone name or empty string if not found.
  */
 function getZoneName(code: number): string {
   if (!zones) return "";
@@ -82,7 +97,7 @@ function getZoneName(code: number): string {
 }
 
 /**
- * Load the zone map and extract pixel data for sampling.
+ * Loads the zone map and extracts pixel data for sampling.
  */
 async function loadZoneMap(): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -97,6 +112,7 @@ async function loadZoneMap(): Promise<void> {
         return;
       }
 
+      // Extract image data for pixel sampling.
       ctx.drawImage(img, 0, 0);
       zoneMapData = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
       mapWidth = img.naturalWidth;
@@ -113,7 +129,14 @@ async function loadZoneMap(): Promise<void> {
 }
 
 /**
- * Convert screen coordinates to world (sprite) coordinates.
+ * Converts screen coordinates to world (sprite) coordinates.
+ *
+ * @param screenX - The screen X coordinate.
+ * @param screenY - The screen Y coordinate.
+ * @param viewportWidth - The viewport width.
+ * @param viewportHeight - The viewport height.
+ *
+ * @returns The world coordinates.
  */
 function screenToWorld(
   screenX: number,
@@ -141,8 +164,12 @@ function screenToWorld(
 }
 
 /**
- * Sample the zone map at the given world coordinates.
- * Returns the color code encoded in the RGB value.
+ * Samples the zone map at the given world coordinates.
+ *
+ * @param worldX - The world X coordinate.
+ * @param worldY - The world Y coordinate.
+ *
+ * @returns The color code encoded in the RGB value.
  */
 function sampleZoneCode(worldX: number, worldY: number): number {
   if (!zoneMapData) return 0;
@@ -175,6 +202,7 @@ export const {
   get: getZoneStore,
 }: StoreDefinition<ZoneStoreState> = defineStore(() => ({
   async load() {
+    // Load both zone map and zone data in parallel.
     await Promise.all([loadZoneMap(), loadZonesData()]);
   },
 
@@ -184,12 +212,15 @@ export const {
     viewportWidth: number,
     viewportHeight: number
   ) {
+    // Convert screen coordinates to world coordinates.
     const world = screenToWorld(
       screenX,
       screenY,
       viewportWidth,
       viewportHeight
     );
+
+    // Sample zone at world position.
     const code = sampleZoneCode(world.x, world.y);
     const name = getZoneName(code);
 

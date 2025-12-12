@@ -19,32 +19,47 @@ import { getSelectionStore, SelectionStore } from "../stores/selection";
 import { getWorldMapStore, WorldMapStore } from "../stores/world-map";
 import { getZoneStore } from "../stores/zone";
 
-/** Skew angle in degrees for isometric-style selection. */
+/** The skew angle in degrees for isometric-style selection. */
 const SKEW_ANGLE = -30;
 
-/** Overlay opacity when in select mode. */
+/** The overlay opacity when in select mode. */
 const OVERLAY_OPACITY = 0.5;
 
-/** Selection line opacity in pan mode. */
+/** The selection line opacity in pan mode. */
 const PAN_MODE_SELECTION_OPACITY = 0.25;
 
-/** Earth's circumference at the equator in km. */
+/** The Earth's circumference at the equator in km. */
 const EARTH_CIRCUMFERENCE_KM = 40075;
 
-/** Maximum selection area in km². */
+/** The maximum selection area in km². */
 const MAX_AREA_KM_SQ = 10_000_000;
 
-/** Selection bounds type. */
+/** A type representing selection bounds. */
 type SelectionBounds = {
+  /** The start X coordinate. */
   startX: number;
+
+  /** The start Y coordinate. */
   startY: number;
+
+  /** The end X coordinate. */
   endX: number;
+
+  /** The end Y coordinate. */
   endY: number;
 };
 
 /**
- * Draw a dashed line using filled pixels (no anti-aliasing).
+ * Draws a dashed line using filled pixels (no anti-aliasing).
+ *
  * Uses Bresenham's line algorithm for pixel-perfect diagonal lines.
+ *
+ * @param ctx - The rendering context.
+ * @param x1 - The start X coordinate.
+ * @param y1 - The start Y coordinate.
+ * @param x2 - The end X coordinate.
+ * @param y2 - The end Y coordinate.
+ * @param color - The line color.
  */
 function drawDashedLine(
   ctx: RenderContext,
@@ -94,7 +109,11 @@ function drawDashedLine(
 }
 
 /**
- * Calculate skewed corner positions for a selection.
+ * Calculates skewed corner positions for a selection.
+ *
+ * @param bounds - The selection bounds.
+ *
+ * @returns The skewed corner positions.
  */
 function calculateSkewedCorners(bounds: SelectionBounds): {
   tlX: number;
@@ -140,7 +159,11 @@ function calculateSkewedCorners(bounds: SelectionBounds): {
 }
 
 /**
- * Render just the selection border.
+ * Renders just the selection border.
+ *
+ * @param ctx - The rendering context.
+ * @param bounds - The selection bounds.
+ * @param borderColor - The border color.
  */
 function renderSelectionBorder(
   ctx: RenderContext,
@@ -170,7 +193,11 @@ function renderSelectionBorder(
 }
 
 /**
- * Render selection with cutout effect (used in select mode).
+ * Renders selection with cutout effect (used in select mode).
+ *
+ * @param ctx - The rendering context.
+ * @param bounds - The selection bounds.
+ * @param borderColor - The border color.
  */
 function renderSelectionCutout(
   ctx: RenderContext,
@@ -197,7 +224,11 @@ function renderSelectionCutout(
 }
 
 /**
- * Calculate the maximum selection size in pixels for a given sprite width.
+ * Calculates the maximum selection size in pixels for a given sprite width.
+ *
+ * @param spriteWidth - The sprite width in pixels.
+ *
+ * @returns The maximum size in pixels.
  */
 function getMaxSizePixels(spriteWidth: number): number {
   const kmPerPixel = EARTH_CIRCUMFERENCE_KM / spriteWidth;
@@ -206,7 +237,12 @@ function getMaxSizePixels(spriteWidth: number): number {
 }
 
 /**
- * Check if selection is at the maximum size limit.
+ * Checks if selection is at the maximum size limit.
+ *
+ * @param bounds - The selection bounds.
+ * @param spriteWidth - The sprite width in pixels.
+ *
+ * @returns True if at maximum size.
  */
 function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
   const { startX, startY, endX, endY } = bounds;
@@ -219,8 +255,16 @@ function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
 }
 
 /**
- * Convert screen coordinates to world coordinates (pixels in the sprite).
+ * Converts screen coordinates to world coordinates (pixels in the sprite).
+ *
  * Accounts for zoom, centering, and offset.
+ *
+ * @param screenX - The screen X coordinate.
+ * @param screenY - The screen Y coordinate.
+ * @param viewportWidth - The viewport width.
+ * @param viewportHeight - The viewport height.
+ *
+ * @returns The world coordinates.
  */
 function screenToWorld(
   screenX: number,

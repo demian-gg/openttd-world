@@ -16,25 +16,25 @@ export const RESOLUTIONS = [
 /** Resolution type. */
 export type Resolution = (typeof RESOLUTIONS)[number];
 
-/** Resolution store state. */
-export interface ResolutionStoreState {
-  /** Get the current resolution. */
+/** A type representing resolution store state. */
+export type ResolutionStoreState = {
+  /** Gets the current resolution. */
   getResolution: () => Resolution;
 
-  /** Get the current resolution index. */
+  /** Gets the current resolution index. */
   getResolutionIndex: () => number;
 
-  /** Set the resolution by value. */
+  /** Sets the resolution by value. */
   setResolution: (resolution: Resolution) => void;
 
-  /** Step up to the next resolution. */
+  /** Steps up to the next resolution. */
   stepUp: () => void;
 
-  /** Step down to the previous resolution. */
+  /** Steps down to the previous resolution. */
   stepDown: () => void;
-}
+};
 
-/** Internal state. */
+/** The current resolution index. */
 let currentIndex = 2;
 
 /**

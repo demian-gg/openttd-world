@@ -19,21 +19,28 @@ import { registerPointerArea } from "../../../engine/pointer";
 import { dirtyLayer } from "../../../engine/layers";
 import { getResolutionStore } from "../../../stores/resolution";
 
-/** Props for the resolution stepper element. */
-export interface ResolutionStepperProps {
+/** A type representing props for the resolution stepper element. */
+export type ResolutionStepperProps = {
+  /** The X position in pixels. */
   x: number;
-  y: number;
-  layer: number;
-  color?: string;
-}
 
-/** Atlas sprite instance. */
+  /** The Y position in pixels. */
+  y: number;
+
+  /** The layer for rendering. */
+  layer: number;
+
+  /** The optional text color. */
+  color?: string;
+};
+
+/** The atlas sprite instance. */
 let atlas: Sprite | null = null;
 
-/** Font instance. */
+/** The font instance. */
 let font: BitmapFont | null = null;
 
-/** Tile size in the atlas. */
+/** The tile size in the atlas. */
 const TILE_SIZE = 18;
 
 /**

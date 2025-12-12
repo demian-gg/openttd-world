@@ -16,21 +16,22 @@ import { isSmall } from "../../../engine/utils";
 import { getOverlayStore } from "../../../stores/overlay";
 import { getSelectionStore } from "../../../stores/selection";
 
-/** Hint text to display. */
+/** The hint text to display. */
 const HINT_TEXT = "Click and drag to select an area";
 
-/** Props for the selection hint element. */
-export interface SelectionHintProps {
+/** A type representing props for the selection hint element. */
+export type SelectionHintProps = {
+  /** The optional scale factor. */
   scale?: number;
-  color?: string;
-}
 
-/** Font instance. */
+  /** The optional text color. */
+  color?: string;
+};
+
+/** The font instance. */
 let font: BitmapFont | null = null;
 
-/**
- * Check if the hint should be visible.
- */
+/** Checks if the hint should be visible. */
 function shouldShow(): boolean {
   const mode = getOverlayStore().getInteractionMode();
   const bounds = getSelectionStore().getBounds();

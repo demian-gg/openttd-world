@@ -15,65 +15,66 @@ import {
 } from "./events";
 import { getCanvasContext } from "./canvas";
 
-/** A pointer area registered by a component. */
-export interface PointerArea {
-  /** X position in game pixels. */
+/** A type representing a pointer area registered by a component. */
+export type PointerArea = {
+  /** The X position in game pixels. */
   x: number;
 
-  /** Y position in game pixels. */
+  /** The Y position in game pixels. */
   y: number;
 
-  /** Width in game pixels. */
+  /** The width in game pixels. */
   width: number;
 
-  /** Height in game pixels. */
+  /** The height in game pixels. */
   height: number;
 
-  /** Layer for z-ordering (higher = on top). */
+  /** The layer for z-ordering (higher = on top). */
   layer: number;
 
-  /** Cursor to show when hovering over this area. */
+  /** The cursor to show when hovering over this area. */
   cursor?: string;
 
-  /** Cursor to show while dragging this area. */
+  /** The cursor to show while dragging this area. */
   cursorDragging?: string;
 
-  /** Cursor to show while middle-mouse dragging. */
+  /** The cursor to show while middle-mouse dragging. */
   cursorMiddleDragging?: string;
 
-  /** Callback when pointer is pressed down on this area. */
+  /** The callback when pointer is pressed down on this area. */
   onPress?: (x: number, y: number) => void;
 
-  /** Callback when pointer is released (fires even if moved off area). */
+  /** The callback when pointer is released (fires even if moved off area). */
   onRelease?: (x: number, y: number) => void;
 
-  /** Callback when this area is clicked (pressed and released without drag). */
+  /** The callback when this area is clicked (pressed and released). */
   onClick?: (x: number, y: number) => void;
 
-  /** Callback when drag starts on this area. */
+  /** The callback when drag starts on this area. */
   onDragStart?: (x: number, y: number) => void;
 
-  /** Callback while dragging. */
+  /** The callback while dragging. */
   onDrag?: (x: number, y: number, deltaX: number, deltaY: number) => void;
 
-  /** Callback when drag ends. */
+  /** The callback when drag ends. */
   onDragEnd?: (x: number, y: number) => void;
 
-  /** Callback while middle-mouse dragging (for panning in any mode). */
+  /** The callback while middle-mouse dragging (for panning in any mode). */
   onMiddleDrag?: (x: number, y: number, deltaX: number, deltaY: number) => void;
 
-  /** Callback when pointer moves over this area (fires on every move). */
+  /** The callback when pointer moves over this area (fires on every move). */
   onHover?: (x: number, y: number) => void;
 
-  /** Callback when scrolling over this area. */
+  /** The callback when scrolling over this area. */
   onScroll?: (x: number, y: number, deltaY: number) => void;
-}
+};
 
-/** Registered pointer areas for the current frame. */
+/** The registered pointer areas for the current frame. */
 let pointerAreas: PointerArea[] = [];
 
 /**
- * Clear all registered pointer areas.
+ * Clears all registered pointer areas.
+ *
  * Called at the start of each frame.
  */
 export function clearPointerAreas(): void {
@@ -81,7 +82,7 @@ export function clearPointerAreas(): void {
 }
 
 /**
- * Register a pointer area for this frame.
+ * Registers a pointer area for this frame.
  *
  * @param area - The pointer area to register.
  */
@@ -90,8 +91,14 @@ export function registerPointerArea(area: PointerArea): void {
 }
 
 /**
- * Convert display coordinates to game pixel coordinates.
+ * Converts display coordinates to game pixel coordinates.
+ *
  * Since canvas is 1:1 with screen, this is just flooring.
+ *
+ * @param displayX - The display X coordinate.
+ * @param displayY - The display Y coordinate.
+ *
+ * @returns The game coordinates.
  */
 function displayToGameCoords(
   displayX: number,
@@ -101,7 +108,13 @@ function displayToGameCoords(
 }
 
 /**
- * Check if a point is inside a pointer area.
+ * Checks if a point is inside a pointer area.
+ *
+ * @param x - The X coordinate.
+ * @param y - The Y coordinate.
+ * @param area - The pointer area.
+ *
+ * @returns True if the point is inside the area.
  */
 function isPointInArea(x: number, y: number, area: PointerArea): boolean {
   return (
@@ -113,21 +126,28 @@ function isPointInArea(x: number, y: number, area: PointerArea): boolean {
 }
 
 /**
- * Find the topmost hit area at a point.
+ * Finds the topmost hit area at a point.
+ *
+ * @param x - The X coordinate.
+ * @param y - The Y coordinate.
+ *
+ * @returns The topmost hit area, or null if none.
  */
 function findTopHitArea(x: number, y: number): PointerArea | null {
+  // Filter areas that contain the point.
   const hits = pointerAreas.filter((area) => isPointInArea(x, y, area));
   if (hits.length === 0) return null;
 
   // Sort by layer descending (highest layer first).
   hits.sort((a, b) => b.layer - a.layer);
+
   return hits[0];
 }
 
-/** Minimum distance in game pixels to consider a drag vs click. */
+/** The minimum distance in game pixels to consider a drag vs click. */
 const DRAG_THRESHOLD = 2;
 
-/** Current drag state. */
+/** The current drag state. */
 let dragState: {
   area: PointerArea;
   startX: number;
@@ -137,10 +157,10 @@ let dragState: {
   isDragging: boolean;
 } | null = null;
 
-/** Area that received the press event (for onRelease). */
+/** The area that received the press event (for onRelease). */
 let pressedArea: PointerArea | null = null;
 
-/** Middle mouse button drag state (separate from left-click drag). */
+/** The middle mouse button drag state (separate from left-click drag). */
 let middleDragState: {
   area: PointerArea;
   lastX: number;
@@ -148,7 +168,9 @@ let middleDragState: {
 } | null = null;
 
 /**
- * Handle mouse down event on the canvas.
+ * Handles mouse down event on the canvas.
+ *
+ * @param event - The mouse event.
  */
 function handlePointerDown(event: MouseEvent): void {
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
@@ -192,7 +214,9 @@ function handlePointerDown(event: MouseEvent): void {
 }
 
 /**
- * Handle mouse move to update cursor style and handle dragging.
+ * Handles mouse move to update cursor style and handle dragging.
+ *
+ * @param event - The mouse event.
  */
 function handlePointerMove(event: MouseEvent): void {
   const { canvas } = getCanvasContext();
@@ -251,7 +275,9 @@ function handlePointerMove(event: MouseEvent): void {
 }
 
 /**
- * Handle mouse up event on the canvas.
+ * Handles mouse up event on the canvas.
+ *
+ * @param event - The mouse event.
  */
 function handlePointerUp(event: MouseEvent): void {
   // Handle middle mouse button release.
@@ -291,7 +317,9 @@ function handlePointerUp(event: MouseEvent): void {
 }
 
 /**
- * Handle mouse wheel event on the canvas.
+ * Handles mouse wheel event on the canvas.
+ *
+ * @param event - The wheel event.
  */
 function handleWheel(event: WheelEvent): void {
   const { x, y } = displayToGameCoords(event.clientX, event.clientY);
@@ -306,24 +334,29 @@ function handleWheel(event: WheelEvent): void {
 /** Whether pointer listeners are attached. */
 let active = false;
 
-/** Pinch zoom state for two-finger touch gestures. */
+/** The pinch zoom state for two-finger touch gestures. */
 let pinchState: {
-  /** Distance between fingers at gesture start, used to calculate zoom delta. */
+  /** The distance between fingers at gesture start. */
   initialDistance: number;
-  /** Center X of pinch in game coords, used as zoom anchor point. */
+  /** The center X of pinch in game coords. */
   centerX: number;
-  /** Center Y of pinch in game coords, used as zoom anchor point. */
+  /** The center Y of pinch in game coords. */
   centerY: number;
-  /** Accumulated scale ratio since last scroll event fired. */
+  /** The accumulated scale ratio since last scroll event fired. */
   accumulatedScale: number;
 } | null = null;
 
-/** Threshold for pinch scale change before firing scroll event. */
+/** The threshold for pinch scale change before firing scroll event. */
 const PINCH_THRESHOLD = 0.08;
 
 /**
- * Calculate the distance between two touch points.
+ * Calculates the distance between two touch points.
+ *
  * Used to detect pinch-to-zoom gesture magnitude.
+ *
+ * @param touches - The touch list.
+ *
+ * @returns The distance between the two touch points.
  */
 function getTouchDistance(touches: TouchList): number {
   const dx = touches[0].clientX - touches[1].clientX;
@@ -332,8 +365,13 @@ function getTouchDistance(touches: TouchList): number {
 }
 
 /**
- * Get the midpoint between two touch points.
- * This becomes the anchor point for pinch-to-zoom (zoom centers on this point).
+ * Gets the midpoint between two touch points.
+ *
+ * This becomes the anchor point for pinch-to-zoom.
+ *
+ * @param touches - The touch list.
+ *
+ * @returns The midpoint coordinates.
  */
 function getTouchCenter(touches: TouchList): { x: number; y: number } {
   return {
@@ -343,8 +381,11 @@ function getTouchCenter(touches: TouchList): { x: number; y: number } {
 }
 
 /**
- * Handle touch start event.
+ * Handles touch start event.
+ *
  * Single finger initiates drag, two fingers initiate pinch-to-zoom.
+ *
+ * @param event - The touch event.
  */
 function handleTouchStart(event: TouchEvent): void {
   if (event.touches.length === 1) {
@@ -396,8 +437,11 @@ function handleTouchStart(event: TouchEvent): void {
 }
 
 /**
- * Handle touch move event.
+ * Handles touch move event.
+ *
  * Continues drag or pinch-to-zoom depending on finger count.
+ *
+ * @param event - The touch event.
  */
 function handleTouchMove(event: TouchEvent): void {
   if (event.touches.length === 1 && dragState) {
@@ -459,8 +503,11 @@ function handleTouchMove(event: TouchEvent): void {
 }
 
 /**
- * Handle touch end and cancel events.
+ * Handles touch end and cancel events.
+ *
  * Ends drag or pinch gesture, fires click on tap.
+ *
+ * @param event - The touch event.
  */
 function handleTouchEnd(event: TouchEvent): void {
   // Prevent browser from generating synthetic mouse events after touch.
@@ -505,7 +552,8 @@ function handleTouchEnd(event: TouchEvent): void {
 }
 
 /**
- * Handle engine started event.
+ * Handles engine started event.
+ *
  * Attaches pointer listeners to the canvas.
  */
 function handleEngineStarted(): void {
@@ -529,7 +577,8 @@ function handleEngineStarted(): void {
 }
 
 /**
- * Handle engine stopped event.
+ * Handles engine stopped event.
+ *
  * Removes listeners from the canvas.
  */
 function handleEngineStopped(): void {

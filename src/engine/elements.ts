@@ -3,70 +3,45 @@
  *
  * Elements are similar to components but don't register with the engine.
  * They are owned and orchestrated by a parent component.
- *
- * @example
- * ```typescript
- * const sprite = createState<Sprite | null>(null);
- *
- * export const Logo = defineElement<LogoProps>("logo", {
- *   async load() {
- *     sprite.set(await loadSprite("/sprites/logo@.png"));
- *   },
- *   render(ctx, props) {
- *     drawSprite(ctx, sprite.get()!, props.x, props.y);
- *   },
- *   getSize() {
- *     return { width: 64, height: 64 };
- *   },
- * });
- *
- * // In parent component:
- * async load() {
- *   await loadElements([Logo, Buttons, ZoomSlider]);
- * }
- *
- * render(ctx, props) {
- *   Logo.render(ctx, { x: 32, y: 32 });
- * }
- * ```
  */
 
 import type { RenderContext } from "./canvas";
 
-/** Element lifecycle definition. */
-export interface ElementLifecycle<P> {
-  /** Optional async load function called before first render. */
+/** A type representing element lifecycle definition. */
+export type ElementLifecycle<P> = {
+  /** The optional async load function called before first render. */
   load?: () => Promise<void>;
 
-  /** Optional update function called each frame by parent. */
+  /** The optional update function called each frame by parent. */
   update?: (props: P) => void;
 
-  /** Render function called by parent. */
+  /** The render function called by parent. */
   render: (ctx: RenderContext, props: P) => void;
 
-  /** Function to get element dimensions. */
+  /** The function to get element dimensions. */
   getSize: () => { width: number; height: number };
-}
+};
 
-/** Element definition returned by defineElement. */
-export interface Element<P> {
-  /** Optional async load function. */
+/** A type representing an element definition returned by defineElement. */
+export type Element<P> = {
+  /** The optional async load function. */
   load?: () => Promise<void>;
 
-  /** Update function (no-op if not defined). */
+  /** The update function (no-op if not defined). */
   update: (props: P) => void;
 
-  /** Render function. */
+  /** The render function. */
   render: (ctx: RenderContext, props: P) => void;
 
-  /** Get element dimensions. */
+  /** Gets element dimensions. */
   getSize: () => { width: number; height: number };
-}
+};
 
 /**
- * Define a new element with a consistent structure.
+ * Defines a new element with a consistent structure.
  *
  * @param lifecycle - Object with optional load, update, getSize and required render.
+ *
  * @returns Element definition.
  */
 export function defineElement<P>(lifecycle: ElementLifecycle<P>): Element<P> {
@@ -79,9 +54,10 @@ export function defineElement<P>(lifecycle: ElementLifecycle<P>): Element<P> {
 }
 
 /**
- * Load multiple elements in parallel.
+ * Loads multiple elements in parallel.
  *
  * @param elements - Array of elements to load.
+ *
  * @returns Promise that resolves when all elements are loaded.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

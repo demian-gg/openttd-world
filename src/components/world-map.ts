@@ -1,5 +1,6 @@
 /**
  * World map component.
+ *
  * Renders the world map sprite.
  */
 

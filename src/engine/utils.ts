@@ -20,9 +20,10 @@ export const BREAKPOINT_WIDE_DESKTOP = 1440;
 export const BREAKPOINT_ULTRA_WIDE = 1920;
 
 /**
- * Check if the current viewport is at or below a breakpoint.
+ * Checks if the current viewport is at or below a breakpoint.
  *
  * @param breakpoint - The breakpoint value to check against.
+ *
  * @returns True if viewport width is at or below the breakpoint.
  */
 export function isAtBreakpoint(breakpoint: number): boolean {
@@ -31,28 +32,35 @@ export function isAtBreakpoint(breakpoint: number): boolean {
 }
 
 /**
- * Check if the current viewport is a small device (phone).
+ * Checks if the current viewport is a small device (phone).
+ *
+ * @returns True if the viewport width is at or below the small breakpoint.
  */
 export function isSmall(): boolean {
   return isAtBreakpoint(BREAKPOINT_SMALL);
 }
 
 /**
- * Check if the current viewport is a tablet or smaller.
+ * Checks if the current viewport is a tablet or smaller.
+ *
+ * @returns True if the viewport width is at or below the tablet breakpoint.
  */
 export function isTablet(): boolean {
   return isAtBreakpoint(BREAKPOINT_TABLET);
 }
 
 /**
- * Check if the current viewport is desktop or smaller.
+ * Checks if the current viewport is desktop or smaller.
+ *
+ * @returns True if the viewport width is at or below the desktop breakpoint.
  */
 export function isDesktop(): boolean {
   return isAtBreakpoint(BREAKPOINT_DESKTOP);
 }
 
 /**
- * Get a responsive value based on viewport width.
+ * Gets a responsive value based on viewport width.
+ *
  * Returns the value for the smallest matching breakpoint.
  *
  * @param values - Object with breakpoint keys and values.

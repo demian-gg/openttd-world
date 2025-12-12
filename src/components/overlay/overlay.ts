@@ -23,22 +23,18 @@ import { Buttons } from "./elements/buttons";
 import { ZoomSlider } from "./elements/zoom-slider";
 import { SelectionHint } from "./elements/selection-hint";
 
-/** Margin from screen edges. */
+/** The margin from screen edges. */
 const MARGIN = 32;
 
-/** Margin on mobile devices. */
+/** The margin on mobile devices. */
 const MOBILE_MARGIN = 16;
 
-/**
- * Get current margin based on viewport.
- */
+/** Gets the current margin based on viewport. */
 function getMargin(): number {
   return getResponsiveValue({ default: MARGIN, small: MOBILE_MARGIN });
 }
 
-/**
- * Calculate button positions based on current viewport.
- */
+/** Calculates button positions based on current viewport. */
 function getButtonPositions(): { x: number; y: number } {
   const { resolution } = getEngineState();
   const currentMargin = getMargin();

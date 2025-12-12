@@ -6,17 +6,18 @@
 import type { CanvasResolution } from "./canvas";
 import type { EngineConfig } from "./engine";
 
-/** Event class constructor type with static `type` property. */
+/** A type representing an event class constructor with static type property. */
 type EventClass<T extends Event> = {
   new (...args: never[]): T;
   readonly type: string;
 };
 
-/** Typed event emitter with a nicer API than EventTarget. */
+/** A typed event emitter with a nicer API than EventTarget. */
 class EventEmitter {
+  /** The underlying event target. */
   private target = new EventTarget();
 
-  /** Subscribe to an event. */
+  /** Subscribes to an event. */
   on<T extends Event>(
     eventClass: EventClass<T>,
     callback: (event: T) => void
@@ -24,29 +25,35 @@ class EventEmitter {
     this.target.addEventListener(eventClass.type, (e) => callback(e as T));
   }
 
-  /** Emit an event. */
+  /** Emits an event. */
   emit(event: Event): void {
     this.target.dispatchEvent(event);
   }
 }
 
-/** Event bus for canvas-related events. */
+/** The event bus for canvas-related events. */
 export const canvasEvents = new EventEmitter();
 
-/** Event bus for engine lifecycle events. */
+/** The event bus for engine lifecycle events. */
 export const engineEvents = new EventEmitter();
 
-/** Event fired when canvas resolution changes. */
+/** A class representing an event fired when canvas resolution changes. */
 export class CanvasResizedEvent extends Event {
+  /** The event type identifier. */
   static readonly type = "canvasResized";
+
+  /** Creates a new canvas resized event. */
   constructor(public readonly resolution: CanvasResolution) {
     super(CanvasResizedEvent.type);
   }
 }
 
-/** Event fired when engine setup completes. Modules should self-register. */
+/** A class representing an event fired when engine setup completes. */
 export class EngineSetupEvent extends Event {
+  /** The event type identifier. */
   static readonly type = "engineSetup";
+
+  /** Creates a new engine setup event. */
   constructor(
     public readonly config: EngineConfig,
     public readonly resolution: CanvasResolution
@@ -55,17 +62,23 @@ export class EngineSetupEvent extends Event {
   }
 }
 
-/** Event fired when the engine starts. */
+/** A class representing an event fired when the engine starts. */
 export class EngineStartedEvent extends Event {
+  /** The event type identifier. */
   static readonly type = "engineStarted";
+
+  /** Creates a new engine started event. */
   constructor() {
     super(EngineStartedEvent.type);
   }
 }
 
-/** Event fired when the engine stops. */
+/** A class representing an event fired when the engine stops. */
 export class EngineStoppedEvent extends Event {
+  /** The event type identifier. */
   static readonly type = "engineStopped";
+
+  /** Creates a new engine stopped event. */
   constructor() {
     super(EngineStoppedEvent.type);
   }

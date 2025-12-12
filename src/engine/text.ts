@@ -11,32 +11,33 @@ import {
 } from "./sprites";
 
 /**
- * A loaded bitmap font.
+ * A type representing a loaded bitmap font.
+ *
  * The font sprite is a grid of characters in ASCII order (starting from
  * firstChar).
  */
-export interface BitmapFont {
+export type BitmapFont = {
   /** The font sprite image. */
   image: HTMLImageElement;
 
-  /** Width of each character cell in pixels. */
+  /** The width of each character cell in pixels. */
   charWidth: number;
 
-  /** Height of each character cell in pixels. */
+  /** The height of each character cell in pixels. */
   charHeight: number;
 
-  /** Number of characters per row in the sprite. */
+  /** The number of characters per row in the sprite. */
   charsPerRow: number;
 
-  /** First ASCII character in the font (usually 32 for space). */
+  /** The first ASCII character in the font (usually 32 for space). */
   firstChar: number;
 
-  /** Character spacing adjustment (can be negative for tighter spacing). */
+  /** The character spacing adjustment (can be negative for tighter spacing). */
   spacing: number;
-}
+};
 
 /**
- * Load a bitmap font from a sprite atlas.
+ * Loads a bitmap font from a sprite atlas.
  *
  * @param path - Path to the font sprite image.
  * @param charWidth - Width of each character cell.
@@ -44,6 +45,7 @@ export interface BitmapFont {
  * @param charsPerRow - Number of characters per row in the sprite.
  * @param firstChar - First ASCII character in the font (default: 32 for space).
  * @param spacing - Character spacing adjustment (default: 0).
+ *
  * @returns Promise that resolves to the loaded font.
  */
 export async function loadFont(
@@ -80,11 +82,12 @@ export async function loadFont(
 }
 
 /**
- * Measure the width of a text string in pixels.
+ * Measures the width of a text string in pixels.
  *
  * @param font - The bitmap font to use.
  * @param text - The text to measure.
  * @param scale - Optional scale factor (default: 1).
+ *
  * @returns Width in pixels.
  */
 export function measureText(font: BitmapFont, text: string, scale = 1): number {
@@ -95,7 +98,7 @@ export function measureText(font: BitmapFont, text: string, scale = 1): number {
 }
 
 /**
- * Draw text using a bitmap font.
+ * Draws text using a bitmap font.
  *
  * @param ctx - The rendering context.
  * @param font - The bitmap font to use.
@@ -154,8 +157,16 @@ export function drawText(
 }
 
 /**
- * Draw text directly without colorization.
+ * Draws text directly without colorization.
+ *
  * Internal helper function.
+ *
+ * @param ctx - The rendering context.
+ * @param font - The bitmap font to use.
+ * @param text - The text to draw.
+ * @param x - X position (left edge).
+ * @param y - Y position (top edge).
+ * @param scale - Optional scale factor (default: 1).
  */
 function drawTextDirect(
   ctx: RenderContext,
@@ -206,7 +217,7 @@ function drawTextDirect(
 }
 
 /**
- * Draw text centered horizontally at a position.
+ * Draws text centered horizontally at a position.
  *
  * @param ctx - The rendering context.
  * @param font - The bitmap font to use.
@@ -230,7 +241,7 @@ export function drawTextCentered(
 }
 
 /**
- * Draw text aligned to the right.
+ * Draws text aligned to the right.
  *
  * @param ctx - The rendering context.
  * @param font - The bitmap font to use.

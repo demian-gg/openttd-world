@@ -5,41 +5,46 @@
 
 import { defineStore, StoreDefinition, notifyStore } from "../engine/stores";
 
-/** Selection bounds in world coordinates. */
-export interface SelectionBounds {
-  /** Start X in world pixels. */
+/** A type representing selection bounds in world coordinates. */
+export type SelectionBounds = {
+  /** The start X in world pixels. */
   startX: number;
-  /** Start Y in world pixels. */
-  startY: number;
-  /** End X in world pixels. */
-  endX: number;
-  /** End Y in world pixels. */
-  endY: number;
-}
 
-/** Selection store state. */
-export interface SelectionStoreState {
+  /** The start Y in world pixels. */
+  startY: number;
+
+  /** The end X in world pixels. */
+  endX: number;
+
+  /** The end Y in world pixels. */
+  endY: number;
+};
+
+/** A type representing selection store state. */
+export type SelectionStoreState = {
   /** Whether user is currently dragging to create a selection. */
   isSelecting: () => boolean;
 
-  /** Get the current selection bounds (null if no selection). */
+  /** Gets the current selection bounds (null if no selection). */
   getBounds: () => SelectionBounds | null;
 
-  /** Start a new selection at a point. */
+  /** Starts a new selection at a point. */
   startSelection: (x: number, y: number) => void;
 
-  /** Update the selection end point. */
+  /** Updates the selection end point. */
   updateSelection: (x: number, y: number) => void;
 
-  /** Finish the selection. */
+  /** Finishes the selection. */
   endSelection: () => void;
 
-  /** Clear the current selection. */
+  /** Clears the current selection. */
   clearSelection: () => void;
-}
+};
 
-/** Internal state. */
+/** Whether user is currently selecting. */
 let selecting = false;
+
+/** The current selection bounds. */
 let bounds: SelectionBounds | null = null;
 
 /**

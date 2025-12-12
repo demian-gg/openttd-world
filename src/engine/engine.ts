@@ -1,5 +1,6 @@
 /**
  * Core engine module.
+ *
  * Provides initialization, state management, and runtime control.
  */
 
@@ -34,51 +35,55 @@ export {
   EngineStoppedEvent,
 };
 
-/** Layer shadow configuration. */
-export interface LayerShadowConfig {
-  /** Layer to apply shadow to. */
+/** A type representing layer shadow configuration. */
+export type LayerShadowConfig = {
+  /** The layer to apply shadow to. */
   layer: number;
-  /** Shadow color. */
+
+  /** The shadow color. */
   color: string;
-  /** Shadow blur radius. */
+
+  /** The shadow blur radius. */
   blur?: number;
-  /** Shadow X offset. */
+
+  /** The shadow X offset. */
   offsetX?: number;
-  /** Shadow Y offset. */
+
+  /** The shadow Y offset. */
   offsetY?: number;
-}
+};
 
 /**
- * Configuration passed to the engine setup function.
+ * A type representing configuration passed to the engine setup function.
+ *
  * Defines the canvas target and optional settings.
  */
-export interface EngineConfig {
-  /** The HTML canvas element to render into. Must be attached to the DOM
-   * before init. */
+export type EngineConfig = {
+  /** The HTML canvas element to render into. */
   canvas: HTMLCanvasElement;
 
-  /** Optional resolution configuration. If omitted, default pixel scale and
-   * constraints are used. */
+  /** The optional resolution configuration. */
   resolution?: CanvasResolutionConfig;
 
-  /** Optional background color. Defaults to "#000". */
+  /** The optional background color. Defaults to "#000". */
   backgroundColor?: string;
 
-  /** Store initializers to run on engine setup. */
+  /** The store initializers to run on engine setup. */
   stores?: Array<() => void>;
 
-  /** Component registrations as [register, props] tuples. */
+  /** The component registrations as [register, props] tuples. */
   components?: ComponentRegistration[];
 
-  /** Layer shadow configurations. */
+  /** The layer shadow configurations. */
   layerShadows?: LayerShadowConfig[];
-}
+};
 
 /**
- * Runtime state of the initialized engine.
+ * A type representing runtime state of the initialized engine.
+ *
  * Contains references to canvas, context, and current settings.
  */
-export interface EngineState {
+export type EngineState = {
   /** The HTML canvas element being rendered to. */
   canvas: HTMLCanvasElement;
 
@@ -90,19 +95,21 @@ export interface EngineState {
 
   /** The background color for clearing the canvas. */
   backgroundColor: string;
-}
+};
 
-/** Singleton engine state, `null` until `init()` is called. */
+/** The singleton engine state, null until init is called. */
 let state: EngineState | null = null;
 
-/** Whether the engine is running. */
+/** Whether the engine is currently running. */
 let running = false;
 
 /**
- * Start the engine with the provided configuration.
+ * Starts the engine with the provided configuration.
+ *
  * Sets up the canvas, loads components, and begins the render loop.
  *
  * @param config - The engine configuration.
+ *
  * @returns The initialized engine state.
  */
 export async function startEngine(config: EngineConfig): Promise<EngineState> {
@@ -152,10 +159,9 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
 }
 
 /**
- * Get the current engine state.
+ * Gets the current engine state.
  *
  * @returns The current engine state.
- * @throws Error if engine has not been initialized.
  */
 export function getEngineState(): EngineState {
   if (!state) {
@@ -166,7 +172,7 @@ export function getEngineState(): EngineState {
 }
 
 /**
- * Check if the engine is currently running.
+ * Checks if the engine is currently running.
  *
  * @returns True if running, false otherwise.
  */
@@ -175,11 +181,17 @@ export function isEngineRunning(): boolean {
 }
 
 /**
- * Stop the engine.
+ * Stops the engine.
+ *
  * Emits EngineStoppedEvent for listeners like the compositor.
  */
 export function stopEngine(): void {
+  // Skip if already stopped.
   if (!running) return;
+
+  // Update running state.
   running = false;
+
+  // Emit stopped event.
   engineEvents.emit(new EngineStoppedEvent());
 }

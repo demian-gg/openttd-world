@@ -21,18 +21,25 @@ export type ButtonType =
   | "pan-mode"
   | "select-mode";
 
-/** Props for the buttons element. */
-export interface ButtonsProps {
+/** A type representing props for the buttons element. */
+export type ButtonsProps = {
+  /** The X position in pixels. */
   x: number;
-  y: number;
-  layer: number;
-  spacing?: number;
-}
 
-/** Size of each button tile in the atlas. */
+  /** The Y position in pixels. */
+  y: number;
+
+  /** The layer for rendering. */
+  layer: number;
+
+  /** The optional spacing between buttons. */
+  spacing?: number;
+};
+
+/** The size of each button tile in the atlas. */
 const TILE_SIZE = 48;
 
-/** Atlas layout: maps button type to row index (0-based). */
+/** The atlas layout: maps button type to row index (0-based). */
 const BUTTON_ROWS: Record<ButtonType, number> = {
   "save-disallowed": 0,
   "save-allowed": 1,
@@ -40,10 +47,10 @@ const BUTTON_ROWS: Record<ButtonType, number> = {
   "select-mode": 3,
 };
 
-/** Sprite atlas instance. */
+/** The sprite atlas instance. */
 let atlas: Sprite | null = null;
 
-/** Current state of each button. */
+/** The current state of each button. */
 const buttonStates: Record<ButtonType, "idle" | "clicked"> = {
   "save-disallowed": "idle",
   "save-allowed": "idle",
@@ -51,7 +58,7 @@ const buttonStates: Record<ButtonType, "idle" | "clicked"> = {
   "select-mode": "idle",
 };
 
-/** Get the button type to show for mode toggle (shows current mode). */
+/** Gets the button type to show for mode toggle (shows current mode). */
 function getModeToggleType(): ButtonType {
   // Show the current mode - the button acts as a status indicator.
   return getOverlayStore().getInteractionMode() === "pan"
@@ -59,13 +66,13 @@ function getModeToggleType(): ButtonType {
     : "select-mode";
 }
 
-/** Get the save button type based on selection state. */
+/** Gets the save button type based on selection state. */
 function getSaveButtonType(): ButtonType {
   const bounds = getSelectionStore().getBounds();
   return bounds !== null ? "save-allowed" : "save-disallowed";
 }
 
-/** Register a button's pointer area. */
+/** Registers a button's pointer area. */
 function registerButton(
   type: ButtonType,
   x: number,
@@ -94,7 +101,7 @@ function registerButton(
   });
 }
 
-/** Render a single button. */
+/** Renders a single button. */
 function renderSingleButton(
   ctx: RenderContext,
   type: ButtonType,

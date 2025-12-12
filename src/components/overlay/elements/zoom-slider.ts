@@ -11,20 +11,31 @@ import {
 import { defineElement } from "../../../engine/elements";
 import { getWorldMapStore } from "../../../stores/world-map";
 
-/** Props for the zoom slider element. */
-export interface ZoomSliderProps {
+/** A type representing props for the zoom slider element. */
+export type ZoomSliderProps = {
+  /** The X position in pixels. */
   x: number;
-  y: number;
-  scale?: number;
-}
 
-/** Slider sprite atlas instance. */
+  /** The Y position in pixels. */
+  y: number;
+
+  /** The optional scale factor. */
+  scale?: number;
+};
+
+/** The slider sprite atlas instance. */
 let atlas: Sprite | null = null;
 
-/** Slider dimensions. */
+/** The slider width in pixels. */
 const SLIDER_WIDTH = 26;
+
+/** The slider height in pixels. */
 const SLIDER_HEIGHT = 222;
+
+/** The knob size in pixels. */
 const KNOB_SIZE = 26;
+
+/** The track padding in pixels. */
 const TRACK_PADDING = 32;
 
 /**

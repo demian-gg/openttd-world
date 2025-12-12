@@ -3,26 +3,6 @@
  *
  * Stores provide a way to pass data through the component tree
  * without having to pass props manually at every level.
- *
- * @example
- * ```typescript
- * // Create a store with a default value.
- * const ThemeStore = createStore({ dark: false });
- *
- * // Provide a value (typically in a parent component).
- * provideStore(ThemeStore, { dark: true });
- *
- * // Consume the value (in any descendant component).
- * const theme = getStore(ThemeStore);
- *
- * // Subscribe to changes.
- * subscribeStore(ThemeStore, (state) => {
- *   console.log("Theme changed:", state.dark);
- * });
- *
- * // Notify subscribers when state changes.
- * notifyStore(ThemeStore);
- * ```
  */
 
 import { engineEvents, EngineSetupEvent } from "./events";
@@ -30,39 +10,27 @@ import { engineEvents, EngineSetupEvent } from "./events";
 /** Subscription callback type. */
 export type StoreSubscriber<T> = (value: T) => void;
 
-/** Store definition with unique identifier and optional default. */
-export interface Store<T> {
-  /** Unique identifier for this store. */
+/** A type representing store definition with unique identifier and optional default. */
+export type Store<T> = {
+  /** The unique identifier for this store. */
   readonly id: symbol;
 
-  /** Default value if no provider is found. */
+  /** The default value if no provider is found. */
   readonly defaultValue?: T;
-}
+};
 
-/** Internal store mapping store IDs to values. */
+/** The internal store mapping store IDs to values. */
 const storeValues = new Map<symbol, unknown>();
 
-/** Internal subscription store mapping store IDs to subscriber sets. */
+/** The internal subscription store mapping store IDs to subscriber sets. */
 const storeSubscribers = new Map<symbol, Set<StoreSubscriber<unknown>>>();
 
 /**
- * Create a new store.
+ * Creates a new store.
  *
  * @param defaultValue - Optional default value when no provider exists.
+ *
  * @returns A new store object.
- *
- * @example
- * ```typescript
- * interface UserState {
- *   name: string;
- *   loggedIn: boolean;
- * }
- *
- * const UserStore = createStore<UserState>({
- *   name: "Guest",
- *   loggedIn: false,
- * });
- * ```
  */
 export function createStore<T>(defaultValue?: T): Store<T> {
   return {
@@ -72,45 +40,35 @@ export function createStore<T>(defaultValue?: T): Store<T> {
 }
 
 /**
- * Provide a value for a store.
+ * Provides a value for a store.
+ *
  * This makes the value available to all consumers of the store.
  *
  * @param store - The store to provide a value for.
  * @param value - The value to provide.
- *
- * @example
- * ```typescript
- * provideStore(UserStore, {
- *   name: "Alice",
- *   loggedIn: true,
- * });
- * ```
  */
 export function provideStore<T>(store: Store<T>, value: T): void {
   storeValues.set(store.id, value);
 }
 
 /**
- * Consume a store value.
+ * Consumes a store value.
+ *
  * Returns the provided value, or the default value if no provider exists.
  *
  * @param store - The store to consume.
- * @returns The store value.
- * @throws Error if no provider exists and no default value is defined.
  *
- * @example
- * ```typescript
- * const user = getStore(UserStore);
- * console.log(user.name); // "Alice"
- * ```
+ * @returns The store value.
  */
 export function getStore<T>(store: Store<T>): T {
+  // Try to get provided value.
   const value = storeValues.get(store.id) as T | undefined;
 
   if (value !== undefined) {
     return value;
   }
 
+  // Fall back to default value.
   if (store.defaultValue !== undefined) {
     return store.defaultValue;
   }
@@ -122,9 +80,10 @@ export function getStore<T>(store: Store<T>): T {
 }
 
 /**
- * Check if a store has been provided.
+ * Checks if a store has been provided.
  *
  * @param store - The store to check.
+ *
  * @returns True if the store has a provided value.
  */
 export function hasStore<T>(store: Store<T>): boolean {
@@ -132,7 +91,8 @@ export function hasStore<T>(store: Store<T>): boolean {
 }
 
 /**
- * Clear a store value.
+ * Clears a store value.
+ *
  * Useful for cleanup when a provider component unmounts.
  *
  * @param store - The store to clear.
@@ -142,7 +102,8 @@ export function clearStore<T>(store: Store<T>): void {
 }
 
 /**
- * Clear all store values.
+ * Clears all store values.
+ *
  * Useful for resetting state between scenes or tests.
  */
 export function clearAllStores(): void {
@@ -151,22 +112,14 @@ export function clearAllStores(): void {
 }
 
 /**
- * Subscribe to store changes.
+ * Subscribes to store changes.
+ *
  * The callback will be invoked whenever notifyStore() is called for this store.
  *
  * @param store - The store to subscribe to.
  * @param callback - Function to call when store changes.
+ *
  * @returns Unsubscribe function.
- *
- * @example
- * ```typescript
- * const unsubscribe = subscribeStore(ThemeStore, (theme) => {
- *   console.log("Theme changed:", theme.dark);
- * });
- *
- * // Later, to stop listening:
- * unsubscribe();
- * ```
  */
 export function subscribeStore<T>(
   store: Store<T>,
@@ -187,19 +140,11 @@ export function subscribeStore<T>(
 }
 
 /**
- * Notify all subscribers that a store value has changed.
+ * Notifies all subscribers that a store value has changed.
+ *
  * Call this after modifying store state to trigger re-renders.
  *
  * @param store - The store that changed.
- *
- * @example
- * ```typescript
- * // In a state setter:
- * setTheme(dark: boolean) {
- *   this.dark = dark;
- *   notifyStore(ThemeStore);
- * }
- * ```
  */
 export function notifyStore<T>(store: Store<T>): void {
   const subscribers = storeSubscribers.get(store.id);
@@ -213,38 +158,26 @@ export function notifyStore<T>(store: Store<T>): void {
   }
 }
 
-/** Store definition returned by defineStore. */
-export interface StoreDefinition<T> {
+/** A type representing a store definition returned by defineStore. */
+export type StoreDefinition<T> = {
   /** The store instance. */
   store: Store<T>;
 
-  /** Initialize the store. Must be called before use. */
+  /** Initializes the store. Must be called before use. */
   init: () => void;
 
-  /** Get the store state. */
+  /** Gets the store state. */
   get: () => T;
-}
+};
 
 /**
- * Define a new store with a consistent structure.
+ * Defines a new store with a consistent structure.
+ *
  * Returns the store, init function, and getter bundled together.
  *
  * @param initializer - Function that creates the initial state.
+ *
  * @returns Store definition with store, init, and get.
- *
- * @example
- * ```typescript
- * let count = 0;
- *
- * export const {
- *   store: CounterStore,
- *   init: initCounterStore,
- *   get: getCounterStore,
- * } = defineStore(() => ({
- *   get count() { return count; },
- *   increment() { count++; },
- * }));
- * ```
  */
 export function defineStore<T>(initializer: () => T): StoreDefinition<T> {
   const store = createStore<T>();
@@ -256,27 +189,17 @@ export function defineStore<T>(initializer: () => T): StoreDefinition<T> {
   };
 }
 
-/** A store registration for engine configuration. */
+/** A type representing a store registration for engine configuration. */
 export type StoreRegistration = () => void;
 
 /**
- * Create a store registration for engine configuration.
+ * Creates a store registration for engine configuration.
  *
  * Stores are initialized with the engine at startup.
- * This wrapper provides consistency with the component() helper.
  *
  * @param init - The store's init function from defineStore().
- * @returns A registration for the engine's stores array.
  *
- * @example
- * ```typescript
- * await startEngine({
- *   stores: [
- *     store(initOverlayStore),
- *     store(initWorldMapStore),
- *   ],
- * });
- * ```
+ * @returns A registration for the engine's stores array.
  */
 export function store(init: () => void): StoreRegistration {
   return init;

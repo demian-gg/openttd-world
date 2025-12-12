@@ -1,5 +1,6 @@
 /**
  * Vignette component.
+ *
  * Renders a dark vignette effect around the edges of the screen.
  */
 
@@ -10,6 +11,7 @@ import { getResponsiveValue } from "../engine/utils";
 
 /**
  * Vignette component definition.
+ *
  * Renders a radial gradient vignette effect.
  */
 export const { init: initVignetteComponent } = defineComponent<ComponentProps>({
