@@ -395,19 +395,19 @@ Code elements **must** be organized in the following order:
 
 3. **Types**
 
-   _**Why?** Types must precede values so constants and functions can reference them._
+   _**Why?**_ Types must precede values so constants and functions can reference them.
 
 4. **Global constants**
 
-   _**Why?** Constants before variables signals immutability; they often configure what follows._
+   _**Why?**_ Constants before variables signals immutability; they often configure what follows.
 
 5. **Global variables**
 
-   _**Why?** Variables often depend on constants; placing them after ensures dependencies are defined._
+   _**Why?**_ Variables often depend on constants; placing them after ensures dependencies are defined.
 
 6. **Functions**
 
-   _**Why?** Logic comes last, after all dependencies (imports, types, data) are established._
+   _**Why?**_ Logic comes last, after all dependencies (imports, types, data) are established.
 
 &nbsp;
 
