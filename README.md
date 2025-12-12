@@ -8,9 +8,9 @@
 
 ######
 
-> This project is not affiliated with or endorsed by OpenTTD. It was created independently to support the community and enhance the experience of the game.
-
 This web-based tool lets you generate heightmaps from real-world locations for use in OpenTTD. Just pick any spot on the world map, adjust the size and resolution, and download a grayscale heightmap ready to import into the game.
+
+> This project is not affiliated with or endorsed by OpenTTD. It was created independently to support the community and enhance the experience of the game.
 
 ### Contributing
 
