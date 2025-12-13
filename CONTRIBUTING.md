@@ -67,7 +67,26 @@ The application will be available at `http://localhost:3000`.
 
 ### Deploying the production environment
 
-This project is not yet set up to be deployed to production.
+This subsection documents the process for deploying updates to the production environment using Fly.io. Understanding these steps ensures smooth releases and helps maintain consistency across deployments.
+
+First, ensure you have the Fly.io CLI set up:
+
+- Install via `curl -L https://fly.io/install.sh | sh`.
+- Authenticate with `fly auth login`.
+
+Then, only if the app hasn't been initialized yet, do so:
+
+```bash
+fly launch
+```
+
+Finally, deploy the app:
+
+```bash
+fly deploy
+```
+
+For subsequent deployments, use the same command.
 
 &nbsp;
 
