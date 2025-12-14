@@ -16,6 +16,7 @@ import { initVignetteComponent } from "./components/vignette";
 import { initWorldMapComponent } from "./components/world-map";
 import { initSelectionComponent } from "./components/selection";
 import { initOverlayComponent } from "./components/overlay/overlay";
+import { initWorkInProgressComponent } from "./components/work-in-progress";
 
 /**
  * Initializes and starts the application.
@@ -40,6 +41,7 @@ async function main(): Promise<void> {
       component(initSelectionComponent, { layer: 1 }),
       component(initVignetteComponent, { layer: 2 }),
       component(initOverlayComponent, { layer: 3 }),
+      component(initWorkInProgressComponent, { layer: 4 }),
     ],
     backgroundColor: "#2a5f96",
     layerShadows: [
