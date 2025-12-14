@@ -87,29 +87,20 @@ let viewportWidth = 0;
 /** The viewport height in pixels. */
 let viewportHeight = 0;
 
-/** The animation frame request ID. */
-let animationId: number | null = null;
+/** A type representing animation state. */
+type Animation = {
+  id: number;
+  startTime: number;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  startZoom: number;
+  targetZoom: number;
+};
 
-/** The animation start timestamp. */
-let animationStartTime = 0;
-
-/** The animation start X position. */
-let animationStartX = 0;
-
-/** The animation start Y position. */
-let animationStartY = 0;
-
-/** The animation target X position. */
-let animationTargetX = 0;
-
-/** The animation target Y position. */
-let animationTargetY = 0;
-
-/** The animation start zoom level. */
-let animationStartZoom = 0;
-
-/** The animation target zoom level. */
-let animationTargetZoom = 0;
+/** The current animation state, or null if not animating. */
+let animation: Animation | null = null;
 
 /**
  * Gets the minimum zoom level for a given viewport width.
@@ -216,9 +207,9 @@ export const {
   },
   centerOnWorld(worldX: number, worldY: number) {
     // Cancel any existing animation.
-    if (animationId !== null) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
+    if (animation !== null) {
+      cancelAnimationFrame(animation.id);
+      animation = null;
     }
 
     // Target zoom is max zoom.
@@ -229,41 +220,48 @@ export const {
     const targetOffsetY = targetZoom * (spriteHeight / 2 - worldY);
 
     // Set up animation state.
-    animationStartTime = performance.now();
-    animationStartX = offsetX;
-    animationStartY = offsetY;
-    animationTargetX = targetOffsetX;
-    animationTargetY = targetOffsetY;
-    animationStartZoom = zoom;
-    animationTargetZoom = targetZoom;
+    animation = {
+      id: 0,
+      startTime: performance.now(),
+      startX: offsetX,
+      startY: offsetY,
+      targetX: targetOffsetX,
+      targetY: targetOffsetY,
+      startZoom: zoom,
+      targetZoom: targetZoom,
+    };
 
     // Animation loop.
     const animate = (currentTime: number) => {
+      if (!animation) return;
+
       // Calculate animation progress.
-      const elapsed = currentTime - animationStartTime;
+      const elapsed = currentTime - animation.startTime;
       const progress = Math.min(elapsed / ANIMATION_DURATION_MS, 1);
       const easedProgress = easeOutCubic(progress);
 
       // Interpolate values.
       zoom =
-        animationStartZoom +
-        (animationTargetZoom - animationStartZoom) * easedProgress;
+        animation.startZoom +
+        (animation.targetZoom - animation.startZoom) * easedProgress;
       offsetX =
-        animationStartX + (animationTargetX - animationStartX) * easedProgress;
+        animation.startX +
+        (animation.targetX - animation.startX) * easedProgress;
       offsetY =
-        animationStartY + (animationTargetY - animationStartY) * easedProgress;
+        animation.startY +
+        (animation.targetY - animation.startY) * easedProgress;
       clampOffset();
       notifyStore(WorldMapStore);
 
       // Continue or finish animation.
       if (progress < 1) {
-        animationId = requestAnimationFrame(animate);
+        animation.id = requestAnimationFrame(animate);
       } else {
-        animationId = null;
+        animation = null;
       }
     };
 
-    animationId = requestAnimationFrame(animate);
+    animation.id = requestAnimationFrame(animate);
   },
   zoomAtPoint(x: number, y: number, deltaY: number) {
     // Apply zoom: scroll up = zoom in, scroll down = zoom out.

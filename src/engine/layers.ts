@@ -73,6 +73,9 @@ export type Layer = {
 /** The map of layer id to layer instance. */
 const layers = new Map<number, Layer>();
 
+/** Cached sorted layers array, invalidated when layers change. */
+let cachedLayers: Layer[] | null = null;
+
 /** The current resolution for creating new layers. */
 let currentResolution: CanvasResolution | null = null;
 
@@ -118,8 +121,9 @@ function createLayer(id: number): Layer {
     shadows: [],
   };
 
-  // Store in map.
+  // Store in map and invalidate cache.
   layers.set(id, layer);
+  cachedLayers = null;
 
   return layer;
 }
@@ -306,8 +310,13 @@ engineEvents.on(EngineSetupEvent, (e) => {
 /**
  * Gets all layers sorted by id (lowest first).
  *
+ * Returns cached array if available, otherwise sorts and caches.
+ *
  * @returns Array of layers in z-order.
  */
 export function getLayers(): Layer[] {
-  return [...layers.values()].sort((a, b) => a.id - b.id);
+  if (!cachedLayers) {
+    cachedLayers = [...layers.values()].sort((a, b) => a.id - b.id);
+  }
+  return cachedLayers;
 }
