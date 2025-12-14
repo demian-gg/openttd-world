@@ -3,7 +3,11 @@
  * Manages and renders all UI overlay elements (logo, zone name, resolution).
  */
 
-import { defineComponent, ComponentProps } from "../../engine/components";
+import {
+  defineComponent,
+  ComponentProps,
+  markComponentForUpdate,
+} from "../../engine/components";
 import { RenderContext } from "../../engine/sprites";
 import { getEngineState } from "../../engine/engine";
 import { subscribeStore } from "../../engine/stores";
@@ -15,7 +19,6 @@ import { ZoneStore } from "../../stores/zone";
 import { OverlayStore } from "../../stores/overlay";
 import { SelectionStore } from "../../stores/selection";
 import { loadElements } from "../../engine/elements";
-
 import { Logo } from "./elements/logo";
 import { ZoneName } from "./elements/zone-name";
 import { ResolutionStepper } from "./elements/resolution-stepper";
@@ -60,26 +63,31 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     // Subscribe to world map store changes to update zoom slider.
     subscribeStore(WorldMapStore, () => {
       dirtyLayer(props.layer);
+      markComponentForUpdate(props);
     });
 
     // Subscribe to resolution store changes to update stepper.
     subscribeStore(ResolutionStore, () => {
       dirtyLayer(props.layer);
+      markComponentForUpdate(props);
     });
 
     // Subscribe to zone store changes to update zone name.
     subscribeStore(ZoneStore, () => {
       dirtyLayer(props.layer);
+      markComponentForUpdate(props);
     });
 
     // Subscribe to overlay store changes to update hint visibility.
     subscribeStore(OverlayStore, () => {
       dirtyLayer(props.layer);
+      markComponentForUpdate(props);
     });
 
     // Subscribe to selection store changes to update hint visibility.
     subscribeStore(SelectionStore, () => {
       dirtyLayer(props.layer);
+      markComponentForUpdate(props);
     });
   },
 
@@ -95,12 +103,12 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     ]);
   },
 
-  update(props) {
+  pointerAreas(props) {
     const { layer } = props;
     const currentMargin = getMargin();
     const logoSize = Logo.getSize();
 
-    // Calculate resolution stepper position.
+    // Calculate element positions.
     const logoX = currentMargin;
     const logoY = currentMargin;
     const zoneNameX = logoX + logoSize.width + 14;
@@ -108,10 +116,10 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     const resolutionX = zoneNameX + 8;
     const resolutionY = zoneNameY + 30;
 
-    // Update resolution stepper pointer areas.
+    // Register resolution stepper pointer areas.
     ResolutionStepper.update({ x: resolutionX, y: resolutionY, layer });
 
-    // Update button pointer areas.
+    // Register button pointer areas.
     const pos = getButtonPositions();
     Buttons.update({ x: pos.x, y: pos.y, layer });
   },

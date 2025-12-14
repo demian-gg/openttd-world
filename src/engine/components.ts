@@ -50,8 +50,21 @@ export type ComponentLifecycle<P extends ComponentProps> = {
   /** The optional async load function called before first render. */
   load?: () => Promise<void>;
 
-  /** The optional update function called each frame. */
+  /**
+   * The optional update function called when component state changes.
+   *
+   * Only called when the component is marked for update via store
+   * subscriptions. Use for state-dependent logic like layer transforms.
+   */
   update?: (props: P) => void;
+
+  /**
+   * The optional pointer areas function called every frame.
+   *
+   * Registers interactive areas for mouse/touch input. Called after pointer
+   * areas are cleared, before rendering.
+   */
+  pointerAreas?: (props: P) => void;
 
   /** The render function called when layer is dirty. */
   render: (ctx: RenderContext, props: P) => void;
@@ -64,6 +77,9 @@ type ComponentInstance<P extends ComponentProps> = {
 
   /** The lifecycle hooks. */
   lifecycle: ComponentLifecycle<P>;
+
+  /** Whether this component needs its update() called. */
+  needsUpdate: boolean;
 };
 
 /** A type representing a component definition returned by defineComponent. */
@@ -74,6 +90,9 @@ export type ComponentDefinition<P extends ComponentProps> = {
 
 /** The registered component instances. */
 const instances: ComponentInstance<ComponentProps>[] = [];
+
+/** Map from props to instance for quick lookup. */
+const instancesByProps = new WeakMap<ComponentProps, ComponentInstance<ComponentProps>>();
 
 /**
  * Defines a new component with a consistent structure.
@@ -91,10 +110,13 @@ export function defineComponent<P extends ComponentProps>(
       lifecycle.init?.(props);
 
       // Register component instance.
-      instances.push({
+      const instance: ComponentInstance<ComponentProps> = {
         props,
         lifecycle: lifecycle as ComponentLifecycle<ComponentProps>,
-      });
+        needsUpdate: true,
+      };
+      instances.push(instance);
+      instancesByProps.set(props, instance);
     },
   };
 }
@@ -108,10 +130,51 @@ export async function loadComponents(): Promise<void> {
   await Promise.all(instances.map((c) => c.lifecycle.load?.()));
 }
 
-/** Updates all registered components that have an update function. */
+/**
+ * Updates components that have been marked for update.
+ *
+ * Only calls update() on components where needsUpdate is true. Components
+ * are marked for update when their subscribed stores notify changes.
+ */
 export function updateComponents(): void {
   for (const instance of instances) {
-    instance.lifecycle.update?.(instance.props);
+    if (instance.needsUpdate) {
+      instance.lifecycle.update?.(instance.props);
+      instance.needsUpdate = false;
+    }
+  }
+}
+
+/**
+ * Registers pointer areas for all components.
+ *
+ * Called every frame after pointer areas are cleared. This is separate from
+ * update() because pointer areas must be re-registered every frame.
+ */
+export function registerComponentPointerAreas(): void {
+  for (const instance of instances) {
+    instance.lifecycle.pointerAreas?.(instance.props);
+  }
+}
+
+/**
+ * Marks a component for update on the next frame.
+ *
+ * Call this when store state changes that affects the component.
+ *
+ * @param props - The component props used during registration.
+ */
+export function markComponentForUpdate(props: ComponentProps): void {
+  const instance = instancesByProps.get(props);
+  if (instance) {
+    instance.needsUpdate = true;
+  }
+}
+
+/** Marks all components for update on the next frame. */
+export function markAllComponentsForUpdate(): void {
+  for (const instance of instances) {
+    instance.needsUpdate = true;
   }
 }
 

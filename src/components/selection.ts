@@ -3,7 +3,11 @@
  * Renders overlay and selection cutout when in select mode.
  */
 
-import { defineComponent, ComponentProps } from "../engine/components";
+import {
+  defineComponent,
+  ComponentProps,
+  markComponentForUpdate,
+} from "../engine/components";
 import { RenderContext } from "../engine/sprites";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
@@ -297,25 +301,25 @@ function screenToWorld(
 export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
   {
     init(props) {
-      // Subscribe to relevant stores to redraw when needed.
+      // Subscribe to relevant stores to redraw and update when needed.
       subscribeStore(OverlayStore, () => {
         dirtyLayer(props.layer);
+        markComponentForUpdate(props);
       });
 
       subscribeStore(SelectionStore, () => {
         dirtyLayer(props.layer);
+        markComponentForUpdate(props);
       });
 
       subscribeStore(WorldMapStore, () => {
         dirtyLayer(props.layer);
+        markComponentForUpdate(props);
       });
     },
 
     update(props) {
-      const mode = getOverlayStore().getInteractionMode();
-      const { resolution } = getEngineState();
       const { layer } = props;
-      const selectionStore = getSelectionStore();
       const worldMapStore = getWorldMapStore();
       const { width: spriteWidth, height: spriteHeight } =
         worldMapStore.getSpriteSize();
@@ -328,9 +332,19 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
         worldMapStore.getOffsetX(),
         worldMapStore.getOffsetY()
       );
+    },
+
+    pointerAreas(props) {
+      const mode = getOverlayStore().getInteractionMode();
 
       // Only register pointer area in select mode.
       if (mode !== "select") return;
+
+      const { resolution } = getEngineState();
+      const { layer } = props;
+      const selectionStore = getSelectionStore();
+      const worldMapStore = getWorldMapStore();
+      const { width: spriteWidth } = worldMapStore.getSpriteSize();
 
       // Register full-screen pointer area for selection.
       registerPointerArea({

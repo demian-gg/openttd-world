@@ -18,7 +18,11 @@ import {
   getLayers,
   renderLayerShadows,
 } from "./layers";
-import { getComponents, updateComponents } from "./components";
+import {
+  getComponents,
+  updateComponents,
+  registerComponentPointerAreas,
+} from "./components";
 import { clearPointerAreas } from "./pointer";
 
 /** Composites a single frame, outputting to the main canvas. */
@@ -28,6 +32,9 @@ function compositeFrame(): void {
 
   // Clear pointer areas from previous frame.
   clearPointerAreas();
+
+  // Register pointer areas for all components.
+  registerComponentPointerAreas();
 
   // Group components by layer.
   const byLayer = Map.groupBy(

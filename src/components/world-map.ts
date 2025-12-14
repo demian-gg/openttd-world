@@ -14,16 +14,19 @@ import {
   defineComponent,
   ComponentProps,
   createState,
+  markComponentForUpdate,
 } from "../engine/components";
+import { subscribeStore } from "../engine/stores";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
 import {
+  dirtyLayer,
   setLayerPosition,
   setLayerScale,
   setLayerSize,
 } from "../engine/layers";
-import { getWorldMapStore } from "../stores/world-map";
-import { getOverlayStore } from "../stores/overlay";
+import { getWorldMapStore, WorldMapStore } from "../stores/world-map";
+import { getOverlayStore, OverlayStore } from "../stores/overlay";
 import { getZoneStore } from "../stores/zone";
 
 /** Component state. */
@@ -33,6 +36,18 @@ const sprite = createState<Sprite | null>(null);
  * World map component definition.
  */
 export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
+  init(props) {
+    // Subscribe to stores that affect this component.
+    subscribeStore(WorldMapStore, () => {
+      dirtyLayer(props.layer);
+      markComponentForUpdate(props);
+    });
+    subscribeStore(OverlayStore, () => {
+      dirtyLayer(props.layer);
+      markComponentForUpdate(props);
+    });
+  },
+
   async load() {
     const loadedSprite = await loadSprite("/sprites/world-map.png");
     sprite.set(loadedSprite);
@@ -61,33 +76,37 @@ export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
 
     // Update layer position.
     setLayerPosition(layer, store.getOffsetX(), store.getOffsetY());
+  },
 
-    // Get current interaction mode.
+  pointerAreas(props) {
+    const { resolution } = getEngineState();
+    const { layer } = props;
+    const store = getWorldMapStore();
     const mode = getOverlayStore().getInteractionMode();
 
-    // Register pointer area based on interaction mode.
-    if (mode === "pan") {
-      // Pan mode: draggable/scrollable area.
-      registerPointerArea({
-        x: 0,
-        y: 0,
-        width: resolution.width,
-        height: resolution.height,
-        layer,
-        cursor: "move",
-        onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-        onMiddleDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-        onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
-        onHover: (x, y) => {
-          getZoneStore().updateFromScreenPosition(
-            x,
-            y,
-            resolution.width,
-            resolution.height
-          );
-        },
-      });
-    }
+    // Only register pointer area in pan mode.
+    if (mode !== "pan") return;
+
+    // Register draggable/scrollable area for panning.
+    registerPointerArea({
+      x: 0,
+      y: 0,
+      width: resolution.width,
+      height: resolution.height,
+      layer,
+      cursor: "move",
+      onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
+      onMiddleDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
+      onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
+      onHover: (x, y) => {
+        getZoneStore().updateFromScreenPosition(
+          x,
+          y,
+          resolution.width,
+          resolution.height
+        );
+      },
+    });
   },
 
   render(ctx: RenderContext) {
