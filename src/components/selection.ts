@@ -313,7 +313,6 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
       });
 
       subscribeStore(WorldMapStore, () => {
-        dirtyLayer(props.layer);
         markComponentForUpdate(props);
       });
     },

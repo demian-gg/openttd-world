@@ -20,7 +20,6 @@ import { subscribeStore } from "../engine/stores";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
 import {
-  dirtyLayer,
   setLayerPosition,
   setLayerScale,
   setLayerSize,
@@ -39,11 +38,9 @@ export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
   init(props) {
     // Subscribe to stores that affect this component.
     subscribeStore(WorldMapStore, () => {
-      dirtyLayer(props.layer);
       markComponentForUpdate(props);
     });
     subscribeStore(OverlayStore, () => {
-      dirtyLayer(props.layer);
       markComponentForUpdate(props);
     });
   },
