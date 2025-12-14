@@ -68,6 +68,12 @@ export type Layer = {
 
   /** The array of shadows to apply (rendered in order). */
   shadows: LayerShadow[];
+
+  /** Pre-rendered shadow canvas (includes layer content + all shadows). */
+  shadowCanvas: OffscreenCanvas | null;
+
+  /** The shadow canvas rendering context. */
+  shadowCtx: OffscreenCanvasRenderingContext2D | null;
 };
 
 /** The map of layer id to layer instance. */
@@ -119,6 +125,8 @@ function createLayer(id: number): Layer {
     x: 0,
     y: 0,
     shadows: [],
+    shadowCanvas: null,
+    shadowCtx: null,
   };
 
   // Store in map and invalidate cache.
@@ -282,6 +290,54 @@ export function clearLayerShadows(id: number): void {
   const layer = layers.get(id);
   if (layer) {
     layer.shadows = [];
+  }
+}
+
+/**
+ * Pre-renders layer content with all shadows to the shadow canvas.
+ *
+ * Call this after rendering layer content when the layer has shadows.
+ * The shadow canvas can then be drawn once during compositing.
+ *
+ * @param layer - The layer to render shadows for.
+ */
+export function renderLayerShadows(layer: Layer): void {
+  if (layer.shadows.length === 0) return;
+
+  const { width, height } = layer.canvas;
+
+  // Create or resize shadow canvas.
+  if (!layer.shadowCanvas || !layer.shadowCtx) {
+    layer.shadowCanvas = new OffscreenCanvas(width, height);
+    layer.shadowCtx = layer.shadowCanvas.getContext("2d");
+    if (layer.shadowCtx) {
+      layer.shadowCtx.imageSmoothingEnabled = false;
+    }
+  } else if (
+    layer.shadowCanvas.width !== width ||
+    layer.shadowCanvas.height !== height
+  ) {
+    layer.shadowCanvas.width = width;
+    layer.shadowCanvas.height = height;
+    if (layer.shadowCtx) {
+      layer.shadowCtx.imageSmoothingEnabled = false;
+    }
+  }
+
+  if (!layer.shadowCtx) return;
+
+  // Clear shadow canvas.
+  layer.shadowCtx.clearRect(0, 0, width, height);
+
+  // Draw layer content with each shadow applied.
+  for (const shadow of layer.shadows) {
+    layer.shadowCtx.save();
+    layer.shadowCtx.shadowColor = shadow.color;
+    layer.shadowCtx.shadowBlur = shadow.blur;
+    layer.shadowCtx.shadowOffsetX = shadow.offsetX;
+    layer.shadowCtx.shadowOffsetY = shadow.offsetY;
+    layer.shadowCtx.drawImage(layer.canvas, 0, 0);
+    layer.shadowCtx.restore();
   }
 }
 

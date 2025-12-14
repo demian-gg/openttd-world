@@ -11,7 +11,13 @@ import {
   EngineStoppedEvent,
 } from "./events";
 import { handleCanvasResize } from "./canvas";
-import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
+import {
+  DEFAULT_LAYER,
+  getLayer,
+  clearLayer,
+  getLayers,
+  renderLayerShadows,
+} from "./layers";
 import { getComponents, updateComponents } from "./components";
 import { clearPointerAreas } from "./pointer";
 
@@ -58,6 +64,12 @@ function compositeFrame(): void {
       for (const component of group) {
         component.render(layer.ctx);
       }
+
+      // Pre-render shadows if layer has any.
+      if (layer.shadows.length > 0) {
+        renderLayerShadows(layer);
+      }
+
       layer.dirty = false;
     }
   }
@@ -73,27 +85,20 @@ function compositeFrame(): void {
     const destX = Math.round((ctx.canvas.width - destWidth) / 2) + layer.x;
     const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
-    // Draw once per shadow (each draw includes the layer content).
-    for (const shadow of layer.shadows) {
-      ctx.save();
-      ctx.globalAlpha = layer.opacity;
-      ctx.globalCompositeOperation = layer.blendMode;
-      ctx.shadowColor = shadow.color;
-      ctx.shadowBlur = shadow.blur;
-      ctx.shadowOffsetX = shadow.offsetX;
-      ctx.shadowOffsetY = shadow.offsetY;
+    // Draw layer with shadows (pre-rendered) or without.
+    ctx.save();
+    ctx.globalAlpha = layer.opacity;
+    ctx.globalCompositeOperation = layer.blendMode;
+
+    if (layer.shadows.length > 0 && layer.shadowCanvas) {
+      // Draw pre-rendered shadow canvas (includes content + all shadows).
+      ctx.drawImage(layer.shadowCanvas, destX, destY, destWidth, destHeight);
+    } else {
+      // Draw layer content directly.
       ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
-      ctx.restore();
     }
 
-    // Draw final layer (no shadow) if no shadows, or shadows already drew it.
-    if (layer.shadows.length === 0) {
-      ctx.save();
-      ctx.globalAlpha = layer.opacity;
-      ctx.globalCompositeOperation = layer.blendMode;
-      ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
-      ctx.restore();
-    }
+    ctx.restore();
 
     // Clear moved flag.
     layer.moved = false;
