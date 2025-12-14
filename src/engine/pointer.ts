@@ -84,10 +84,23 @@ export function clearPointerAreas(): void {
 /**
  * Registers a pointer area for this frame.
  *
+ * Areas are inserted in sorted order by layer (descending) so hit testing
+ * can return the first match without additional sorting.
+ *
  * @param area - The pointer area to register.
  */
 export function registerPointerArea(area: PointerArea): void {
-  pointerAreas.push(area);
+  // Find insertion index to maintain descending layer order.
+  let insertIndex = 0;
+  while (insertIndex < pointerAreas.length) {
+    if (area.layer >= pointerAreas[insertIndex].layer) {
+      break;
+    }
+    insertIndex++;
+  }
+
+  // Insert at the correct position.
+  pointerAreas.splice(insertIndex, 0, area);
 }
 
 /**
@@ -128,20 +141,21 @@ function isPointInArea(x: number, y: number, area: PointerArea): boolean {
 /**
  * Finds the topmost hit area at a point.
  *
+ * Since areas are sorted by layer (descending) during registration,
+ * the first hit is the topmost.
+ *
  * @param x - The X coordinate.
  * @param y - The Y coordinate.
  *
  * @returns The topmost hit area, or null if none.
  */
 function findTopHitArea(x: number, y: number): PointerArea | null {
-  // Filter areas that contain the point.
-  const hits = pointerAreas.filter((area) => isPointInArea(x, y, area));
-  if (hits.length === 0) return null;
-
-  // Sort by layer descending (highest layer first).
-  hits.sort((a, b) => b.layer - a.layer);
-
-  return hits[0];
+  for (const area of pointerAreas) {
+    if (isPointInArea(x, y, area)) {
+      return area;
+    }
+  }
+  return null;
 }
 
 /** The minimum distance in game pixels to consider a drag vs click. */
