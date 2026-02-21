@@ -47,6 +47,9 @@ const BUTTON_ROWS: Record<ButtonType, number> = {
   "select-mode": 3,
 };
 
+/** The default spacing between buttons in pixels. */
+const DEFAULT_SPACING = 8;
+
 /** The sprite atlas instance. */
 let atlas: Sprite | null = null;
 
@@ -135,7 +138,7 @@ export const Buttons = defineElement<ButtonsProps>({
   },
 
   update(props) {
-    const spacing = props.spacing ?? 8;
+    const spacing = props.spacing ?? DEFAULT_SPACING;
     const store = getOverlayStore();
 
     // Register mode toggle button.
@@ -154,7 +157,7 @@ export const Buttons = defineElement<ButtonsProps>({
 
   render(ctx: RenderContext, props) {
     if (!atlas) return;
-    const spacing = props.spacing ?? 10;
+    const spacing = props.spacing ?? DEFAULT_SPACING;
 
     // Render mode toggle button.
     renderSingleButton(ctx, getModeToggleType(), props.x, props.y);
@@ -169,7 +172,7 @@ export const Buttons = defineElement<ButtonsProps>({
   },
 
   getSize() {
-    const spacing = 8;
+    const spacing = DEFAULT_SPACING;
     return {
       width: TILE_SIZE * 2 + spacing,
       height: TILE_SIZE,
