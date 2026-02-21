@@ -19,7 +19,6 @@ import {
   EngineStartedEvent,
   EngineStoppedEvent,
 } from "./events";
-import { addLayerShadow } from "./layers";
 
 // Import modules for side-effect registration.
 import "./layers";
@@ -33,24 +32,6 @@ export {
   EngineSetupEvent,
   EngineStartedEvent,
   EngineStoppedEvent,
-};
-
-/** A type representing layer shadow configuration. */
-export type LayerShadowConfig = {
-  /** The layer to apply shadow to. */
-  layer: number;
-
-  /** The shadow color. */
-  color: string;
-
-  /** The shadow blur radius. */
-  blur?: number;
-
-  /** The shadow X offset. */
-  offsetX?: number;
-
-  /** The shadow Y offset. */
-  offsetY?: number;
 };
 
 /**
@@ -73,9 +54,6 @@ export type EngineConfig = {
 
   /** The component registrations as [register, props] tuples. */
   components?: ComponentRegistration[];
-
-  /** The layer shadow configurations. */
-  layerShadows?: LayerShadowConfig[];
 };
 
 /**
@@ -139,17 +117,6 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
   // Register and load components.
   config.components?.forEach(([register, props]) => register(props));
   await loadComponents();
-
-  // Apply layer shadows.
-  config.layerShadows?.forEach((shadow) => {
-    addLayerShadow(
-      shadow.layer,
-      shadow.color,
-      shadow.blur ?? 0,
-      shadow.offsetX ?? 0,
-      shadow.offsetY ?? 0
-    );
-  });
 
   // Start the engine.
   running = true;

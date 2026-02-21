@@ -11,13 +11,7 @@ import {
   EngineStoppedEvent,
 } from "./events";
 import { handleCanvasResize } from "./canvas";
-import {
-  DEFAULT_LAYER,
-  getLayer,
-  clearLayer,
-  getLayers,
-  renderLayerShadows,
-} from "./layers";
+import { DEFAULT_LAYER, getLayer, clearLayer, getLayers } from "./layers";
 import {
   getComponents,
   updateComponents,
@@ -72,11 +66,6 @@ function compositeFrame(): void {
         component.render(layer.ctx);
       }
 
-      // Pre-render shadows if layer has any.
-      if (layer.shadows.length > 0) {
-        renderLayerShadows(layer);
-      }
-
       layer.dirty = false;
     }
   }
@@ -92,19 +81,11 @@ function compositeFrame(): void {
     const destX = Math.round((ctx.canvas.width - destWidth) / 2) + layer.x;
     const destY = Math.round((ctx.canvas.height - destHeight) / 2) + layer.y;
 
-    // Draw layer with shadows (pre-rendered) or without.
+    // Draw layer content to main canvas.
     ctx.save();
     ctx.globalAlpha = layer.opacity;
     ctx.globalCompositeOperation = layer.blendMode;
-
-    if (layer.shadows.length > 0 && layer.shadowCanvas) {
-      // Draw pre-rendered shadow canvas (includes content + all shadows).
-      ctx.drawImage(layer.shadowCanvas, destX, destY, destWidth, destHeight);
-    } else {
-      // Draw layer content directly.
-      ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
-    }
-
+    ctx.drawImage(layer.canvas, destX, destY, destWidth, destHeight);
     ctx.restore();
 
     // Clear moved flag.

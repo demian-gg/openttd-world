@@ -13,6 +13,7 @@ import { getEngineState } from "../../engine/engine";
 import { subscribeStore } from "../../engine/stores";
 import { dirtyLayer } from "../../engine/layers";
 import { isSmall, getResponsiveValue } from "../../engine/utils";
+import { renderWithShadow, ShadowConfig } from "../../engine/shadows";
 import { WorldMapStore } from "../../stores/world-map";
 import { ResolutionStore } from "../../stores/resolution";
 import { ZoneStore } from "../../stores/zone";
@@ -32,6 +33,30 @@ const MARGIN = 32;
 /** The margin on mobile devices. */
 const MOBILE_MARGIN = 16;
 
+/** The shadow configuration for overlay elements. */
+const OVERLAY_SHADOW: ShadowConfig = {
+  color: "rgba(0, 0, 0, 0.5)",
+  blur: 12,
+  offsetX: 3,
+  offsetY: 3,
+  padding: 24,
+};
+
+/** The horizontal gap between the logo and zone name. */
+const LOGO_ZONE_NAME_GAP = 14;
+
+/** The vertical offset of the zone name from the logo top. */
+const ZONE_NAME_VERTICAL_OFFSET = 8;
+
+/** The horizontal inset of the resolution stepper from the zone name. */
+const RESOLUTION_STEPPER_INSET = 8;
+
+/** The vertical gap between the zone name and resolution stepper. */
+const ZONE_NAME_RESOLUTION_GAP = 30;
+
+/** The vertical offset of the buttons from the margin top. */
+const BUTTONS_VERTICAL_OFFSET = 6;
+
 /** Gets the current margin based on viewport. */
 function getMargin(): number {
   return getResponsiveValue({ default: MARGIN, small: MOBILE_MARGIN });
@@ -49,7 +74,7 @@ function getButtonPositions(): { x: number; y: number } {
     : resolution.width - currentMargin - buttonSize.width;
   const y = isMobile
     ? resolution.height - currentMargin - buttonSize.height
-    : currentMargin + 6;
+    : currentMargin + BUTTONS_VERTICAL_OFFSET;
 
   return { x, y };
 }
@@ -60,8 +85,20 @@ function getButtonPositions(): { x: number; y: number } {
  */
 export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
   init(props) {
-    // Subscribe to world map store changes to update zoom slider.
-    subscribeStore(WorldMapStore, () => {
+    // Track the previous zoom level for change detection.
+    let previousZoom: number | null = null;
+
+    // Subscribe to world map store changes.
+    // Skip re-render on pan — only dirty when zoom changes.
+    subscribeStore(WorldMapStore, (store) => {
+      // Read the current zoom level.
+      const currentZoom = store.getZoom();
+
+      // Skip if zoom has not changed.
+      if (currentZoom === previousZoom) return;
+
+      // Update tracked zoom and trigger re-render.
+      previousZoom = currentZoom;
       dirtyLayer(props.layer);
       markComponentForUpdate(props);
     });
@@ -111,10 +148,10 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     // Calculate element positions.
     const logoX = currentMargin;
     const logoY = currentMargin;
-    const zoneNameX = logoX + logoSize.width + 14;
-    const zoneNameY = logoY + 8;
-    const resolutionX = zoneNameX + 8;
-    const resolutionY = zoneNameY + 30;
+    const zoneNameX = logoX + logoSize.width + LOGO_ZONE_NAME_GAP;
+    const zoneNameY = logoY + ZONE_NAME_VERTICAL_OFFSET;
+    const resolutionX = zoneNameX + RESOLUTION_STEPPER_INSET;
+    const resolutionY = zoneNameY + ZONE_NAME_RESOLUTION_GAP;
 
     // Register resolution stepper pointer areas.
     ResolutionStepper.update({ x: resolutionX, y: resolutionY, layer });
@@ -131,39 +168,107 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
     const zoomSliderSize = ZoomSlider.getSize();
     const isMobile = isSmall();
 
-    // Logo position (top-left corner with margin).
+    // Render the logo at the top-left corner.
     const logoX = currentMargin;
     const logoY = currentMargin;
-    Logo.render(ctx, { x: logoX, y: logoY });
+    renderWithShadow(
+      ctx,
+      logoX,
+      logoY,
+      logoSize.width,
+      logoSize.height,
+      OVERLAY_SHADOW,
+      (shadowContext) => {
+        Logo.render(shadowContext, {
+          x: OVERLAY_SHADOW.padding,
+          y: OVERLAY_SHADOW.padding,
+        });
+      }
+    );
 
-    // Zone name position (to the right of logo, vertically centered).
-    const zoneNameX = logoX + logoSize.width + 14;
-    const zoneNameY = logoY + 8;
-    ZoneName.render(ctx, { x: zoneNameX, y: zoneNameY });
+    // Render the zone name to the right of the logo.
+    const zoneNameX = logoX + logoSize.width + LOGO_ZONE_NAME_GAP;
+    const zoneNameY = logoY + ZONE_NAME_VERTICAL_OFFSET;
+    const zoneNameSize = ZoneName.getSize();
+    renderWithShadow(
+      ctx,
+      zoneNameX,
+      zoneNameY,
+      zoneNameSize.width,
+      zoneNameSize.height,
+      OVERLAY_SHADOW,
+      (shadowContext) => {
+        ZoneName.render(shadowContext, {
+          x: OVERLAY_SHADOW.padding,
+          y: OVERLAY_SHADOW.padding,
+        });
+      }
+    );
 
-    // Resolution stepper position (below zone name).
-    const resolutionX = zoneNameX + 8;
-    const resolutionY = zoneNameY + 30;
-    ResolutionStepper.render(ctx, {
-      x: resolutionX,
-      y: resolutionY,
-      layer: props.layer,
-    });
+    // Render the resolution stepper below the zone name.
+    const resolutionX = zoneNameX + RESOLUTION_STEPPER_INSET;
+    const resolutionY = zoneNameY + ZONE_NAME_RESOLUTION_GAP;
+    const resolutionSize = ResolutionStepper.getSize();
+    renderWithShadow(
+      ctx,
+      resolutionX,
+      resolutionY,
+      resolutionSize.width,
+      resolutionSize.height,
+      OVERLAY_SHADOW,
+      (shadowContext) => {
+        ResolutionStepper.render(shadowContext, {
+          x: OVERLAY_SHADOW.padding,
+          y: OVERLAY_SHADOW.padding,
+          layer: props.layer,
+        });
+      }
+    );
 
-    // Render buttons at calculated positions.
+    // Render the buttons at calculated positions.
     const pos = getButtonPositions();
-    Buttons.render(ctx, { x: pos.x, y: pos.y, layer: props.layer });
+    const buttonSize = Buttons.getSize();
+    renderWithShadow(
+      ctx,
+      pos.x,
+      pos.y,
+      buttonSize.width,
+      buttonSize.height,
+      OVERLAY_SHADOW,
+      (shadowContext) => {
+        Buttons.render(shadowContext, {
+          x: OVERLAY_SHADOW.padding,
+          y: OVERLAY_SHADOW.padding,
+          layer: props.layer,
+        });
+      }
+    );
 
-    // Zoom slider position (bottom-right corner, desktop only).
+    // Render the zoom slider (desktop only).
     if (!isMobile) {
       const zoomSliderX =
         resolution.width - currentMargin - zoomSliderSize.width;
       const zoomSliderY =
         resolution.height - currentMargin - zoomSliderSize.height;
-      ZoomSlider.render(ctx, { x: zoomSliderX, y: zoomSliderY });
+      renderWithShadow(
+        ctx,
+        zoomSliderX,
+        zoomSliderY,
+        zoomSliderSize.width,
+        zoomSliderSize.height,
+        OVERLAY_SHADOW,
+        (shadowContext) => {
+          ZoomSlider.render(shadowContext, {
+            x: OVERLAY_SHADOW.padding,
+            y: OVERLAY_SHADOW.padding,
+          });
+        }
+      );
     }
 
-    // Selection hint (centered at bottom, visible in select mode with no selection).
+    // Render the selection hint without a shadow.
+    // SelectionHint positions itself via resolution and uses
+    // translucent text, so shadow compositing is skipped.
     SelectionHint.render(ctx, {});
   },
 });
