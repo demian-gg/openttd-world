@@ -36,7 +36,7 @@ export type ButtonsProps = {
 const TILE_SIZE = 48;
 
 /** The atlas layout: maps button type to row index (0-based). */
-const BUTTON_ROWS: Record<ButtonType, number> = {
+const buttonRows: Record<ButtonType, number> = {
   "save-disallowed": 0,
   "save-allowed": 1,
   "pan-mode": 2,
@@ -108,7 +108,7 @@ function renderSingleButton(
   y: number
 ): void {
   if (!atlas) return;
-  const row = BUTTON_ROWS[type];
+  const row = buttonRows[type];
   const col = buttonStates[type] === "idle" ? 0 : 1;
 
   drawAtlasSprite(

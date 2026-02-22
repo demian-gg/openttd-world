@@ -19,6 +19,21 @@ export type Store<T> = {
   readonly defaultValue?: T;
 };
 
+/** A type representing a store definition returned by defineStore. */
+export type StoreDefinition<T> = {
+  /** The store instance. */
+  store: Store<T>;
+
+  /** Initializes the store. Must be called before use. */
+  init: () => void;
+
+  /** Gets the store state. */
+  get: () => T;
+};
+
+/** A type representing a store registration for engine configuration. */
+export type StoreRegistration = () => void;
+
 /** The internal store mapping store IDs to values. */
 const storeValues = new Map<symbol, unknown>();
 
@@ -126,18 +141,6 @@ export function notifyStore<T>(store: Store<T>): void {
   }
 }
 
-/** A type representing a store definition returned by defineStore. */
-export type StoreDefinition<T> = {
-  /** The store instance. */
-  store: Store<T>;
-
-  /** Initializes the store. Must be called before use. */
-  init: () => void;
-
-  /** Gets the store state. */
-  get: () => T;
-};
-
 /**
  * Defines a new store with a consistent structure.
  *
@@ -156,9 +159,6 @@ export function defineStore<T>(initializer: () => T): StoreDefinition<T> {
     get: () => getStore(store),
   };
 }
-
-/** A type representing a store registration for engine configuration. */
-export type StoreRegistration = () => void;
 
 /**
  * Creates a store registration for engine configuration.

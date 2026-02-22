@@ -98,11 +98,11 @@ function getZoneName(code: number): string {
  */
 async function loadZoneMap(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const image = new Image();
 
-    img.onload = () => {
+    image.onload = () => {
       // Create offscreen canvas to extract pixel data.
-      const canvas = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
+      const canvas = new OffscreenCanvas(image.naturalWidth, image.naturalHeight);
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         reject(new Error("Failed to get canvas context"));
@@ -110,18 +110,18 @@ async function loadZoneMap(): Promise<void> {
       }
 
       // Extract image data for pixel sampling.
-      ctx.drawImage(img, 0, 0);
-      zoneMapData = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
-      mapWidth = img.naturalWidth;
-      mapHeight = img.naturalHeight;
+      ctx.drawImage(image, 0, 0);
+      zoneMapData = ctx.getImageData(0, 0, image.naturalWidth, image.naturalHeight);
+      mapWidth = image.naturalWidth;
+      mapHeight = image.naturalHeight;
       resolve();
     };
 
-    img.onerror = () => {
+    image.onerror = () => {
       reject(new Error("Failed to load zone map"));
     };
 
-    img.src = "/sprites/zone-map.png";
+    image.src = "/sprites/zone-map.png";
   });
 }
 
@@ -137,22 +137,22 @@ function sampleZoneCode(worldX: number, worldY: number): number {
   if (!zoneMapData) return 0;
 
   // Round to pixel coordinates.
-  const px = Math.floor(worldX);
-  const py = Math.floor(worldY);
+  const pixelX = Math.floor(worldX);
+  const pixelY = Math.floor(worldY);
 
-  // Bounds check.
-  if (px < 0 || px >= mapWidth || py < 0 || py >= mapHeight) {
+  // Check bounds.
+  if (pixelX < 0 || pixelX >= mapWidth || pixelY < 0 || pixelY >= mapHeight) {
     return 0;
   }
 
   // Get pixel index (RGBA, 4 bytes per pixel).
-  const idx = (py * mapWidth + px) * 4;
-  const r = zoneMapData.data[idx];
-  const g = zoneMapData.data[idx + 1];
-  const b = zoneMapData.data[idx + 2];
+  const index = (pixelY * mapWidth + pixelX) * 4;
+  const red = zoneMapData.data[index];
+  const green = zoneMapData.data[index + 1];
+  const blue = zoneMapData.data[index + 2];
 
   // Combine RGB to get zone code.
-  return (r << 16) | (g << 8) | b;
+  return (red << 16) | (green << 8) | blue;
 }
 
 /**

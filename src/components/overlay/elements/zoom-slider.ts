@@ -22,9 +22,6 @@ export type ZoomSliderProps = {
   scale?: number;
 };
 
-/** The slider sprite atlas instance. */
-let atlas: Sprite | null = null;
-
 /** The slider width in pixels. */
 const SLIDER_WIDTH = 26;
 
@@ -36,6 +33,9 @@ const KNOB_SIZE = 26;
 
 /** The track padding in pixels. */
 const TRACK_PADDING = 32;
+
+/** The slider sprite atlas instance. */
+let atlas: Sprite | null = null;
 
 /**
  * Zoom slider element definition.

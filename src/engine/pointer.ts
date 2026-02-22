@@ -68,8 +68,49 @@ export type PointerArea = {
   onScroll?: (x: number, y: number, deltaY: number) => void;
 };
 
+/** The minimum distance in game pixels to consider a drag vs click. */
+const DRAG_THRESHOLD = 2;
+
+/** The threshold for pinch scale change before firing scroll event. */
+const PINCH_THRESHOLD = 0.08;
+
 /** The registered pointer areas for the current frame. */
 let pointerAreas: PointerArea[] = [];
+
+/** The current drag state. */
+let dragState: {
+  area: PointerArea;
+  startX: number;
+  startY: number;
+  lastX: number;
+  lastY: number;
+  isDragging: boolean;
+} | null = null;
+
+/** The area that received the press event (for onRelease). */
+let pressedArea: PointerArea | null = null;
+
+/** The middle mouse button drag state (separate from left-click drag). */
+let middleDragState: {
+  area: PointerArea;
+  lastX: number;
+  lastY: number;
+} | null = null;
+
+/** Whether pointer listeners are attached. */
+let active = false;
+
+/** The pinch zoom state for two-finger touch gestures. */
+let pinchState: {
+  /** The distance between fingers at gesture start. */
+  initialDistance: number;
+  /** The center X of pinch in game coords. */
+  centerX: number;
+  /** The center Y of pinch in game coords. */
+  centerY: number;
+  /** The accumulated scale ratio since last scroll event fired. */
+  accumulatedScale: number;
+} | null = null;
 
 /**
  * Clears all registered pointer areas.
@@ -156,29 +197,6 @@ function findTopHitArea(x: number, y: number): PointerArea | null {
   }
   return null;
 }
-
-/** The minimum distance in game pixels to consider a drag vs click. */
-const DRAG_THRESHOLD = 2;
-
-/** The current drag state. */
-let dragState: {
-  area: PointerArea;
-  startX: number;
-  startY: number;
-  lastX: number;
-  lastY: number;
-  isDragging: boolean;
-} | null = null;
-
-/** The area that received the press event (for onRelease). */
-let pressedArea: PointerArea | null = null;
-
-/** The middle mouse button drag state (separate from left-click drag). */
-let middleDragState: {
-  area: PointerArea;
-  lastX: number;
-  lastY: number;
-} | null = null;
 
 /**
  * Handles mouse down event on the canvas.
@@ -344,24 +362,6 @@ function handleWheel(event: WheelEvent): void {
   }
 }
 
-/** Whether pointer listeners are attached. */
-let active = false;
-
-/** The pinch zoom state for two-finger touch gestures. */
-let pinchState: {
-  /** The distance between fingers at gesture start. */
-  initialDistance: number;
-  /** The center X of pinch in game coords. */
-  centerX: number;
-  /** The center Y of pinch in game coords. */
-  centerY: number;
-  /** The accumulated scale ratio since last scroll event fired. */
-  accumulatedScale: number;
-} | null = null;
-
-/** The threshold for pinch scale change before firing scroll event. */
-const PINCH_THRESHOLD = 0.08;
-
 /**
  * Calculates the distance between two touch points.
  *
@@ -402,7 +402,7 @@ function getTouchCenter(touches: TouchList): { x: number; y: number } {
  */
 function handleTouchStart(event: TouchEvent): void {
   if (event.touches.length === 1) {
-    // Single finger touch - behaves like mouse down for dragging.
+    // Handle single finger touch as mouse down for dragging.
     const touch = event.touches[0];
     const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
     const hitArea = findTopHitArea(x, y);
@@ -425,7 +425,7 @@ function handleTouchStart(event: TouchEvent): void {
       }
     }
   } else if (event.touches.length === 2) {
-    // Two fingers down - start pinch-to-zoom gesture.
+    // Start pinch-to-zoom gesture.
     // Prevent default to stop browser's native pinch zoom.
     event.preventDefault();
 
@@ -458,7 +458,7 @@ function handleTouchStart(event: TouchEvent): void {
  */
 function handleTouchMove(event: TouchEvent): void {
   if (event.touches.length === 1 && dragState) {
-    // Single finger moving - handle as drag (panning the map).
+    // Handle single finger moving as drag (panning the map).
     event.preventDefault();
     const touch = event.touches[0];
     const { x, y } = displayToGameCoords(touch.clientX, touch.clientY);
@@ -484,7 +484,7 @@ function handleTouchMove(event: TouchEvent): void {
       dragState.lastY = y;
     }
   } else if (event.touches.length === 2 && pinchState) {
-    // Two fingers moving - handle pinch-to-zoom.
+    // Handle two fingers moving as pinch-to-zoom.
     event.preventDefault();
 
     // Calculate how much the finger distance changed.
@@ -543,7 +543,7 @@ function handleTouchEnd(event: TouchEvent): void {
       pressedArea = null;
     }
 
-    // All fingers lifted - gesture complete.
+    // Complete gesture — all fingers lifted.
     if (dragState) {
       if (dragState.isDragging) {
         // Was dragging - fire drag end.
@@ -574,13 +574,13 @@ function handleEngineStarted(): void {
 
   const { canvas } = getCanvasContext();
 
-  // Mouse events.
+  // Register mouse events.
   canvas.addEventListener("mousedown", handlePointerDown);
   canvas.addEventListener("mousemove", handlePointerMove);
   canvas.addEventListener("mouseup", handlePointerUp);
   canvas.addEventListener("wheel", handleWheel, { passive: false });
 
-  // Touch events (passive: false allows preventDefault for pinch-zoom).
+  // Register touch events (passive: false allows preventDefault for pinch-zoom).
   canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
   canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
   canvas.addEventListener("touchend", handleTouchEnd);
@@ -599,13 +599,13 @@ function handleEngineStopped(): void {
 
   const { canvas } = getCanvasContext();
 
-  // Mouse events.
+  // Remove mouse events.
   canvas.removeEventListener("mousedown", handlePointerDown);
   canvas.removeEventListener("mousemove", handlePointerMove);
   canvas.removeEventListener("mouseup", handlePointerUp);
   canvas.removeEventListener("wheel", handleWheel);
 
-  // Touch events.
+  // Remove touch events.
   canvas.removeEventListener("touchstart", handleTouchStart);
   canvas.removeEventListener("touchmove", handleTouchMove);
   canvas.removeEventListener("touchend", handleTouchEnd);

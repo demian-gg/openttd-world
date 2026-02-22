@@ -55,6 +55,9 @@ export function defineElement<P>(lifecycle: ElementLifecycle<P>): Element<P> {
 
 /**
  * Loads multiple elements in parallel.
+ * 
+ * The array uses `any` because parent components load heterogeneous elements
+ * whose concrete prop types are not known at this call site.
  *
  * @param elements - Array of elements to load.
  *
@@ -62,5 +65,5 @@ export function defineElement<P>(lifecycle: ElementLifecycle<P>): Element<P> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadElements(elements: Element<any>[]): Promise<void> {
-  await Promise.all(elements.map((e) => e.load?.()));
+  await Promise.all(elements.map((element) => element.load?.()));
 }

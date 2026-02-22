@@ -30,14 +30,14 @@ export type ResolutionStepperProps = {
   color?: string;
 };
 
+/** The tile size in the atlas. */
+const TILE_SIZE = 18;
+
 /** The atlas sprite instance. */
 let atlas: Sprite | null = null;
 
 /** The font instance. */
 let font: BitmapFont | null = null;
-
-/** The tile size in the atlas. */
-const TILE_SIZE = 18;
 
 /**
  * Resolution stepper element definition.

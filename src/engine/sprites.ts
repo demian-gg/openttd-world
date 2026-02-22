@@ -210,14 +210,14 @@ export function drawSprite(
   color?: string
 ): void {
   // Round position and size to integers for crisp pixels.
-  const px = Math.round(x);
-  const py = Math.round(y);
-  const w = Math.round(sprite.width * scale);
-  const h = Math.round(sprite.height * scale);
+  const pixelX = Math.round(x);
+  const pixelY = Math.round(y);
+  const scaledWidth = Math.round(sprite.width * scale);
+  const scaledHeight = Math.round(sprite.height * scale);
 
   // If no color, draw directly.
   if (!color) {
-    ctx.drawImage(sprite.image, px, py, w, h);
+    ctx.drawImage(sprite.image, pixelX, pixelY, scaledWidth, scaledHeight);
     return;
   }
 
@@ -226,7 +226,7 @@ export function drawSprite(
   recolor.clearRect(0, 0, sprite.width, sprite.height);
   recolor.drawImage(sprite.image, 0, 0);
   applyColorTint(sprite.width, sprite.height, color);
-  drawFromRecolorCanvas(ctx, sprite.width, sprite.height, px, py, w, h);
+  drawFromRecolorCanvas(ctx, sprite.width, sprite.height, pixelX, pixelY, scaledWidth, scaledHeight);
 }
 
 /**
@@ -252,10 +252,10 @@ export function drawAtlasSprite(
   color?: string
 ): void {
   // Round position and size to integers for crisp pixels.
-  const px = Math.round(x);
-  const py = Math.round(y);
-  const w = Math.round(region.width * scale);
-  const h = Math.round(region.height * scale);
+  const pixelX = Math.round(x);
+  const pixelY = Math.round(y);
+  const scaledWidth = Math.round(region.width * scale);
+  const scaledHeight = Math.round(region.height * scale);
 
   // If no color, draw directly.
   if (!color) {
@@ -265,10 +265,10 @@ export function drawAtlasSprite(
       region.y,
       region.width,
       region.height,
-      px,
-      py,
-      w,
-      h
+      pixelX,
+      pixelY,
+      scaledWidth,
+      scaledHeight
     );
     return;
   }
@@ -288,6 +288,6 @@ export function drawAtlasSprite(
     region.height
   );
   applyColorTint(region.width, region.height, color);
-  drawFromRecolorCanvas(ctx, region.width, region.height, px, py, w, h);
+  drawFromRecolorCanvas(ctx, region.width, region.height, pixelX, pixelY, scaledWidth, scaledHeight);
 }
 

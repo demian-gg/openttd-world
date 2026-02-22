@@ -49,18 +49,18 @@ const MAX_AREA_KM_SQ = 10_000_000;
  * Uses Bresenham's line algorithm for pixel-perfect diagonal lines.
  *
  * @param ctx - The rendering context.
- * @param x1 - The start X coordinate.
- * @param y1 - The start Y coordinate.
- * @param x2 - The end X coordinate.
- * @param y2 - The end Y coordinate.
+ * @param startX - The start X coordinate.
+ * @param startY - The start Y coordinate.
+ * @param endX - The end X coordinate.
+ * @param endY - The end Y coordinate.
  * @param color - The line color.
  */
 function drawDashedLine(
   ctx: RenderContext,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
   color: string
 ): void {
   const DASH_LENGTH = 4;
@@ -68,16 +68,16 @@ function drawDashedLine(
 
   ctx.fillStyle = color;
 
-  let x = Math.round(x1);
-  let y = Math.round(y1);
-  const endX = Math.round(x2);
-  const endY = Math.round(y2);
+  let x = Math.round(startX);
+  let y = Math.round(startY);
+  const roundedEndX = Math.round(endX);
+  const roundedEndY = Math.round(endY);
 
-  const dx = Math.abs(endX - x);
-  const dy = Math.abs(endY - y);
-  const sx = x < endX ? 1 : -1;
-  const sy = y < endY ? 1 : -1;
-  let err = dx - dy;
+  const deltaX = Math.abs(roundedEndX - x);
+  const deltaY = Math.abs(roundedEndY - y);
+  const stepX = x < roundedEndX ? 1 : -1;
+  const stepY = y < roundedEndY ? 1 : -1;
+  let error = deltaX - deltaY;
 
   let pixelCount = 0;
   const dashCycle = DASH_LENGTH + GAP_LENGTH;
@@ -88,16 +88,16 @@ function drawDashedLine(
     }
     pixelCount++;
 
-    if (x === endX && y === endY) break;
+    if (x === roundedEndX && y === roundedEndY) break;
 
-    const e2 = 2 * err;
-    if (e2 > -dy) {
-      err -= dy;
-      x += sx;
+    const doubledError = 2 * error;
+    if (doubledError > -deltaY) {
+      error -= deltaY;
+      x += stepX;
     }
-    if (e2 < dx) {
-      err += dx;
-      y += sy;
+    if (doubledError < deltaX) {
+      error += deltaX;
+      y += stepY;
     }
   }
 }
@@ -110,45 +110,45 @@ function drawDashedLine(
  * @returns The skewed corner positions.
  */
 function calculateSkewedCorners(bounds: SelectionBounds): {
-  tlX: number;
-  tlY: number;
-  trX: number;
-  trY: number;
-  brX: number;
-  brY: number;
-  blX: number;
-  blY: number;
+  topLeftX: number;
+  topLeftY: number;
+  topRightX: number;
+  topRightY: number;
+  bottomRightX: number;
+  bottomRightY: number;
+  bottomLeftX: number;
+  bottomLeftY: number;
 } {
   const { startX, startY, endX, endY } = bounds;
 
   // Calculate size (enforce 1:1 ratio).
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const size = Math.max(Math.abs(dx), Math.abs(dy));
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
+  const size = Math.max(Math.abs(deltaX), Math.abs(deltaY));
 
   // Determine direction.
-  const dirX = dx >= 0 ? 1 : -1;
-  const dirY = dy >= 0 ? 1 : -1;
+  const directionX = deltaX >= 0 ? 1 : -1;
+  const directionY = deltaY >= 0 ? 1 : -1;
 
   // Calculate selection rectangle dimensions.
-  const selX = startX;
-  const selY = startY;
-  const selWidth = size * dirX;
-  const selHeight = size * dirY;
+  const selectionX = startX;
+  const selectionY = startY;
+  const selWidth = size * directionX;
+  const selHeight = size * directionY;
 
   // Calculate skew factor.
   const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
 
   // Calculate skewed corner positions.
   return {
-    tlX: selX,
-    tlY: selY,
-    trX: selX + selWidth,
-    trY: selY,
-    brX: selX + selWidth + selHeight * skewFactor,
-    brY: selY + selHeight,
-    blX: selX + selHeight * skewFactor,
-    blY: selY + selHeight,
+    topLeftX: selectionX,
+    topLeftY: selectionY,
+    topRightX: selectionX + selWidth,
+    topRightY: selectionY,
+    bottomRightX: selectionX + selWidth + selHeight * skewFactor,
+    bottomRightY: selectionY + selHeight,
+    bottomLeftX: selectionX + selHeight * skewFactor,
+    bottomLeftY: selectionY + selHeight,
   };
 }
 
@@ -164,25 +164,29 @@ function renderSelectionBorder(
   bounds: SelectionBounds,
   borderColor: string = "white"
 ): void {
-  const { tlX, tlY, trX, trY, brX, brY, blX, blY } =
-    calculateSkewedCorners(bounds);
+  const {
+    topLeftX, topLeftY,
+    topRightX, topRightY,
+    bottomRightX, bottomRightY,
+    bottomLeftX, bottomLeftY,
+  } = calculateSkewedCorners(bounds);
 
   // Draw all four edges with shadow and white line.
   const edges: [number, number, number, number][] = [
-    [tlX, tlY, trX, trY],
-    [trX, trY, brX, brY],
-    [brX, brY, blX, blY],
-    [blX, blY, tlX, tlY],
+    [topLeftX, topLeftY, topRightX, topRightY],
+    [topRightX, topRightY, bottomRightX, bottomRightY],
+    [bottomRightX, bottomRightY, bottomLeftX, bottomLeftY],
+    [bottomLeftX, bottomLeftY, topLeftX, topLeftY],
   ];
 
   // Draw shadows first.
-  for (const [x1, y1, x2, y2] of edges) {
-    drawDashedLine(ctx, x1 + 1, y1 + 1, x2 + 1, y2 + 1, "rgba(0, 0, 0, 0.5)");
+  for (const [startX, startY, endX, endY] of edges) {
+    drawDashedLine(ctx, startX + 1, startY + 1, endX + 1, endY + 1, "rgba(0, 0, 0, 0.5)");
   }
 
   // Draw borders.
-  for (const [x1, y1, x2, y2] of edges) {
-    drawDashedLine(ctx, x1, y1, x2, y2, borderColor);
+  for (const [startX, startY, endX, endY] of edges) {
+    drawDashedLine(ctx, startX, startY, endX, endY, borderColor);
   }
 }
 
@@ -198,17 +202,21 @@ function renderSelectionCutout(
   bounds: SelectionBounds,
   borderColor: string = "white"
 ): void {
-  const { tlX, tlY, trX, trY, brX, brY, blX, blY } =
-    calculateSkewedCorners(bounds);
+  const {
+    topLeftX, topLeftY,
+    topRightX, topRightY,
+    bottomRightX, bottomRightY,
+    bottomLeftX, bottomLeftY,
+  } = calculateSkewedCorners(bounds);
 
   // Cut out selection from overlay.
   ctx.globalCompositeOperation = "destination-out";
   ctx.fillStyle = "white";
   ctx.beginPath();
-  ctx.moveTo(tlX, tlY);
-  ctx.lineTo(trX, trY);
-  ctx.lineTo(brX, brY);
-  ctx.lineTo(blX, blY);
+  ctx.moveTo(topLeftX, topLeftY);
+  ctx.lineTo(topRightX, topRightY);
+  ctx.lineTo(bottomRightX, bottomRightY);
+  ctx.lineTo(bottomLeftX, bottomLeftY);
   ctx.closePath();
   ctx.fill();
 
@@ -240,9 +248,9 @@ function getMaxSizePixels(spriteWidth: number): number {
  */
 function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
   const { startX, startY, endX, endY } = bounds;
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const sizePixels = Math.max(Math.abs(dx), Math.abs(dy));
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
+  const sizePixels = Math.max(Math.abs(deltaX), Math.abs(deltaY));
   const maxSizePixels = getMaxSizePixels(spriteWidth);
   // Use small tolerance for floating point comparison.
   return sizePixels >= maxSizePixels - 0.5;
@@ -330,16 +338,16 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
           const bounds = selectionStore.getBounds();
           if (bounds) {
             const maxSize = getMaxSizePixels(spriteWidth);
-            const dx = world.x - bounds.startX;
-            const dy = world.y - bounds.startY;
-            const size = Math.max(Math.abs(dx), Math.abs(dy));
+            const deltaX = world.x - bounds.startX;
+            const deltaY = world.y - bounds.startY;
+            const size = Math.max(Math.abs(deltaX), Math.abs(deltaY));
 
             if (size > maxSize) {
               // Clamp to max size while preserving direction.
-              const dirX = dx >= 0 ? 1 : -1;
-              const dirY = dy >= 0 ? 1 : -1;
-              world.x = bounds.startX + maxSize * dirX;
-              world.y = bounds.startY + maxSize * dirY;
+              const directionX = deltaX >= 0 ? 1 : -1;
+              const directionY = deltaY >= 0 ? 1 : -1;
+              world.x = bounds.startX + maxSize * directionX;
+              world.y = bounds.startY + maxSize * directionY;
             }
           }
 
@@ -355,13 +363,13 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
             const { startX, startY, endX, endY } = bounds;
 
             // Calculate adjusted end position (same logic as rendering).
-            const dx = endX - startX;
-            const dy = endY - startY;
-            const size = Math.max(Math.abs(dx), Math.abs(dy));
-            const dirX = dx >= 0 ? 1 : -1;
-            const dirY = dy >= 0 ? 1 : -1;
-            const adjustedEndX = startX + size * dirX;
-            const adjustedEndY = startY + size * dirY;
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const size = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+            const directionX = deltaX >= 0 ? 1 : -1;
+            const directionY = deltaY >= 0 ? 1 : -1;
+            const adjustedEndX = startX + size * directionX;
+            const adjustedEndY = startY + size * directionY;
 
             // Find geometric center of selection.
             const geometricCenterX = (startX + adjustedEndX) / 2;
@@ -369,7 +377,7 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
 
             // Account for skew: the visual center is offset horizontally.
             // At mid-height, the skew offset is (height/2) * skewFactor.
-            const selHeight = size * dirY;
+            const selHeight = size * directionY;
             const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
             const skewOffset = (selHeight / 2) * skewFactor;
             const centerX = geometricCenterX + skewOffset;
@@ -378,9 +386,9 @@ export const { init: initSelectionComponent } = defineComponent<ComponentProps>(
           }
         },
 
-        // Middle mouse button for panning in select mode.
-        onMiddleDrag: (_x, _y, dx, dy) => {
-          worldMapStore.pan(dx, dy);
+        // Handle middle mouse button for panning in select mode.
+        onMiddleDrag: (_x, _y, deltaX, deltaY) => {
+          worldMapStore.pan(deltaX, deltaY);
         },
 
         // Allow scroll to zoom even in select mode.

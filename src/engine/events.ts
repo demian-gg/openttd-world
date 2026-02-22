@@ -22,7 +22,7 @@ class EventEmitter {
     eventClass: EventClass<T>,
     callback: (event: T) => void
   ): () => void {
-    const listener = (e: Event) => callback(e as T);
+    const listener = (event: Event) => callback(event as T);
     this.target.addEventListener(eventClass.type, listener);
     return () => this.target.removeEventListener(eventClass.type, listener);
   }
@@ -32,12 +32,6 @@ class EventEmitter {
     this.target.dispatchEvent(event);
   }
 }
-
-/** The event bus for canvas-related events. */
-export const canvasEvents = new EventEmitter();
-
-/** The event bus for engine lifecycle events. */
-export const engineEvents = new EventEmitter();
 
 /** A class representing an event fired when canvas resolution changes. */
 export class CanvasResizedEvent extends Event {
@@ -85,3 +79,9 @@ export class EngineStoppedEvent extends Event {
     super(EngineStoppedEvent.type);
   }
 }
+
+/** The event bus for canvas-related events. */
+export const canvasEvents = new EventEmitter();
+
+/** The event bus for engine lifecycle events. */
+export const engineEvents = new EventEmitter();

@@ -16,9 +16,6 @@ import { isSmall } from "../../../engine/utils";
 import { getOverlayStore } from "../../../stores/overlay";
 import { getSelectionStore } from "../../../stores/selection";
 
-/** The hint text to display. */
-const HINT_TEXT = "Click and drag to select an area";
-
 /** A type representing props for the selection hint element. */
 export type SelectionHintProps = {
   /** The optional scale factor. */
@@ -27,6 +24,9 @@ export type SelectionHintProps = {
   /** The optional text color. */
   color?: string;
 };
+
+/** The hint text to display. */
+const HINT_TEXT = "Click and drag to select an area";
 
 /** The font instance. */
 let font: BitmapFont | null = null;

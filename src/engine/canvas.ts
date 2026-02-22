@@ -51,6 +51,15 @@ export type CanvasContext = {
   resolution: CanvasResolution;
 };
 
+/** A type representing configuration for canvas initialization. */
+export type CanvasConfig = {
+  /** The HTML canvas element to render into. */
+  canvas: HTMLCanvasElement;
+
+  /** The optional resolution configuration. */
+  resolution?: CanvasResolutionConfig;
+};
+
 /** The singleton canvas context, null until initializeCanvas is called. */
 let context: CanvasContext | null = null;
 
@@ -102,15 +111,6 @@ function applyCanvasResolution(
   // Disable smoothing for crisp pixel art.
   ctx.imageSmoothingEnabled = false;
 }
-
-/** A type representing configuration for canvas initialization. */
-export type CanvasConfig = {
-  /** The HTML canvas element to render into. */
-  canvas: HTMLCanvasElement;
-
-  /** The optional resolution configuration. */
-  resolution?: CanvasResolutionConfig;
-};
 
 /**
  * Initializes the canvas with the provided configuration.

@@ -30,7 +30,7 @@ export type WorldMapStoreState = {
   getOffsetY: () => number;
 
   /** Pans the map by a delta. */
-  pan: (dx: number, dy: number) => void;
+  pan: (deltaX: number, deltaY: number) => void;
 
   /** Centers the map on a world position (in sprite pixels). */
   centerOnWorld: (worldX: number, worldY: number) => void;
@@ -48,8 +48,20 @@ export type WorldMapStoreState = {
   getSpriteSize: () => { width: number; height: number };
 };
 
+/** A type representing animation state. */
+type Animation = {
+  id: number;
+  startTime: number;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  startZoom: number;
+  targetZoom: number;
+};
+
 /** The viewport width breakpoints mapped to minimum zoom levels. */
-const MIN_ZOOM_BREAKPOINTS: [number, number][] = [
+const minZoomBreakpoints: [number, number][] = [
   [BREAKPOINT_SMALL, 2], // Mobile
   [BREAKPOINT_TABLET, 2], // Tablet
   [BREAKPOINT_DESKTOP, 2.5], // Desktop
@@ -87,18 +99,6 @@ let viewportWidth = 0;
 /** The viewport height in pixels. */
 let viewportHeight = 0;
 
-/** A type representing animation state. */
-type Animation = {
-  id: number;
-  startTime: number;
-  startX: number;
-  startY: number;
-  targetX: number;
-  targetY: number;
-  startZoom: number;
-  targetZoom: number;
-};
-
 /** The current animation state, or null if not animating. */
 let animation: Animation | null = null;
 
@@ -110,23 +110,23 @@ let animation: Animation | null = null;
  * @returns The minimum zoom level.
  */
 function getMinZoomForViewport(width: number): number {
-  for (const [breakpoint, minZoom] of MIN_ZOOM_BREAKPOINTS) {
+  for (const [breakpoint, minZoom] of minZoomBreakpoints) {
     if (width <= breakpoint) {
       return minZoom;
     }
   }
-  return MIN_ZOOM_BREAKPOINTS[MIN_ZOOM_BREAKPOINTS.length - 1][1];
+  return minZoomBreakpoints[minZoomBreakpoints.length - 1][1];
 }
 
 /**
  * Applies ease-out cubic interpolation for smooth deceleration.
  *
- * @param t - The interpolation parameter (0-1).
+ * @param progress - The interpolation parameter (0-1).
  *
  * @returns The eased value.
  */
-function easeOutCubic(t: number): number {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutCubic(progress: number): number {
+  return 1 - Math.pow(1 - progress, 3);
 }
 
 /**
@@ -198,10 +198,10 @@ export const {
   getOffsetY() {
     return offsetY;
   },
-  pan(dx: number, dy: number) {
+  pan(deltaX: number, deltaY: number) {
     // Apply delta to offset.
-    offsetX += dx;
-    offsetY += dy;
+    offsetX += deltaX;
+    offsetY += deltaY;
     clampOffset();
     notifyStore(WorldMapStore);
   },
@@ -212,7 +212,7 @@ export const {
       animation = null;
     }
 
-    // Target zoom is max zoom.
+    // Set target zoom to max zoom.
     const targetZoom = MAX_ZOOM;
 
     // Calculate target offset at the target zoom level.
@@ -231,7 +231,7 @@ export const {
       targetZoom: targetZoom,
     };
 
-    // Animation loop.
+    // Run animation loop.
     const animate = (currentTime: number) => {
       if (!animation) return;
 

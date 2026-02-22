@@ -36,8 +36,8 @@ export function createState<T>(initial: T): State<T> {
   let value = initial;
   return {
     get: () => value,
-    set: (v: T) => {
-      value = v;
+    set: (newValue: T) => {
+      value = newValue;
     },
   };
 }
@@ -88,6 +88,15 @@ export type ComponentDefinition<P extends ComponentProps> = {
   init: (props: P) => void;
 };
 
+/** A type representing a component registration tuple for engine configuration. */
+// The generic default uses `any` because engine config arrays hold heterogeneous
+// component registrations whose concrete prop types are not known statically.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ComponentRegistration<P extends ComponentProps = any> = [
+  (props: P) => void,
+  P
+];
+
 /** The registered component instances. */
 const instances: ComponentInstance<ComponentProps>[] = [];
 
@@ -127,7 +136,7 @@ export function defineComponent<P extends ComponentProps>(
  * @returns Promise that resolves when all components are loaded.
  */
 export async function loadComponents(): Promise<void> {
-  await Promise.all(instances.map((c) => c.lifecycle.load?.()));
+  await Promise.all(instances.map((instance) => instance.lifecycle.load?.()));
 }
 
 /**
@@ -186,13 +195,6 @@ export function getComponents(): Array<{
       instance.lifecycle.render(ctx, instance.props),
   }));
 }
-
-/** A type representing a component registration tuple for engine configuration. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ComponentRegistration<P extends ComponentProps = any> = [
-  (props: P) => void,
-  P
-];
 
 /**
  * Creates a type-safe component registration for engine configuration.

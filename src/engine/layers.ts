@@ -197,17 +197,17 @@ export function setLayerSize(id: number, width: number, height: number): void {
 }
 
 // Self-register on engine setup.
-engineEvents.on(EngineSetupEvent, (e) => {
-  currentResolution = e.resolution;
+engineEvents.on(EngineSetupEvent, (setupEvent) => {
+  currentResolution = setupEvent.resolution;
 
   // Subscribe to canvas resize events.
-  canvasEvents.on(CanvasResizedEvent, (e) => {
-    currentResolution = e.resolution;
+  canvasEvents.on(CanvasResizedEvent, (resizedEvent) => {
+    currentResolution = resizedEvent.resolution;
 
     for (const layer of layers.values()) {
       // Resize to match new viewport.
-      layer.canvas.width = e.resolution.width;
-      layer.canvas.height = e.resolution.height;
+      layer.canvas.width = resizedEvent.resolution.width;
+      layer.canvas.height = resizedEvent.resolution.height;
 
       // Re-disable smoothing after resize.
       layer.ctx.imageSmoothingEnabled = false;

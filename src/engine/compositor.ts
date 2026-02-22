@@ -32,7 +32,7 @@ function compositeFrame(): void {
   // Group components by layer.
   const byLayer = Map.groupBy(
     components,
-    (c) => c.props.layer ?? DEFAULT_LAYER
+    (component) => component.props.layer ?? DEFAULT_LAYER
   );
 
   // Ensure layers exist.
@@ -47,7 +47,7 @@ function compositeFrame(): void {
   const layers = getLayers();
 
   // Skip compositing if nothing changed.
-  const needsWork = layers.some((l) => l.dirty || l.moved);
+  const needsWork = layers.some((layer) => layer.dirty || layer.moved);
   if (!needsWork) return;
 
   // Clear main canvas with background.

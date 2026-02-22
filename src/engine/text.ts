@@ -195,14 +195,14 @@ function drawTextDirect(
     }
 
     // Calculate source position in the sprite atlas.
-    const srcX = (charIndex % charsPerRow) * charWidth;
-    const srcY = Math.floor(charIndex / charsPerRow) * charHeight;
+    const sourceX = (charIndex % charsPerRow) * charWidth;
+    const sourceY = Math.floor(charIndex / charsPerRow) * charHeight;
 
     // Draw the character with scaling.
     ctx.drawImage(
       image,
-      srcX,
-      srcY,
+      sourceX,
+      sourceY,
       charWidth,
       charHeight,
       Math.floor(cursorX),

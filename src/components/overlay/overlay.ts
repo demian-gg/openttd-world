@@ -34,7 +34,7 @@ const MARGIN = 32;
 const MOBILE_MARGIN = 16;
 
 /** The shadow configuration for overlay elements. */
-const OVERLAY_SHADOW: ShadowConfig = {
+const overlayShadow: ShadowConfig = {
   color: "rgba(0, 0, 0, 0.5)",
   blur: 12,
   offsetX: 3,
@@ -177,11 +177,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
       logoY,
       logoSize.width,
       logoSize.height,
-      OVERLAY_SHADOW,
+      overlayShadow,
       (shadowContext) => {
         Logo.render(shadowContext, {
-          x: OVERLAY_SHADOW.padding,
-          y: OVERLAY_SHADOW.padding,
+          x: overlayShadow.padding,
+          y: overlayShadow.padding,
         });
       }
     );
@@ -196,11 +196,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
       zoneNameY,
       zoneNameSize.width,
       zoneNameSize.height,
-      OVERLAY_SHADOW,
+      overlayShadow,
       (shadowContext) => {
         ZoneName.render(shadowContext, {
-          x: OVERLAY_SHADOW.padding,
-          y: OVERLAY_SHADOW.padding,
+          x: overlayShadow.padding,
+          y: overlayShadow.padding,
         });
       }
     );
@@ -215,11 +215,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
       resolutionY,
       resolutionSize.width,
       resolutionSize.height,
-      OVERLAY_SHADOW,
+      overlayShadow,
       (shadowContext) => {
         ResolutionStepper.render(shadowContext, {
-          x: OVERLAY_SHADOW.padding,
-          y: OVERLAY_SHADOW.padding,
+          x: overlayShadow.padding,
+          y: overlayShadow.padding,
           layer: props.layer,
         });
       }
@@ -234,11 +234,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
       pos.y,
       buttonSize.width,
       buttonSize.height,
-      OVERLAY_SHADOW,
+      overlayShadow,
       (shadowContext) => {
         Buttons.render(shadowContext, {
-          x: OVERLAY_SHADOW.padding,
-          y: OVERLAY_SHADOW.padding,
+          x: overlayShadow.padding,
+          y: overlayShadow.padding,
           layer: props.layer,
         });
       }
@@ -256,11 +256,11 @@ export const { init: initOverlayComponent } = defineComponent<ComponentProps>({
         zoomSliderY,
         zoomSliderSize.width,
         zoomSliderSize.height,
-        OVERLAY_SHADOW,
+        overlayShadow,
         (shadowContext) => {
           ZoomSlider.render(shadowContext, {
-            x: OVERLAY_SHADOW.padding,
-            y: OVERLAY_SHADOW.padding,
+            x: overlayShadow.padding,
+            y: overlayShadow.padding,
           });
         }
       );

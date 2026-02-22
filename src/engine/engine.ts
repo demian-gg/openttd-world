@@ -97,9 +97,9 @@ export async function startEngine(config: EngineConfig): Promise<EngineState> {
   };
 
   // Subscribe to canvas resize events to update engine state.
-  canvasEvents.on(CanvasResizedEvent, (e) => {
+  canvasEvents.on(CanvasResizedEvent, (event) => {
     if (!state) return;
-    state.resolution = e.resolution;
+    state.resolution = event.resolution;
   });
 
   // Emit setup event so modules can self-register.

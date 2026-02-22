@@ -88,8 +88,8 @@ export const { init: initWorldMapComponent } = defineComponent<ComponentProps>({
       height: resolution.height,
       layer,
       cursor: "move",
-      onDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
-      onMiddleDrag: (_x, _y, dx, dy) => store.pan(dx, dy),
+      onDrag: (_x, _y, deltaX, deltaY) => store.pan(deltaX, deltaY),
+      onMiddleDrag: (_x, _y, deltaX, deltaY) => store.pan(deltaX, deltaY),
       onScroll: (x, y, deltaY) => store.zoomAtPoint(x, y, deltaY),
       onHover: (x, y) => {
         getZoneStore().updateFromScreenPosition(
