@@ -10,16 +10,9 @@ import { getZoneStore } from "../../../stores/zone";
 
 /** A type representing props for the zone name element. */
 export type ZoneNameProps = {
-  /** The X position in pixels. */
   x: number;
-
-  /** The Y position in pixels. */
   y: number;
-
-  /** The optional scale factor. */
   scale?: number;
-
-  /** The optional text color. */
   color?: string;
 };
 

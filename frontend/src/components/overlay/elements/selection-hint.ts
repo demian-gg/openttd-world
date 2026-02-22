@@ -13,10 +13,7 @@ import { getSelectionStore } from "../../../stores/selection";
 
 /** A type representing props for the selection hint element. */
 export type SelectionHintProps = {
-  /** The optional scale factor. */
   scale?: number;
-
-  /** The optional text color. */
   color?: string;
 };
 

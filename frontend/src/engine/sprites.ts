@@ -19,38 +19,22 @@ import type { RenderContext } from "./canvas";
 
 /** A type representing a loaded sprite image ready for rendering. */
 export type Sprite = {
-  /** The loaded image element. */
   image: HTMLImageElement;
-
-  /** The width of the sprite in pixels. */
   width: number;
-
-  /** The height of the sprite in pixels. */
   height: number;
 };
 
 /** A type representing a region within a sprite atlas. */
 export type SpriteRegion = {
-  /** The X offset in the atlas, in pixels. */
   x: number;
-
-  /** The Y offset in the atlas, in pixels. */
   y: number;
-
-  /** The width of the region in pixels. */
   width: number;
-
-  /** The height of the region in pixels. */
   height: number;
 };
 
-/** The cache of loaded sprites keyed by source path. */
 const spriteCache = new Map<string, Sprite>();
 
-/** The temporary recoloring canvas for sprite colorization. */
 let recolorCanvas: OffscreenCanvas | null = null;
-
-/** The temporary recoloring canvas context. */
 let recolorContext: OffscreenCanvasRenderingContext2D | null = null;
 
 /**

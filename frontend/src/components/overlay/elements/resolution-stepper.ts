@@ -13,16 +13,9 @@ import { getResolutionStore } from "../../../stores/resolution";
 
 /** A type representing props for the resolution stepper element. */
 export type ResolutionStepperProps = {
-  /** The X position in pixels. */
   x: number;
-
-  /** The Y position in pixels. */
   y: number;
-
-  /** The layer for rendering. */
   layer: number;
-
-  /** The optional text color. */
   color?: string;
 };
 

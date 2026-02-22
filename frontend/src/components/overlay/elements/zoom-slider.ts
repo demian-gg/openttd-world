@@ -12,13 +12,8 @@ import { getWorldMapStore } from "../../../stores/world-map";
 
 /** A type representing props for the zoom slider element. */
 export type ZoomSliderProps = {
-  /** The X position in pixels. */
   x: number;
-
-  /** The Y position in pixels. */
   y: number;
-
-  /** The optional scale factor. */
   scale?: number;
 };
 

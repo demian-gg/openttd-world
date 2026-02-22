@@ -10,18 +10,13 @@ import { screenToWorld } from "../engine/utils";
 
 /** A type representing zone store state. */
 export type ZoneStoreState = {
-  /** Loads the zone map image. */
   load: () => Promise<void>;
-
-  /** Updates the hovered zone based on screen coordinates. */
   updateFromScreenPosition: (
     screenX: number,
     screenY: number,
     viewportWidth: number,
     viewportHeight: number
   ) => void;
-
-  /** Gets the currently hovered zone name. */
   getZoneName: () => string;
 };
 

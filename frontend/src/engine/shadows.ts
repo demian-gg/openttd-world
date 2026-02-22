@@ -26,10 +26,7 @@ export type ShadowConfig = {
   padding: number;
 };
 
-/** The reusable offscreen canvas for shadow rendering. */
 let shadowCanvas: OffscreenCanvas | null = null;
-
-/** The rendering context for the shadow canvas. */
 let shadowContext: OffscreenCanvasRenderingContext2D | null = null;
 
 /**

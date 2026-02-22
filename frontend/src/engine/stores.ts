@@ -12,22 +12,14 @@ export type StoreSubscriber<T> = (value: T) => void;
 
 /** A type representing store definition with unique identifier and optional default. */
 export type Store<T> = {
-  /** The unique identifier for this store. */
   readonly id: symbol;
-
-  /** The default value if no provider is found. */
   readonly defaultValue?: T;
 };
 
 /** A type representing a store definition returned by defineStore. */
 export type StoreDefinition<T> = {
-  /** The store instance. */
   store: Store<T>;
-
-  /** Initializes the store. Must be called before use. */
   init: () => void;
-
-  /** Gets the store state. */
   get: () => T;
 };
 

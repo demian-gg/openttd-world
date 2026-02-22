@@ -13,13 +13,8 @@ export type Resolution = (typeof RESOLUTIONS)[number];
 
 /** A type representing resolution store state. */
 export type ResolutionStoreState = {
-  /** Gets the current resolution. */
   getResolution: () => Resolution;
-
-  /** Sets the resolution by value. */
   setResolution: (resolution: Resolution) => void;
-
-  /** Steps up to the next resolution. */
   stepUp: () => void;
 };
 

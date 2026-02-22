@@ -4,13 +4,8 @@ import { defineElement } from "../../../engine/elements";
 
 /** A type representing props for the logo element. */
 export type LogoProps = {
-  /** The X position in pixels. */
   x: number;
-
-  /** The Y position in pixels. */
   y: number;
-
-  /** The optional scale factor. */
   scale?: number;
 };
 

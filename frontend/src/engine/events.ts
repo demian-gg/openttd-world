@@ -9,10 +9,8 @@ type EventClass<T extends Event> = {
 
 /** A typed event emitter with a nicer API than EventTarget. */
 class EventEmitter {
-  /** The underlying event target. */
   private target = new EventTarget();
 
-  /** Subscribes to an event. */
   on<T extends Event>(
     eventClass: EventClass<T>,
     callback: (event: T) => void
@@ -22,7 +20,6 @@ class EventEmitter {
     return () => this.target.removeEventListener(eventClass.type, listener);
   }
 
-  /** Emits an event. */
   emit(event: Event): void {
     this.target.dispatchEvent(event);
   }
@@ -30,10 +27,8 @@ class EventEmitter {
 
 /** A class representing an event fired when canvas resolution changes. */
 export class CanvasResizedEvent extends Event {
-  /** The event type identifier. */
   static readonly type = "canvasResized";
 
-  /** Creates a new canvas resized event. */
   constructor(public readonly resolution: CanvasResolution) {
     super(CanvasResizedEvent.type);
   }
@@ -41,10 +36,8 @@ export class CanvasResizedEvent extends Event {
 
 /** A class representing an event fired when engine setup completes. */
 export class EngineSetupEvent extends Event {
-  /** The event type identifier. */
   static readonly type = "engineSetup";
 
-  /** Creates a new engine setup event. */
   constructor(
     public readonly config: EngineConfig,
     public readonly resolution: CanvasResolution
@@ -55,10 +48,8 @@ export class EngineSetupEvent extends Event {
 
 /** A class representing an event fired when the engine starts. */
 export class EngineStartedEvent extends Event {
-  /** The event type identifier. */
   static readonly type = "engineStarted";
 
-  /** Creates a new engine started event. */
   constructor() {
     super(EngineStartedEvent.type);
   }
@@ -66,17 +57,12 @@ export class EngineStartedEvent extends Event {
 
 /** A class representing an event fired when the engine stops. */
 export class EngineStoppedEvent extends Event {
-  /** The event type identifier. */
   static readonly type = "engineStopped";
 
-  /** Creates a new engine stopped event. */
   constructor() {
     super(EngineStoppedEvent.type);
   }
 }
 
-/** The event bus for canvas-related events. */
 export const canvasEvents = new EventEmitter();
-
-/** The event bus for engine lifecycle events. */
 export const engineEvents = new EventEmitter();

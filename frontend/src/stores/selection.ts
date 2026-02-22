@@ -2,16 +2,9 @@ import { defineStore, StoreDefinition, notifyStore } from "../engine/stores";
 
 /** A type representing selection bounds in world coordinates. */
 export type SelectionBounds = {
-  /** The start X in world pixels. */
   startX: number;
-
-  /** The start Y in world pixels. */
   startY: number;
-
-  /** The end X in world pixels. */
   endX: number;
-
-  /** The end Y in world pixels. */
   endY: number;
 };
 

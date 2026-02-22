@@ -16,10 +16,7 @@ export type ComponentProps = {
 
 /** A type representing a state container returned by createState. */
 export type State<T> = {
-  /** Gets the current value. */
   get: () => T;
-
-  /** Sets a new value. */
   set: (value: T) => void;
 };
 
@@ -72,19 +69,13 @@ export type ComponentLifecycle<P extends ComponentProps> = {
 
 /** A type representing an internal component instance. */
 type ComponentInstance<P extends ComponentProps> = {
-  /** The component props. */
   props: P;
-
-  /** The lifecycle hooks. */
   lifecycle: ComponentLifecycle<P>;
-
-  /** Whether this component needs its update() called. */
   needsUpdate: boolean;
 };
 
 /** A type representing a component definition returned by defineComponent. */
 export type ComponentDefinition<P extends ComponentProps> = {
-  /** Initializes and registers a component instance. */
   init: (props: P) => void;
 };
 

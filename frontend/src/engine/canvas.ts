@@ -2,10 +2,7 @@ import { canvasEvents, CanvasResizedEvent } from "./events";
 
 /** A type representing configuration for computing canvas resolution. */
 export type CanvasResolutionConfig = {
-  /** The maximum internal render width in game pixels. */
   maxWidth?: number;
-
-  /** The maximum internal render height in game pixels. */
   maxHeight?: number;
 };
 
@@ -15,10 +12,7 @@ export type CanvasResolutionConfig = {
  * Canvas is always 1:1 with screen pixels for crisp rendering.
  */
 export type CanvasResolution = {
-  /** The canvas width in pixels. */
   width: number;
-
-  /** The canvas height in pixels. */
   height: number;
 };
 
@@ -36,22 +30,14 @@ export type RenderContext =
  * Contains the canvas element, 2D context, and current resolution.
  */
 export type CanvasContext = {
-  /** The HTML canvas element. */
   canvas: HTMLCanvasElement;
-
-  /** The 2D rendering context. */
   context: CanvasRenderingContext2D;
-
-  /** The current computed resolution. */
   resolution: CanvasResolution;
 };
 
 /** A type representing configuration for canvas initialization. */
 export type CanvasConfig = {
-  /** The HTML canvas element to render into. */
   canvas: HTMLCanvasElement;
-
-  /** The optional resolution configuration. */
   resolution?: CanvasResolutionConfig;
 };
 

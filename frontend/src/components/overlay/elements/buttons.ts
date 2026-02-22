@@ -15,16 +15,9 @@ export type ButtonType =
 
 /** A type representing props for the buttons element. */
 export type ButtonsProps = {
-  /** The X position in pixels. */
   x: number;
-
-  /** The Y position in pixels. */
   y: number;
-
-  /** The layer for rendering. */
   layer: number;
-
-  /** The optional spacing between buttons. */
   spacing?: number;
 };
 
