@@ -13,9 +13,6 @@ export type OverlayStoreState = {
   /** Gets the current interaction mode. */
   getInteractionMode: () => InteractionMode;
 
-  /** Sets the interaction mode. */
-  setInteractionMode: (mode: InteractionMode) => void;
-
   /** Toggles between pan and select modes. */
   toggleInteractionMode: () => void;
 };
@@ -33,10 +30,6 @@ export const {
 }: StoreDefinition<OverlayStoreState> = defineStore(() => ({
   getInteractionMode() {
     return interactionMode;
-  },
-  setInteractionMode(mode: InteractionMode) {
-    interactionMode = mode;
-    notifyStore(OverlayStore);
   },
   toggleInteractionMode() {
     interactionMode = interactionMode === "pan" ? "select" : "pan";

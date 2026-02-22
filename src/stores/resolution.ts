@@ -21,17 +21,11 @@ export type ResolutionStoreState = {
   /** Gets the current resolution. */
   getResolution: () => Resolution;
 
-  /** Gets the current resolution index. */
-  getResolutionIndex: () => number;
-
   /** Sets the resolution by value. */
   setResolution: (resolution: Resolution) => void;
 
   /** Steps up to the next resolution. */
   stepUp: () => void;
-
-  /** Steps down to the previous resolution. */
-  stepDown: () => void;
 };
 
 /** The current resolution index. */
@@ -48,9 +42,6 @@ export const {
   getResolution() {
     return RESOLUTIONS[currentIndex];
   },
-  getResolutionIndex() {
-    return currentIndex;
-  },
   setResolution(resolution: Resolution) {
     const index = RESOLUTIONS.indexOf(resolution);
     if (index !== -1) {
@@ -60,10 +51,6 @@ export const {
   },
   stepUp() {
     currentIndex = (currentIndex + 1) % RESOLUTIONS.length;
-    notifyStore(ResolutionStore);
-  },
-  stepDown() {
-    currentIndex = (currentIndex - 1 + RESOLUTIONS.length) % RESOLUTIONS.length;
     notifyStore(ResolutionStore);
   },
 }));

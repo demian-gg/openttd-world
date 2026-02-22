@@ -80,38 +80,6 @@ export function getStore<T>(store: Store<T>): T {
 }
 
 /**
- * Checks if a store has been provided.
- *
- * @param store - The store to check.
- *
- * @returns True if the store has a provided value.
- */
-export function hasStore<T>(store: Store<T>): boolean {
-  return storeValues.has(store.id);
-}
-
-/**
- * Clears a store value.
- *
- * Useful for cleanup when a provider component unmounts.
- *
- * @param store - The store to clear.
- */
-export function clearStore<T>(store: Store<T>): void {
-  storeValues.delete(store.id);
-}
-
-/**
- * Clears all store values.
- *
- * Useful for resetting state between scenes or tests.
- */
-export function clearAllStores(): void {
-  storeValues.clear();
-  storeSubscribers.clear();
-}
-
-/**
  * Subscribes to store changes.
  *
  * The callback will be invoked whenever notifyStore() is called for this store.

@@ -9,7 +9,6 @@
 
 import {
   engineEvents,
-  EngineSetupEvent,
   EngineStartedEvent,
   EngineStoppedEvent,
 } from "./events";
@@ -621,8 +620,6 @@ function handleEngineStopped(): void {
   active = false;
 }
 
-// Self-register on engine setup.
-engineEvents.on(EngineSetupEvent, () => {
-  engineEvents.on(EngineStartedEvent, handleEngineStarted);
-  engineEvents.on(EngineStoppedEvent, handleEngineStopped);
-});
+// Self-register on engine lifecycle.
+engineEvents.on(EngineStartedEvent, handleEngineStarted);
+engineEvents.on(EngineStoppedEvent, handleEngineStopped);

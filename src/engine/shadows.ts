@@ -8,8 +8,6 @@
 
 import type { RenderContext } from "./canvas";
 
-export type { RenderContext };
-
 /** A type representing shadow rendering configuration. */
 export type ShadowConfig = {
   /** The shadow color. */

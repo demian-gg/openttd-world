@@ -5,7 +5,7 @@
  */
 
 import { defineComponent, ComponentProps } from "../engine/components";
-import { RenderContext } from "../engine/sprites";
+import { RenderContext } from "../engine/canvas";
 import { getEngineState } from "../engine/engine";
 import { getResponsiveValue } from "../engine/utils";
 

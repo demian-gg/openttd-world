@@ -36,9 +36,6 @@ export type SelectionStoreState = {
 
   /** Finishes the selection. */
   endSelection: () => void;
-
-  /** Clears the current selection. */
-  clearSelection: () => void;
 };
 
 /** Whether user is currently selecting. */
@@ -78,12 +75,6 @@ export const {
 
   endSelection() {
     selecting = false;
-    notifyStore(SelectionStore);
-  },
-
-  clearSelection() {
-    selecting = false;
-    bounds = null;
     notifyStore(SelectionStore);
   },
 }));

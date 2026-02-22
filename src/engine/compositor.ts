@@ -6,7 +6,6 @@
 import { getEngineState, isEngineRunning } from "./engine";
 import {
   engineEvents,
-  EngineSetupEvent,
   EngineStartedEvent,
   EngineStoppedEvent,
 } from "./events";
@@ -122,8 +121,6 @@ function handleEngineStopped(): void {
   window.removeEventListener("resize", handleCompositorResize);
 }
 
-// Self-register on engine setup.
-engineEvents.on(EngineSetupEvent, () => {
-  engineEvents.on(EngineStartedEvent, handleEngineStarted);
-  engineEvents.on(EngineStoppedEvent, handleEngineStopped);
-});
+// Self-register on engine lifecycle.
+engineEvents.on(EngineStartedEvent, handleEngineStarted);
+engineEvents.on(EngineStoppedEvent, handleEngineStopped);

@@ -20,7 +20,7 @@ export type WorldMapStoreState = {
   /** Gets the normalized zoom level (0-1). */
   getZoomNormalized: () => number;
 
-  /** Sets the normalized zoom level (0-1). */
+  /** Sets the normalized zoom level (0-1). Used by the zoom slider. */
   setZoomNormalized: (level: number) => void;
 
   /** Gets the X offset from center. */

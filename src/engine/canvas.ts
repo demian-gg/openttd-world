@@ -5,9 +5,6 @@
 
 import { canvasEvents, CanvasResizedEvent } from "./events";
 
-// Re-export events for convenience.
-export { canvasEvents, CanvasResizedEvent };
-
 /** A type representing configuration for computing canvas resolution. */
 export type CanvasResolutionConfig = {
   /** The maximum internal render width in game pixels. */

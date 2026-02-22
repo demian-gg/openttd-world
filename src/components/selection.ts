@@ -8,7 +8,7 @@ import {
   ComponentProps,
   markComponentForUpdate,
 } from "../engine/components";
-import { RenderContext } from "../engine/sprites";
+import { RenderContext } from "../engine/canvas";
 import { getEngineState } from "../engine/engine";
 import { registerPointerArea } from "../engine/pointer";
 import { subscribeStore } from "../engine/stores";
@@ -18,8 +18,13 @@ import {
   setLayerScale,
   setLayerSize,
 } from "../engine/layers";
+import { screenToWorld } from "../engine/utils";
 import { getOverlayStore, OverlayStore } from "../stores/overlay";
-import { getSelectionStore, SelectionStore } from "../stores/selection";
+import {
+  getSelectionStore,
+  SelectionStore,
+  SelectionBounds,
+} from "../stores/selection";
 import { getWorldMapStore, WorldMapStore } from "../stores/world-map";
 import { getZoneStore } from "../stores/zone";
 
@@ -37,21 +42,6 @@ const EARTH_CIRCUMFERENCE_KM = 40075;
 
 /** The maximum selection area in km². */
 const MAX_AREA_KM_SQ = 10_000_000;
-
-/** A type representing selection bounds. */
-type SelectionBounds = {
-  /** The start X coordinate. */
-  startX: number;
-
-  /** The start Y coordinate. */
-  startY: number;
-
-  /** The end X coordinate. */
-  endX: number;
-
-  /** The end Y coordinate. */
-  endY: number;
-};
 
 /**
  * Draws a dashed line using filled pixels (no anti-aliasing).
@@ -256,43 +246,6 @@ function isAtMaxSize(bounds: SelectionBounds, spriteWidth: number): boolean {
   const maxSizePixels = getMaxSizePixels(spriteWidth);
   // Use small tolerance for floating point comparison.
   return sizePixels >= maxSizePixels - 0.5;
-}
-
-/**
- * Converts screen coordinates to world coordinates (pixels in the sprite).
- *
- * Accounts for zoom, centering, and offset.
- *
- * @param screenX - The screen X coordinate.
- * @param screenY - The screen Y coordinate.
- * @param viewportWidth - The viewport width.
- * @param viewportHeight - The viewport height.
- *
- * @returns The world coordinates.
- */
-function screenToWorld(
-  screenX: number,
-  screenY: number,
-  viewportWidth: number,
-  viewportHeight: number
-): { x: number; y: number } {
-  const store = getWorldMapStore();
-  const zoom = store.getZoom();
-  const offsetX = store.getOffsetX();
-  const offsetY = store.getOffsetY();
-  const { width: spriteWidth, height: spriteHeight } = store.getSpriteSize();
-
-  // Calculate where the map is drawn on screen (matching compositor logic).
-  const scaledWidth = spriteWidth * zoom;
-  const scaledHeight = spriteHeight * zoom;
-  const mapX = Math.round((viewportWidth - scaledWidth) / 2) + offsetX;
-  const mapY = Math.round((viewportHeight - scaledHeight) / 2) + offsetY;
-
-  // Convert screen position to world position.
-  const worldX = (screenX - mapX) / zoom;
-  const worldY = (screenY - mapY) / zoom;
-
-  return { x: worldX, y: worldY };
 }
 
 /**

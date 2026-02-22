@@ -133,13 +133,6 @@ export function dirtyLayer(id: number): void {
   }
 }
 
-/** Marks all layers as dirty. */
-export function dirtyAllLayers(): void {
-  for (const layer of layers.values()) {
-    layer.dirty = true;
-  }
-}
-
 /**
  * Clears a layer's canvas.
  *
@@ -149,35 +142,6 @@ export function clearLayer(id: number): void {
   const layer = layers.get(id);
   if (layer) {
     layer.ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
-  }
-}
-
-/**
- * Sets layer opacity.
- *
- * @param id - The layer z-index.
- * @param opacity - Opacity value (0-1).
- */
-export function setLayerOpacity(id: number, opacity: number): void {
-  const layer = layers.get(id);
-  if (layer) {
-    layer.opacity = Math.max(0, Math.min(1, opacity));
-  }
-}
-
-/**
- * Sets layer blend mode.
- *
- * @param id - The layer z-index.
- * @param blendMode - The blend mode to use.
- */
-export function setLayerBlendMode(
-  id: number,
-  blendMode: GlobalCompositeOperation
-): void {
-  const layer = layers.get(id);
-  if (layer) {
-    layer.blendMode = blendMode;
   }
 }
 

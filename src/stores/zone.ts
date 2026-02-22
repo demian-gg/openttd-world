@@ -6,7 +6,7 @@
  */
 
 import { defineStore, StoreDefinition, notifyStore } from "../engine/stores";
-import { getWorldMapStore } from "./world-map";
+import { screenToWorld } from "../engine/utils";
 
 /** A type representing zone store state. */
 export type ZoneStoreState = {
@@ -23,9 +23,6 @@ export type ZoneStoreState = {
 
   /** Gets the currently hovered zone name. */
   getZoneName: () => string;
-
-  /** Clears the current zone (e.g., when pointer leaves). */
-  clearZone: () => void;
 };
 
 /** The debounce delay in milliseconds. */
@@ -129,41 +126,6 @@ async function loadZoneMap(): Promise<void> {
 }
 
 /**
- * Converts screen coordinates to world (sprite) coordinates.
- *
- * @param screenX - The screen X coordinate.
- * @param screenY - The screen Y coordinate.
- * @param viewportWidth - The viewport width.
- * @param viewportHeight - The viewport height.
- *
- * @returns The world coordinates.
- */
-function screenToWorld(
-  screenX: number,
-  screenY: number,
-  viewportWidth: number,
-  viewportHeight: number
-): { x: number; y: number } {
-  const store = getWorldMapStore();
-  const zoom = store.getZoom();
-  const offsetX = store.getOffsetX();
-  const offsetY = store.getOffsetY();
-  const { width: spriteWidth, height: spriteHeight } = store.getSpriteSize();
-
-  // Calculate where the map is drawn on screen.
-  const scaledWidth = spriteWidth * zoom;
-  const scaledHeight = spriteHeight * zoom;
-  const mapX = Math.round((viewportWidth - scaledWidth) / 2) + offsetX;
-  const mapY = Math.round((viewportHeight - scaledHeight) / 2) + offsetY;
-
-  // Convert screen position to world position.
-  const worldX = (screenX - mapX) / zoom;
-  const worldY = (screenY - mapY) / zoom;
-
-  return { x: worldX, y: worldY };
-}
-
-/**
  * Samples the zone map at the given world coordinates.
  *
  * @param worldX - The world X coordinate.
@@ -249,12 +211,5 @@ export const {
 
   getZoneName() {
     return currentZoneName;
-  },
-
-  clearZone() {
-    if (currentZoneName !== "") {
-      currentZoneName = "";
-      notifyStore(ZoneStore);
-    }
   },
 }));

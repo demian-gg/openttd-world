@@ -17,8 +17,6 @@
 
 import type { RenderContext } from "./canvas";
 
-export type { RenderContext };
-
 /** A type representing a loaded sprite image ready for rendering. */
 export type Sprite = {
   /** The loaded image element. */
@@ -192,18 +190,6 @@ export async function loadSprite(src: string): Promise<Sprite> {
 }
 
 /**
- * Loads multiple sprites in parallel.
- *
- * @param sources - Array of paths or URLs to sprite image files.
- *
- * @returns Promise resolving to array of loaded sprites.
- */
-export async function loadSprites(sources: string[]): Promise<Sprite[]> {
-  // Load all sprites concurrently.
-  return Promise.all(sources.map(loadSprite));
-}
-
-/**
  * Draws a sprite to the canvas at the specified position.
  *
  * Destination size is rounded to integers for crisp pixel art.
@@ -305,12 +291,3 @@ export function drawAtlasSprite(
   drawFromRecolorCanvas(ctx, region.width, region.height, px, py, w, h);
 }
 
-/**
- * Clears the sprite cache, releasing all loaded images.
- *
- * Use when unloading a level or scene to free memory.
- */
-export function clearSpriteCache(): void {
-  // Clear all cached sprites.
-  spriteCache.clear();
-}

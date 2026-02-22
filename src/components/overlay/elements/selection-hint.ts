@@ -3,7 +3,7 @@
  * Displays a hint message when in select mode with no selection.
  */
 
-import { RenderContext } from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
 import {
   BitmapFont,
   loadFont,

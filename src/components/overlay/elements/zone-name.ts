@@ -4,7 +4,7 @@
  * Displays the name of the currently hovered zone.
  */
 
-import { RenderContext } from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
 import {
   BitmapFont,
   loadFont,

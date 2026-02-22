@@ -2,12 +2,8 @@
  * Logo overlay element.
  */
 
-import {
-  loadSprite,
-  drawSprite,
-  Sprite,
-  RenderContext,
-} from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
+import { loadSprite, drawSprite, Sprite } from "../../../engine/sprites";
 import { defineElement } from "../../../engine/elements";
 
 /** A type representing props for the logo element. */

@@ -4,12 +4,8 @@
  * Renders the world map sprite.
  */
 
-import {
-  loadSprite,
-  drawSprite,
-  Sprite,
-  RenderContext,
-} from "../engine/sprites";
+import { RenderContext } from "../engine/canvas";
+import { loadSprite, drawSprite, Sprite } from "../engine/sprites";
 import {
   defineComponent,
   ComponentProps,

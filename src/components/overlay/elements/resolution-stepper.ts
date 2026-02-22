@@ -2,12 +2,8 @@
  * Resolution stepper overlay element.
  */
 
-import {
-  loadSprite,
-  drawAtlasSprite,
-  Sprite,
-  RenderContext,
-} from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
+import { loadSprite, drawAtlasSprite, Sprite } from "../../../engine/sprites";
 import {
   BitmapFont,
   loadFont,

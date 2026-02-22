@@ -1,13 +1,12 @@
 /**
  * Zoom slider overlay element.
+ *
+ * Currently display-only — shows the current zoom level but does not
+ * register pointer areas for interaction.
  */
 
-import {
-  loadSprite,
-  drawAtlasSprite,
-  Sprite,
-  RenderContext,
-} from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
+import { loadSprite, drawAtlasSprite, Sprite } from "../../../engine/sprites";
 import { defineElement } from "../../../engine/elements";
 import { getWorldMapStore } from "../../../stores/world-map";
 

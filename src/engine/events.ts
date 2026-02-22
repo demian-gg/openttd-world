@@ -21,8 +21,10 @@ class EventEmitter {
   on<T extends Event>(
     eventClass: EventClass<T>,
     callback: (event: T) => void
-  ): void {
-    this.target.addEventListener(eventClass.type, (e) => callback(e as T));
+  ): () => void {
+    const listener = (e: Event) => callback(e as T);
+    this.target.addEventListener(eventClass.type, listener);
+    return () => this.target.removeEventListener(eventClass.type, listener);
   }
 
   /** Emits an event. */

@@ -2,12 +2,8 @@
  * Buttons overlay element.
  */
 
-import {
-  loadSprite,
-  drawAtlasSprite,
-  Sprite,
-  RenderContext,
-} from "../../../engine/sprites";
+import { RenderContext } from "../../../engine/canvas";
+import { loadSprite, drawAtlasSprite, Sprite } from "../../../engine/sprites";
 import { defineElement } from "../../../engine/elements";
 import { registerPointerArea } from "../../../engine/pointer";
 import { dirtyLayer } from "../../../engine/layers";

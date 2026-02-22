@@ -171,13 +171,6 @@ export function markComponentForUpdate(props: ComponentProps): void {
   }
 }
 
-/** Marks all components for update on the next frame. */
-export function markAllComponentsForUpdate(): void {
-  for (const instance of instances) {
-    instance.needsUpdate = true;
-  }
-}
-
 /**
  * Gets all registered component instances for rendering.
  *
@@ -192,15 +185,6 @@ export function getComponents(): Array<{
     render: (ctx: RenderContext) =>
       instance.lifecycle.render(ctx, instance.props),
   }));
-}
-
-/**
- * Clears all registered components.
- *
- * Useful for cleanup between scenes or tests.
- */
-export function clearComponents(): void {
-  instances.length = 0;
 }
 
 /** A type representing a component registration tuple for engine configuration. */

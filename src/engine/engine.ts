@@ -17,7 +17,6 @@ import {
   engineEvents,
   EngineSetupEvent,
   EngineStartedEvent,
-  EngineStoppedEvent,
 } from "./events";
 
 // Import modules for side-effect registration.
@@ -25,14 +24,6 @@ import "./layers";
 import "./compositor";
 import "./pointer";
 import "./stores";
-
-// Re-export events for convenience.
-export {
-  engineEvents,
-  EngineSetupEvent,
-  EngineStartedEvent,
-  EngineStoppedEvent,
-};
 
 /**
  * A type representing configuration passed to the engine setup function.
@@ -147,18 +138,3 @@ export function isEngineRunning(): boolean {
   return running;
 }
 
-/**
- * Stops the engine.
- *
- * Emits EngineStoppedEvent for listeners like the compositor.
- */
-export function stopEngine(): void {
-  // Skip if already stopped.
-  if (!running) return;
-
-  // Update running state.
-  running = false;
-
-  // Emit stopped event.
-  engineEvents.emit(new EngineStoppedEvent());
-}

@@ -3,6 +3,7 @@
  */
 
 import { getEngineState } from "./engine";
+import { getWorldMapStore } from "../stores/world-map";
 
 /** Breakpoint for small devices (phones). */
 export const BREAKPOINT_SMALL = 640;
@@ -26,7 +27,7 @@ export const BREAKPOINT_ULTRA_WIDE = 1920;
  *
  * @returns True if viewport width is at or below the breakpoint.
  */
-export function isAtBreakpoint(breakpoint: number): boolean {
+function isAtBreakpoint(breakpoint: number): boolean {
   const { resolution } = getEngineState();
   return resolution.width <= breakpoint;
 }
@@ -38,24 +39,6 @@ export function isAtBreakpoint(breakpoint: number): boolean {
  */
 export function isSmall(): boolean {
   return isAtBreakpoint(BREAKPOINT_SMALL);
-}
-
-/**
- * Checks if the current viewport is a tablet or smaller.
- *
- * @returns True if the viewport width is at or below the tablet breakpoint.
- */
-export function isTablet(): boolean {
-  return isAtBreakpoint(BREAKPOINT_TABLET);
-}
-
-/**
- * Checks if the current viewport is desktop or smaller.
- *
- * @returns True if the viewport width is at or below the desktop breakpoint.
- */
-export function isDesktop(): boolean {
-  return isAtBreakpoint(BREAKPOINT_DESKTOP);
 }
 
 /**
@@ -91,4 +74,41 @@ export function getResponsiveValue<T>(values: {
   }
 
   return values.default;
+}
+
+/**
+ * Converts screen coordinates to world (sprite) coordinates.
+ *
+ * Accounts for zoom, centering, and offset.
+ *
+ * @param screenX - The screen X coordinate.
+ * @param screenY - The screen Y coordinate.
+ * @param viewportWidth - The viewport width.
+ * @param viewportHeight - The viewport height.
+ *
+ * @returns The world coordinates.
+ */
+export function screenToWorld(
+  screenX: number,
+  screenY: number,
+  viewportWidth: number,
+  viewportHeight: number
+): { x: number; y: number } {
+  const store = getWorldMapStore();
+  const zoom = store.getZoom();
+  const offsetX = store.getOffsetX();
+  const offsetY = store.getOffsetY();
+  const { width: spriteWidth, height: spriteHeight } = store.getSpriteSize();
+
+  // Calculate where the map is drawn on screen.
+  const scaledWidth = spriteWidth * zoom;
+  const scaledHeight = spriteHeight * zoom;
+  const mapX = Math.round((viewportWidth - scaledWidth) / 2) + offsetX;
+  const mapY = Math.round((viewportHeight - scaledHeight) / 2) + offsetY;
+
+  // Convert screen position to world position.
+  const worldX = (screenX - mapX) / zoom;
+  const worldY = (screenY - mapY) / zoom;
+
+  return { x: worldX, y: worldY };
 }

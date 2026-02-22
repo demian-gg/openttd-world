@@ -8,7 +8,7 @@ import {
   ComponentProps,
   markComponentForUpdate,
 } from "../../engine/components";
-import { RenderContext } from "../../engine/sprites";
+import { RenderContext } from "../../engine/canvas";
 import { getEngineState } from "../../engine/engine";
 import { subscribeStore } from "../../engine/stores";
 import { dirtyLayer } from "../../engine/layers";
