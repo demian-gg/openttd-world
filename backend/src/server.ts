@@ -12,11 +12,6 @@ app.use(express.json());
 // Parse URL-encoded bodies.
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint.
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
-
 // Error handling middleware.
 app.use(
   (

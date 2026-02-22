@@ -28,7 +28,7 @@ primary_region = 'fra'
     timeout = '2s'
     grace_period = '5s'
     method = 'get'
-    path = '/health'
+    path = '/'
 
 [[vm]]
   memory = '256mb'
