@@ -51,42 +51,60 @@ First, ensure you have the right tools installed:
 - Node.js `>20.0.0`.
 - NPM `>10.0.0`.
 
-Then, install dependencies:
+Next, run `npm install` in the following directories:
+
+- `/` - Root workspace, installs dependencies for orchestration scripts.
+- `/frontend` - Frontend workspace, installs Vite and TypeScript.
+- `/backend` - Backend workspace, installs Express and TypeScript.
+
+Finally, run the development environment:
 
 ```bash
-npm install
-```
-
-Finally, run the development server:
-
-```bash
+# Start both frontend and backend on port 3000 and 3001.
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`.
+You may also run individual services by passing a flag:
+
+```bash
+npm run dev -- --backend   # Run backend only.
+npm run dev -- --frontend  # Run frontend only.
+```
 
 ### Deploying the production environment
 
-This subsection documents the process for deploying updates to the production environment using Fly.io. Understanding these steps ensures smooth releases and helps maintain consistency across deployments.
+This subsection documents the process for deploying updates to the production environment using Fly.io. Understanding these steps ensures smooth releases and helps maintain consistency across deployments. Each sub-package deploys from its own directory as a separate Fly.io app.
 
 First, ensure you have the Fly.io CLI set up:
 
 - Install via `curl -L https://fly.io/install.sh | sh`.
 - Authenticate with `fly auth login`.
 
-Then, only if the app hasn't been initialized yet, do so:
+Next, configure and deploy the **backend**:
 
 ```bash
-fly launch
-```
+cd backend
 
-Finally, deploy the app:
+# Initialize the Fly app (first time only).
+fly launch --no-deploy
 
-```bash
+# Deploy the backend.
 fly deploy
 ```
 
-For subsequent deployments, use the same command.
+Next, configure and deploy the **frontend**:
+
+```bash
+cd frontend
+
+# Initialize the Fly app (first time only).
+fly launch --no-deploy
+
+# Deploy the frontend.
+fly deploy
+```
+
+For subsequent deployments, run `fly deploy` in the respective sub-package directory.
 
 &nbsp;
 
