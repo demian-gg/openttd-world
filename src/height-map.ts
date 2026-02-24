@@ -1,6 +1,9 @@
 import { SelectionBounds } from "./stores/selection";
 import { getWorldMapStore } from "./stores/world-map";
 
+/** The skew angle in degrees, matching selection.ts. */
+const SKEW_ANGLE = -30;
+
 /** The cached heightmap image bitmap. */
 let heightmapImage: ImageBitmap | null = null;
 
@@ -17,7 +20,8 @@ async function loadHeightmap(): Promise<ImageBitmap> {
 }
 
 /**
- * Crops a region from the heightmap and downloads it as a PNG.
+ * Crops a skewed region from the heightmap, unskews it,
+ * and downloads the result as a PNG.
  *
  * @param bounds - The selection bounds in sprite pixel coords.
  *
@@ -37,51 +41,46 @@ export async function requestHeightmap(
   const size = Math.max(Math.abs(deltaX), Math.abs(deltaY));
   const directionX = deltaX >= 0 ? 1 : -1;
   const directionY = deltaY >= 0 ? 1 : -1;
-  const adjustedEndX = bounds.startX + size * directionX;
-  const adjustedEndY = bounds.startY + size * directionY;
-  const minX = Math.min(bounds.startX, adjustedEndX);
-  const maxX = Math.max(bounds.startX, adjustedEndX);
-  const minY = Math.min(bounds.startY, adjustedEndY);
-  const maxY = Math.max(bounds.startY, adjustedEndY);
 
-  // Scale from sprite pixel coords to heightmap pixel coords.
+  // Normalize to top-left origin with positive dimensions.
+  const selectionWidth = size * directionX;
+  const selectionHeight = size * directionY;
+  const topLeftX = Math.min(bounds.startX, bounds.startX + selectionWidth);
+  const topLeftY = Math.min(bounds.startY, bounds.startY + selectionHeight);
+  const width = Math.abs(selectionWidth);
+  const height = Math.abs(selectionHeight);
+
+  // Build an affine transform that maps the skewed parallelogram
+  // in heightmap pixel space to an unskewed rectangle on the canvas.
+  const skewFactor = Math.tan((SKEW_ANGLE * Math.PI) / 180);
   const scaleX = heightmap.width / spriteWidth;
   const scaleY = heightmap.height / spriteHeight;
-  const sourceX = Math.max(0, Math.round(minX * scaleX));
-  const sourceY = Math.max(0, Math.round(minY * scaleY));
-  const sourceWidth = Math.min(
-    Math.round((maxX - minX) * scaleX),
-    heightmap.width - sourceX
-  );
-  const sourceHeight = Math.min(
-    Math.round((maxY - minY) * scaleY),
-    heightmap.height - sourceY
-  );
+  const horizontalScale = resolution / width;
+  const counterSkew = -horizontalScale * skewFactor;
+  const verticalScale = resolution / height;
 
-  // Crop and scale to the requested resolution.
+  // Crop, unskew, and scale to the requested resolution.
   const canvas = new OffscreenCanvas(resolution, resolution);
   const context = canvas.getContext("2d")!;
   context.imageSmoothingEnabled = false;
-  context.drawImage(
-    heightmap,
-    sourceX,
-    sourceY,
-    sourceWidth,
-    sourceHeight,
+  context.setTransform(
+    horizontalScale / scaleX,
     0,
-    0,
-    resolution,
-    resolution
+    counterSkew / scaleY,
+    verticalScale / scaleY,
+    -horizontalScale * topLeftX - counterSkew * topLeftY,
+    -verticalScale * topLeftY
   );
+  context.drawImage(heightmap, 0, 0);
 
-  // Download the cropped heightmap as a PNG.
+  // Download the unskewed heightmap as a PNG.
   const blob = await canvas.convertToBlob({ type: "image/png" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `heightmap-${resolution}x${resolution}.png`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `heightmap-${resolution}x${resolution}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }

@@ -6,7 +6,7 @@ import { dirtyLayer } from "../../../engine/layers";
 import { getOverlayStore } from "../../../stores/overlay";
 import { getSelectionStore } from "../../../stores/selection";
 import { getResolutionStore } from "../../../stores/resolution";
-import { requestHeightmap } from "../../../heightmap";
+import { requestHeightmap } from "../../../height-map";
 
 /** Button types available in the atlas. */
 export type ButtonType =
