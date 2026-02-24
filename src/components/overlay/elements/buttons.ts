@@ -5,6 +5,8 @@ import { registerPointerArea } from "../../../engine/pointer";
 import { dirtyLayer } from "../../../engine/layers";
 import { getOverlayStore } from "../../../stores/overlay";
 import { getSelectionStore } from "../../../stores/selection";
+import { getResolutionStore } from "../../../stores/resolution";
+import { requestHeightmap } from "../../../heightmap";
 
 /** Button types available in the atlas. */
 export type ButtonType =
@@ -136,7 +138,13 @@ export const Buttons = defineElement<ButtonsProps>({
       getSaveButtonType(),
       props.x + TILE_SIZE + spacing,
       props.y,
-      props.layer
+      props.layer,
+      () => {
+        const bounds = getSelectionStore().getBounds();
+        if (!bounds) return;
+        const resolution = parseInt(getResolutionStore().getResolution());
+        requestHeightmap(bounds, resolution);
+      }
     );
   },
 
