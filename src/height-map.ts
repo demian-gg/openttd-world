@@ -8,7 +8,7 @@ const SKEW_ANGLE = -30;
 let heightmapImage: ImageBitmap | null = null;
 
 /** Loads and caches the heightmap image. */
-async function loadHeightmap(): Promise<ImageBitmap> {
+export async function loadHeightmap(): Promise<ImageBitmap> {
   // Return the cached image if available.
   if (heightmapImage) return heightmapImage;
 

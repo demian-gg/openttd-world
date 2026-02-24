@@ -8,6 +8,8 @@ import { initResolutionStore } from "./stores/resolution";
 import { initSelectionStore } from "./stores/selection";
 import { initZoneStore } from "./stores/zone";
 
+import { loadHeightmap } from "./height-map";
+
 import { initVignetteComponent } from "./components/vignette";
 import { initWorldMapComponent } from "./components/world-map";
 import { initSelectionComponent } from "./components/selection";
@@ -17,6 +19,9 @@ import { initOverlayComponent } from "./components/overlay/overlay";
  * Initializes and starts the application.
  */
 async function main(): Promise<void> {
+  // Preload the heightmap image.
+  loadHeightmap();
+
   // Create and attach canvas to DOM.
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
