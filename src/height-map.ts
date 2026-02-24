@@ -138,7 +138,8 @@ export async function requestHeightmap(
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `heightmap-${resolution}x${resolution}.png`;
+  const suffix = Math.random().toString(36).slice(2, 5);
+  link.download = `heightmap-${suffix}-${resolution}x${resolution}.png`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
