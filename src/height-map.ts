@@ -62,7 +62,10 @@ export async function requestHeightmap(
   // Crop, unskew, and scale to the requested resolution.
   const canvas = new OffscreenCanvas(resolution, resolution);
   const context = canvas.getContext("2d")!;
-  context.imageSmoothingEnabled = false;
+
+  // Draw with smooth interpolation so edges get anti-aliased gradients.
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
   context.setTransform(
     horizontalScale / scaleX,
     0,
@@ -72,6 +75,19 @@ export async function requestHeightmap(
     -verticalScale * topLeftY
   );
   context.drawImage(heightmap, 0, 0);
+
+  // Threshold interpolated pixels back to pure black/white.
+  // This turns the smooth gradients at edges into clean, straight boundaries.
+  context.resetTransform();
+  const imageData = context.getImageData(0, 0, resolution, resolution);
+  const pixels = imageData.data;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const value = pixels[i] >= 128 ? 255 : 0;
+    pixels[i] = value;
+    pixels[i + 1] = value;
+    pixels[i + 2] = value;
+  }
+  context.putImageData(imageData, 0, 0);
 
   // Download the unskewed heightmap as a PNG.
   const blob = await canvas.convertToBlob({ type: "image/png" });
