@@ -24,19 +24,16 @@ export async function loadHeightmap(): Promise<ImageBitmap> {
 }
 
 /**
- * Crops a skewed region from the heightmap, unskews it,
- * and downloads the result as a PNG.
+ * Crops a skewed region from the heightmap, unskews it, and downloads the 
+ * result as a PNG.
  *
- * Uses two-pass rendering: nearest-neighbor alone gives
- * sharp but jagged staircase edges; smooth interpolation
- * gives straight edges but blurs elevation values. Both
- * are combined: smooth interpolation for straight edge
- * placement, then each pixel is snapped to the nearest
- * discrete level discovered via nearest-neighbor, so
- * edges are both straight and sharp.
+ * Uses two-pass rendering: nearest-neighbor alone gives sharp but jagged 
+ * staircase edges; smooth interpolation gives straight edges but blurs 
+ * elevation values. Both are combined: smooth interpolation for straight edge
+ * placement, then each pixel is snapped to the nearest discrete level 
+ * discovered via nearest-neighbor, so edges are both straight and sharp.
  *
  * @param bounds - The selection bounds in sprite pixel coords.
- *
  * @param resolution - The output image size in pixels (square).
  */
 export async function requestHeightmap(
