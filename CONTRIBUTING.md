@@ -51,60 +51,39 @@ First, ensure you have the right tools installed:
 - Node.js `>20.0.0`.
 - NPM `>10.0.0`.
 
-Next, run `npm install` in the following directories:
+Next, install the project dependencies:
 
-- `/` - Root workspace, installs dependencies for orchestration scripts.
-- `/frontend` - Frontend workspace, installs Vite and TypeScript.
-- `/backend` - Backend workspace, installs Express and TypeScript.
+```bash
+npm install
+```
 
 Finally, run the development environment:
 
 ```bash
-# Start both frontend and backend on port 3000 and 3001.
+# Start the Vite development server.
 npm run dev
-```
-
-You may also run individual services by passing a flag:
-
-```bash
-npm run dev -- --backend   # Run backend only.
-npm run dev -- --frontend  # Run frontend only.
 ```
 
 ### Deploying the production environment
 
-This subsection documents the process for deploying updates to the production environment using Fly.io. Understanding these steps ensures smooth releases and helps maintain consistency across deployments. Each sub-package deploys from its own directory as a separate Fly.io app.
+This subsection documents the process for deploying updates to the production environment using Fly.io. Understanding these steps ensures smooth releases and helps maintain consistency across deployments.
 
 First, ensure you have the Fly.io CLI set up:
 
 - Install via `curl -L https://fly.io/install.sh | sh`.
 - Authenticate with `fly auth login`.
 
-Next, configure and deploy the **backend**:
+Next, configure and deploy the application:
 
 ```bash
-cd backend
-
 # Initialize the Fly app (first time only).
 fly launch --no-deploy
 
-# Deploy the backend.
+# Deploy the application.
 fly deploy
 ```
 
-Next, configure and deploy the **frontend**:
-
-```bash
-cd frontend
-
-# Initialize the Fly app (first time only).
-fly launch --no-deploy
-
-# Deploy the frontend.
-fly deploy
-```
-
-For subsequent deployments, run `fly deploy` in the respective sub-package directory.
+For subsequent deployments, run `fly deploy` from the repository root.
 
 &nbsp;
 
